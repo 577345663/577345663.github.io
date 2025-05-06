@@ -3,67 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Projects Link Tree</title>
+    <title>Welcome to EGGSHELLS</title> <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Basic styling to make it look decent */
+        /* --- EGGSHELLS Inspired CSS --- */
+
+        /* Basic Reset and Body Styling */
         body {
-            font-family: sans-serif;
+            font-family: 'Nunito', sans-serif; /* A friendly, slightly rounded font */
+            background-color: #F0EAD6; /* Light Eggshell Cream */
+            color: #4A4A4A; /* Dark grey for text */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Make sure it takes at least the full viewport height */
             line-height: 1.6;
-            margin: 20px;
+            flex-direction: column; /* Stack content vertically */
+        }
+
+        /* Container for the main content */
+        .container {
+            background-color: #FFFFFF; /* White inner background */
+            padding: 30px;
+            border-radius: 15px; /* Rounded corners like an egg */
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
             text-align: center;
+            max-width: 600px;
+            width: 90%;
         }
+
+        /* Styling for Headings */
         h1 {
-            color: #333;
+            color: #8B4513; /* Saddle Brown - earthy tone */
+            margin-bottom: 20px;
+            font-size: 2.5em;
         }
+
+        /* Styling for the list of links */
         ul {
-            list-style: none;
+            list-style: none; /* Remove default bullet points */
             padding: 0;
-            margin-top: 30px;
+            margin: 0;
         }
+
         li {
-            margin-bottom: 15px;
+            margin: 10px 0; /* Space between list items */
         }
+
+        /* Styling for Links */
         a {
-            display: block; /* Make the whole list item clickable area */
-            padding: 15px 20px;
-            background-color: #f0f0f0;
-            color: #007bff;
-            text-decoration: none;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            transition: background-color 0.3s ease;
+            display: block; /* Make links take their own line */
+            padding: 10px 15px;
+            color: #3498db; /* A friendly blue */
+            text-decoration: none; /* Remove default underline */
+            border: 2px solid #3498db; /* Border around links */
+            border-radius: 8px; /* Slightly rounded link borders */
+            transition: all 0.3s ease; /* Smooth transition for hover effects */
+            font-size: 1.2em;
         }
+
         a:hover {
-            background-color: #e9e9e9;
+            background-color: #3498db;
+            color: #FFFFFF;
+            border-color: #3498db;
         }
+
+        /* A quirky touch related to the number */
+        .quirky-text {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #A9A9A9; /* Dark Grey */
+            font-style: italic;
+        }
+
+        /* --- CSS code ends here --- */
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Welcome to My EGGSHELLS Site!</h1>
+        <p>Here are some links:</p>
 
-    <h1>577345663.xyz</h1>
+        <ul>
+            <li>
+                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">
+                    ESP Trainer
+                </a>
+            </li>
+            <li>
+                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">
+                    Hacked Terminal
+                </a>
+            </li>
+            <li>
+                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">
+                    Rune Fate
+                </a>
+            </li>
+            </ul>
 
-    <p>...check it out;</p>
-
-    <ul>
-        <li>
-            <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">
-                ESP Trainer
-            </a>
-        </li>
-        <li>
-            <a href="greenterm.html" target="_blank" rel="noopener noreferrer">
-                Hacked Terminal
-            </a>
-        </li>
-        <li>
-            <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">
-                Rune Fate
-            </a>
-        </li>
-
-        
-
-        </ul>
-
+        <p class="quirky-text">Built with 577345663 energy.</p>
+    </div>
 </body>
 </html>
