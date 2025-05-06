@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Green Terminal Text</title>
+    <style>
+        body {
+            background-color: black;
+            color: lime;
+            font-family: monospace;
+            white-space: pre;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            font-size: 18px; /* Larger font size */
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const characters = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;':\",./<>?\\`~" +
+                           "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ" +
+                           "░▒▓█▄▀▌▐■□▲▼▶◀◊○●◘◙◦";
+
+        function getRandomCharacter() {
+            return characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+
+        function generateLine() {
+            const lineLength = Math.floor(Math.random() * 80) + 20;
+            let line = "";
+            for (let i = 0; i < lineLength; i++) {
+                line += getRandomCharacter();
+            }
+            return line;
+        }
+
+        function addLine() {
+            const line = generateLine();
+            terminal.textContent += line + "\n";
+
+            terminal.scrollTop = terminal.scrollHeight;
+
+            if (terminal.textContent.split('\n').length > 50) {
+                const lines = terminal.textContent.split('\n');
+                terminal.textContent = lines.slice(1).join('\n');
+            }
+        }
+
+        function startTerminal() {
+            setInterval(addLine, 150); // Slower scroll (increased milliseconds)
+        }
+
+        startTerminal();
+    </script>
+</body>
+</html>

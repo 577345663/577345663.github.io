@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ESP Trainer</title>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            white-space: pre;
+            background-color: black;
+            color: lime;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        #gameOutput {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Intro Screen Text (Title Screen) */
+        #titleScreen {
+            font-size: 1.2em; /* 20% bigger overall for intro */
+        }
+
+        #titleScreen div { /* Ensure spacing within the intro remains */
+            margin-bottom: 0.2em;
+        }
+
+        #titleScreen div:first-child { /* Adjust top margin if needed */
+            margin-top: 0;
+        }
+
+        /* Game Screen Text */
+        .vibes-line {
+            font-size: 28.8px; /* 20% bigger than 24px */
+            margin-bottom: 12px;
+        }
+
+        .round-line {
+            font-size: 33.6px; /* 20% bigger than 28px */
+            margin-bottom: 18px;
+        }
+
+        .instruction-line {
+            font-size: 38.4px; /* 20% bigger than 32px */
+            margin-bottom: 24px;
+        }
+
+        .symbol-line {
+            font-size: 86.4px; /* 20% bigger than 72px */
+            margin-bottom: 12px;
+            letter-spacing: 48px; /* Adjust spacing proportionally */
+        }
+
+        .number-line {
+            font-size: 21.6px; /* 20% bigger than 18px */
+            letter-spacing: 50.4px; /* Match symbol spacing proportionally */
+            margin-bottom: 24px;
+        }
+
+        .correct-line, .wrong-line, .reset-line {
+            font-size: 43.2px; /* 20% bigger than 36px */
+            margin-bottom: 18px;
+        }
+
+        /* End Screen Text */
+        #endScreen {
+            font-size: 1.2em; /* 20% bigger overall for end */
+        }
+
+        #endScreen div { /* Ensure spacing within the end screen remains */
+            margin-bottom: 0.2em;
+        }
+
+        #endScreen div:first-child { /* Adjust top margin if needed */
+            margin-top: 0;
+        }
+
+        .end-line {
+            font-size: 48px; /* 20% bigger than 40px */
+            margin-bottom: 18px;
+        }
+
+        .restart-line {
+            font-size: 24px; /* 20% bigger than 20px */
+        }
+
+        .wrong-input-line {
+            font-size: 36px;
+            margin-bottom: 15px;
+            color: red; /* Indicate error */
+        }
+    </style>
+</head>
+<body>
+    <div id="gameOutput">
+        <div id="titleScreen"></div>
+        <div id="gameScreen"></div>
+        <div id="endScreen"></div>
+    </div>
+
+    <script>
+        const symbols = ['ᛞ', 'ᛟ', 'ᛗ', 'ᛒ', 'ᛉ', 'ᚹ', 'ᛊ', 'ᛇ', 'ᛏ'];
+        let difficulty = 3;
+        let vibes = 0;
+        let wrongGuesses = 0;
+        let loopCount = 0;
+        let currentChoices = [];
+        let currentTarget = '';
+
+        function displayTitleScreen() {
+            const title = `
+            ===========================
+                  ESP TRAINER
+            ===========================
+            
+            SELECT DIFFICULTY:
+            1. 3 CHOICES
+            2. 4 CHOICES
+            3. 5 CHOICES
+
+            ENTER 1, 2, OR 3:
+            `;
+            document.getElementById('titleScreen').innerHTML = title.split('\n').map(line => `<div>${line}</div>`).join('');
+            document.getElementById('gameScreen').textContent = '';
+            document.getElementById('endScreen').textContent = '';
+
+            document.addEventListener('keydown', handleTitleInput);
+        }
+
+        function handleTitleInput(event) {
+            const input = parseInt(event.key);
+            if (input >= 1 && input <= 3) {
+                difficulty = input + 2;
+                document.removeEventListener('keydown', handleTitleInput);
+                startGameLoop();
+            }
+        }
+
+        function startGameLoop() {
+            document.getElementById('titleScreen').textContent = '';
+            document.getElementById('endScreen').textContent = '';
+            document.getElementById('gameScreen').innerHTML = ''; // Clear previous round
+
+            if (loopCount >= 10) {
+                displayEndScreen();
+                return;
+            }
+
+            const choices = [];
+            let availableSymbols = [...symbols];
+
+            for (let i = 0; i < difficulty; i++) {
+                const randomIndex = Math.floor(Math.random() * availableSymbols.length);
+                choices.push(availableSymbols[randomIndex]);
+                availableSymbols.splice(randomIndex, 1);
+            }
+
+            currentTarget = choices[Math.floor(Math.random() * difficulty)];
+            currentChoices = choices;
+
+            const vibesLine = `<div class="vibes-line">VIBES: ${vibes}</div>`;
+            const roundLine = `<div class="round-line">ROUND: ${loopCount + 1}</div>`;
+            const instructionLine = `<div class="instruction-line">CHOOSE A SYMBOL:</div>`;
+            const symbolLine = `<div class="symbol-line">${choices.join(' ')}</div>`;
+            const numberLine = `<div class="number-line">${choices.map((_, index) => index + 1).join('   ')}</div>`; // Adjust spacing
+
+            document.getElementById('gameScreen').innerHTML = vibesLine + roundLine + instructionLine + symbolLine + numberLine;
+
+            document.addEventListener('keydown', handleGameInput, { once: true });
+        }
+
+        function handleGameInput(event) {
+            const input = parseInt(event.key);
+            if (isNaN(input) || input < 1 || input > currentChoices.length) {
+                // Invalid input: Provide feedback to the player
+                const invalidInputMessage = `<div class="wrong-input-line">INVALID INPUT. PLEASE ENTER A VALID NUMBER.</div>`;
+                document.getElementById('gameScreen').innerHTML += invalidInputMessage;
+                // Do not remove the event listener, wait for valid input
+                document.addEventListener('keydown', handleGameInput, { once: true });
+                return; // Exit the function without processing the invalid input
+            }
+
+            const guess = currentChoices[input - 1];
+            if (guess === currentTarget) {
+                vibes++;
+                wrongGuesses = 0;
+                const correctLine = `<div class="correct-line">CORRECT!</div>`;
+                document.getElementById('gameScreen').innerHTML += correctLine;
+                setTimeout(() => {
+                    loopCount++;
+                    startGameLoop();
+                }, 1000);
+            } else {
+                wrongGuesses++;
+                const wrongLine = `<div class="wrong-line">WRONG! TARGET WAS ${currentTarget}</div>`;
+                document.getElementById('gameScreen').innerHTML += wrongLine;
+                if (wrongGuesses >= 3) {
+                    vibes = 1;
+                    wrongGuesses = 0;
+                    loopCount = 0;
+                    const resetLine = `<div class="reset-line">VIBES RESET!</div>`;
+                    document.getElementById('gameScreen').innerHTML += resetLine;
+                    setTimeout(startGameLoop, 1000);
+                } else {
+                    setTimeout(() => { // Added loopCount increment here
+                        loopCount++;
+                        startGameLoop();
+                    }, 1000);
+                }
+            }
+        }
+
+        function displayEndScreen() {
+            document.getElementById('gameScreen').textContent = '';
+            let title = '';
+            if (vibes === 10) {
+                title = 'DEMIGOD';
+            } else if (vibes >= 9) {
+                title = 'WIZARD';
+            } else if (vibes >= 8) {
+                title = 'MYSTIC';
+            } else if (vibes >= 7) {
+                title = 'PSYCHIC';
+            } else if (vibes >= 6) {
+                title = 'GIFTED';
+            } else if (vibes >= 5) {
+                title = 'SEEKER';
+            } else if (vibes >= 4) {
+                title = 'LUCKY';
+            } else if (vibes >= 3) {
+                title = 'BEGINNER';
+            } else {
+                title = 'MUNDANE';
+            }
+
+            const end = `
+            ===========================
+              THE END
+            ===========================
+
+            FINAL VIBES: ${vibes}
+            TITLE: ${title}
+
+            PRESS SPACEBAR
+            `;
+            const restart = `<div class="restart-line"></div>`;
+            document.getElementById('endScreen').innerHTML = end.split('\n').map(line => `<div>${line}</div>`).join('') + restart;
+
+            document.addEventListener('keydown', handleRestart);
+        }
+
+        function handleRestart(event) {
+            if (event.code === 'Space') {
+                vibes = 0;
+                wrongGuesses = 0;
+                loopCount = 0;
+                document.removeEventListener('keydown', handleRestart);
+                displayTitleScreen();
+            }
+        }
+
+        displayTitleScreen();
+    </script>
+</body>
+</html>
