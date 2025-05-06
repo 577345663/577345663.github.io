@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5773345663.xyx</title>
+    <title>https://577345663.xyz/</title>
     <style>
         body {
             margin: 0;
             overflow: hidden; /* Prevent scrollbars from canvas/rain/content overflow */
-            background-color: #000; /* Pure black background */
+            background-color: #000; /* Pure black background initially */
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: center; /* Center terminal box horizontally */
+            align-items: center; /* Center terminal box vertically */
             height: 100vh; /* Full viewport height */
             width: 100vw;  /* Full viewport width */
-            position: relative; /* Needed for absolute positioning of children */
+            position: relative; /* Needed for absolute positioning of canvas */
         }
 
         canvas {
@@ -22,21 +22,21 @@
             position: absolute;
             top: 0;
             left: 0;
-            z-index: 1; /* Rain and frame layer */
+            z-index: 1; /* Rain and filling effect layer */
         }
 
         #terminal-box {
-            position: absolute; /* Position absolutely over the canvas */
-            z-index: 2; /* Above the rain canvas */
+            /* No fixed size here - size is determined by content + padding */
+            /* No absolute positioning here - centering handled by body flexbox */
+            z-index: 3; /* Above the rain and splash canvas layers */
             background-color: #000; /* Black background inside the frame */
-            padding: 10px; /* Padding inside the frame */
-            box-sizing: border-box; /* Include padding in width/height */
-            display: flex;
-            justify-content: flex-start; /* Align content to the top-left */
-            align-items: flex-start; /* Align content to the top-left */
+            padding: 50px; /* 50px buffer on all sides */
+            box-sizing: border-box; /* Include padding in element's final size */
+            display: flex; /* Still a flex container for content alignment */
+            justify-content: flex-start; /* Align content to the top (main axis) */
+            align-items: center; /* Center content horizontally (cross axis) - keeps content block centered if narrower than box */
             flex-direction: column;
             /* overflow: auto; */ /* Removed scroll */
-             /* Width, Height, Top, Left will be set by JavaScript */
         }
 
         #terminal-content {
@@ -45,51 +45,61 @@
             white-space: pre-wrap; /* Preserve whitespace and wrap text */
             word-wrap: break-word; /* Break long words */
             color: var(--frame-color, #0f0); /* Use CSS variable for dynamic color, green default */
-            width: 100%; /* Allow content to take full width of the box */
+            /* width: 100%; */ /* Removed - allow content to determine width */
             /* max-height: 100%; */ /* Removed max-height */
             /* overflow-y: auto; */ /* Removed scroll */
+             text-align: center; /* Center text and inline elements horizontally within the content div */
         }
 
-#terminal-content pre:first-child,
-        #terminal-content p:first-child { /* Target the first pre or p inside terminal-content */
-            margin-top: 0; /* Remove the default top margin */
+        /* Styles to remove default margins on common first/last elements */
+        #terminal-content > :first-child {
+            margin-top: 0; /* Remove default top margin from the very first element */
         }
 
-        /* You might also want to remove bottom margin from the last element */
-        #terminal-content pre:last-child,
-        #terminal-content p:last-child {
-            margin-bottom: 0;
+        #terminal-content > :last-child {
+            margin-bottom: 0; /* Remove default bottom margin from the very last element */
         }
+
+         /* Style for links within the terminal box */
+         #terminal-content a {
+             color: var(--frame-color, #0f0); /* Links use the terminal color */
+             text-decoration: none; /* Remove underline */
+         }
+
+         #terminal-content a:hover {
+             text-decoration: underline; /* Add underline on hover */
+         }
+
+
     </style>
 </head>
 <body>
     <canvas id="rainCanvas"></canvas>
-    <div id="terminal-box"><div id="terminal-content">            <p>>  Welcome, user.</p>
+    <div id="terminal-box">
+        <div id="terminal-content">
+<a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
 
-                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a> A test string of words about the project.
-         
-                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
-          
-                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+<a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+A test string of words about the project.
+<a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+          
+<a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
 
-                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
-         
-                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
-          
-                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+<a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+         
+<a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+          
+<a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+         
+<a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+          
+<a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
 
-                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
-         
-                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
-          
-                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
-
-                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
-         
-
-            <p>>  Status: <span style="color: #00ff00;">ONLINE</span></p>
-               </div>
-    </div>
+<a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+         
+            <p>>  Status: <span style="color: #00ff00;">ONLINE</span></p></center>
+            </div>
+    </div>
 
     <script>
         const canvas = document.getElementById('rainCanvas');
@@ -117,47 +127,38 @@
         const selectedColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 1)`; // Solid color for frame/text
         const selectedColorRgbaTransparent = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.6)`; // Semi-transparent for rain
 
+        // Color for the filling up effect - use the selected color with high opacity
+        // Alpha increased to 0.95 for less transparency
+        const fillOpaqueColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.95)`;
+
 
         // Update CSS variable for text color
         document.documentElement.style.setProperty('--frame-color', selectedColorRgba);
 
-
-        // Terminal Box Dimensions (percentage of viewport)
-        const boxWidthPercent = 60; // Increased size
-        const boxHeightPercent = 70; // Increased size
+        // Double border drawing parameters
         const lineThickness = 1; // Thickness of each border line
         const lineSeparation = 3; // Space between the two lines
+        const totalFrameThickness = lineThickness * 2 + lineSeparation; // Total thickness of the double border area
 
-        let boxOuterWidth, boxOuterHeight; // Dimensions of the full double border area
-        let terminalBoxInnerWidth, terminalBoxInnerHeight; // Dimensions of the inner content area
-        let boxOuterX, boxOuterY; // Top-left position of the full double border area
+
+        // Variables for the "filling up" effect
+        let fillProgress = 0;
+        // Increased fillDuration for much slower rise (60 * 240 = 4 minutes)
+        const fillDuration = 60 * 240;
+
+
+        // Variables for the splash effect
+        const splashes = [];
 
 
         function resizeCanvas() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
 
-            // Calculate dynamic box dimensions and position based on percentages
-            boxOuterWidth = width * (boxWidthPercent / 100);
-            boxOuterHeight = height * (boxHeightPercent / 100);
-
-            // Calculate the dimensions and position of the *inner* area where text goes
-            const totalFrameThickness = lineThickness * 2 + lineSeparation;
-            terminalBoxInnerWidth = boxOuterWidth - totalFrameThickness * 2; // Subtract total frame thickness from both sides
-            terminalBoxInnerHeight = boxOuterHeight - totalFrameThickness * 2; // Subtract total frame thickness from top/bottom
-
-            boxOuterX = (width - boxOuterWidth) / 2;
-            boxOuterY = (height - boxOuterHeight) / 2;
-
-            // Position the HTML terminal box (#terminal-box) to align with the inner black fill area
-            terminalBox.style.width = `${terminalBoxInnerWidth}px`;
-            terminalBox.style.height = `${terminalBoxInnerHeight}px`;
-            terminalBox.style.left = `${boxOuterX + totalFrameThickness}px`; // Position relative to the inner top-left corner
-            terminalBox.style.top = `${boxOuterY + totalFrameThickness}px`;
-
-
-            // Re-initialize particles on resize for better distribution across new size
+            // Particles need to be re-initialized as canvas size changes
             initParticles();
+            // Terminal box positioning is now handled by CSS flexbox on body
+            // Size is handled by content + padding + CSS flexbox
         }
 
         function initParticles() {
@@ -173,11 +174,39 @@
             }
         }
 
+        // Function to create splash particles at a given x, y
+        function createSplash(x, y) { // Removed color parameter, using global selectedColor
+            const numSplashParticles = Math.random() * 5 + 3; // 3 to 8 splash particles per splash
+            for (let i = 0; i < numSplashParticles; i++) {
+                splashes.push({
+                    x: x,
+                    y: y,
+                    size: Math.random() * 3 + 1, // Initial size of splash particle
+                    speed: Math.random() * 2 + 0.5, // Speed of expansion
+                    life: Math.random() * 15 + 10, // Lifespan in frames
+                    opacity: Math.random() * 0.6 + 0.4, // Initial opacity
+                    angle: Math.random() * Math.PI * 2 // Random direction for potential line splash
+                });
+            }
+        }
+
 
         function draw() {
-            // Draw background (slightly transparent black for subtle trail effect)
+            // Clear canvas with slightly transparent black for subtle rain trails
             ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
             ctx.fillRect(0, 0, width, height);
+
+            // --- Draw the "filling up" effect ---
+            if (fillProgress < fillDuration) {
+                fillProgress++;
+            }
+            const currentFillHeight = (fillProgress / fillDuration) * height;
+
+            // Draw the filling rectangle from the bottom, underneath rain and box
+            ctx.fillStyle = fillOpaqueColorRgba; // Use the less transparent color
+            ctx.fillRect(0, height - currentFillHeight, width, currentFillHeight);
+            // --- End filling up effect ---
+
 
             // Update and draw particles (rain)
             ctx.strokeStyle = selectedColorRgbaTransparent; // Use the selected color with transparency
@@ -186,14 +215,28 @@
             particles.forEach(p => {
                 // Update position
                 p.y += p.speed;
-                // Wrap around if it goes off screen
-                if (p.y > height + p.length) { // Reset when the entire particle is below the screen
-                    p.y = -p.length; // Reset above the screen
-                    p.x = Math.random() * width; // New random x position
-                    p.speed = Math.random() * 5 + 2; // New random speed
-                    p.length = Math.random() * 30 + 15; // New random length
-                    p.opacity = Math.random() * 0.7 + 0.3; // New random opacity
-                }
+
+                // Check if particle hits the "rising water" surface
+                const waterSurfaceY = height - currentFillHeight;
+                 // Check if the bottom of the particle is at or below the water surface, AND the top of the particle was above it in the previous frame
+                 if (p.y + p.length >= waterSurfaceY && (p.y - p.speed + p.length) < waterSurfaceY) {
+                     // Particle crosses the water surface - create splash and reset particle
+                     createSplash(p.x, waterSurfaceY); // Call createSplash at the hit point
+                     // Reset the rain particle above the screen
+                     p.y = -p.length;
+                     p.x = Math.random() * width;
+                     p.speed = Math.random() * 5 + 2;
+                     p.length = Math.random() * 30 + 15;
+                     p.opacity = Math.random() * 0.7 + 0.3;
+                 } else if (p.y > height + p.length) {
+                     // Particle went off the bottom of the screen without hitting the water
+                     p.y = -p.length;
+                     p.x = Math.random() * width;
+                     p.speed = Math.random() * 5 + 2;
+                     p.length = Math.random() * 30 + 15;
+                     p.opacity = Math.random() * 0.7 + 0.3;
+                 }
+
 
                 // Draw particle (line segment)
                 ctx.beginPath();
@@ -204,24 +247,75 @@
                 ctx.stroke();
             });
 
-            // Draw the terminal box (double frame and inner black fill)
+            // --- Draw the splash particles ---
+            ctx.fillStyle = selectedColorRgba; // Use solid color for splashes
+            const remainingSplashes = [];
+            splashes.forEach(s => {
+                s.life--;
+                s.size += s.speed * 0.1; // Expand slightly
+                s.opacity -= 0.03; // Fade out
 
-            // Draw solid black rectangle for the area behind the terminal box text (covers rain)
-            // This area corresponds to the inner dimensions and position calculated in resizeCanvas
+                if (s.life > 0 && s.opacity > 0) {
+                    ctx.globalAlpha = s.opacity; // Apply individual splash particle opacity
+                    ctx.beginPath();
+                    // Draw a circle for splash particle
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    // If you wanted line splashes instead:
+                    // ctx.moveTo(s.x, s.y);
+                    // ctx.lineTo(s.x + Math.cos(s.angle) * s.size, s.y + Math.sin(s.angle) * s.size);
+                    // ctx.stroke();
+
+                    remainingSplashes.push(s);
+                }
+            });
+            splashes.length = 0; // Clear the original array
+            splashes.push(...remainingSplashes); // Add back the ones that are still alive
+            ctx.globalAlpha = 1; // Reset global alpha after drawing splashes
+            // --- End splash drawing ---
+
+
+            // --- Draw the terminal box (double frame and inner black fill) based on HTML element's live position/size ---
+
+            // Get the live position and dimensions of the HTML terminal box
+            const rect = terminalBox.getBoundingClientRect();
+
+            // Calculate the position and size for the canvas drawing relative to the canvas origin (0,0)
+            const boxXCanvas = rect.left;
+            const boxYCanvas = rect.top;
+            const boxWidthCanvas = rect.width;
+            const boxHeightCanvas = rect.height;
+
+            // Draw solid black rectangle for the area behind the terminal box text (covers rain and fill)
+            // This area corresponds to the HTML element's content box + padding, drawn on the canvas
             ctx.fillStyle = '#000';
-            ctx.fillRect(boxOuterX + (lineThickness * 2 + lineSeparation), boxOuterY + (lineThickness * 2 + lineSeparation), terminalBoxInnerWidth, terminalBoxInnerHeight);
+             // The rect gives us the border-box size. We need the content box + padding for the black fill area
+            ctx.fillRect(boxXCanvas, boxYCanvas, boxWidthCanvas, boxHeightCanvas);
 
 
             // Draw the double terminal box frame
-            ctx.strokeStyle = selectedColorRgba;
+            ctx.strokeStyle = selectedColorRgba; // Use the solid selected color for the frame
             ctx.lineWidth = lineThickness;
 
+            // Calculate the outer border position relative to the canvas
+            const outerBorderX = boxXCanvas - totalFrameThickness;
+            const outerBorderY = boxYCanvas - totalFrameThickness;
+            const outerBorderWidth = boxWidthCanvas + totalFrameThickness * 2;
+            const outerBorderHeight = boxHeightCanvas + totalFrameThickness * 2;
+
+
             // Draw outer line
-            ctx.strokeRect(boxOuterX + lineThickness / 2, boxOuterY + lineThickness / 2, boxOuterWidth - lineThickness, boxOuterHeight - lineThickness);
+             // Adjust strokeRect position by half lineThickness to center the stroke on the intended edge
+            ctx.strokeRect(outerBorderX + lineThickness / 2, outerBorderY + lineThickness / 2, outerBorderWidth - lineThickness, outerBorderHeight - lineThickness);
 
             // Draw inner line
             const innerOffsetDraw = lineThickness + lineSeparation;
-            ctx.strokeRect(boxOuterX + innerOffsetDraw + lineThickness / 2, boxOuterY + innerOffsetDraw + lineThickness / 2, boxOuterWidth - innerOffsetDraw * 2 - lineThickness, boxOuterHeight - innerOffsetDraw * 2 - lineThickness);
+             // Inner line starts further in from the outer border
+            ctx.strokeRect(outerBorderX + innerOffsetDraw + lineThickness / 2, outerBorderY + innerOffsetDraw + lineThickness / 2, outerBorderWidth - innerOffsetDraw * 2 - lineThickness, outerBorderHeight - innerOffsetDraw * 2 - lineThickness);
+
+
+            // --- End terminal box drawing ---
+
 
             requestAnimationFrame(draw); // Loop the animation
         }
