@@ -3,108 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to EGGSHELLS</title> <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-
+    <title>Colored Rain Terminal Updated</title>
     <style>
-        /* --- EGGSHELLS Inspired CSS (Sunny-Side-Up Edition) --- */
-
-        /* Basic Reset and Body Styling */
         body {
-            font-family: 'Nunito', sans-serif; /* A friendly, slightly rounded font */
-            background-color: #FFFFFF; /* White Background (Egg White) */
-            color: #4A4A4A; /* Dark grey for text */
             margin: 0;
-            padding: 20px;
+            overflow: hidden; /* Prevent scrollbars from canvas/rain/content overflow */
+            background-color: #000; /* Pure black background */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Make sure it takes at least the full viewport height */
-            line-height: 1.6;
-            flex-direction: column; /* Stack content vertically */
+            height: 100vh; /* Full viewport height */
+            width: 100vw;  /* Full viewport width */
+            position: relative; /* Needed for absolute positioning of children */
         }
 
-        /* Container for the main content (Egg Yolk) */
-        .container {
-            background-color: #FFEA00; /* Sunshine Yellow */
-            padding: 30px;
-            border-radius: 15px; /* Rounded corners like an egg */
-            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-            text-align: center;
-            max-width: 600px;
-            width: 90%;
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1; /* Rain and frame layer */
         }
 
-        /* Styling for Headings */
-        h1 {
-            color: #E53935; /* Brighter Ketchup Red */
-            margin-bottom: 20px;
-            font-size: 2.5em;
+        #terminal-box {
+            position: absolute; /* Position absolutely over the canvas */
+            z-index: 2; /* Above the rain canvas */
+            background-color: #000; /* Black background inside the frame */
+            padding: 10px; /* Padding inside the frame */
+            box-sizing: border-box; /* Include padding in width/height */
+            display: flex;
+            justify-content: flex-start; /* Align content to the top-left */
+            align-items: flex-start; /* Align content to the top-left */
+            flex-direction: column;
+            /* overflow: auto; */ /* Removed scroll */
+             /* Width, Height, Top, Left will be set by JavaScript */
         }
 
-        /* Styling for the list of links */
-        ul {
-            list-style: none; /* Remove default bullet points */
-            padding: 0;
-            margin: 0;
+        #terminal-content {
+            font-family: 'Courier New', Courier, monospace; /* Vintage terminal font */
+            font-size: 16px; /* Adjust font size as needed */
+            white-space: pre-wrap; /* Preserve whitespace and wrap text */
+            word-wrap: break-word; /* Break long words */
+            color: var(--frame-color, #0f0); /* Use CSS variable for dynamic color, green default */
+            width: 100%; /* Allow content to take full width of the box */
+            /* max-height: 100%; */ /* Removed max-height */
+            /* overflow-y: auto; */ /* Removed scroll */
         }
 
-        li {
-            margin: 10px 0; /* Space between list items */
+#terminal-content pre:first-child,
+        #terminal-content p:first-child { /* Target the first pre or p inside terminal-content */
+            margin-top: 0; /* Remove the default top margin */
         }
 
-        /* Styling for Links */
-        a {
-            display: block; /* Make links take their own line */
-            padding: 10px 15px;
-            color: #3498db; /* A friendly blue */
-            text-decoration: none; /* Remove default underline */
-            border: 2px solid #3498db; /* Border around links */
-            border-radius: 8strap8px; /* Slightly rounded link borders */
-            transition: all 0.3s ease; /* Smooth transition for hover effects */
-            font-size: 1.2em;
+        /* You might also want to remove bottom margin from the last element */
+        #terminal-content pre:last-child,
+        #terminal-content p:last-child {
+            margin-bottom: 0;
         }
-
-        a:hover {
-            background-color: #3498db;
-            color: #FFFFFF;
-            border-color: #3498db;
-        }
-
-        /* A quirky touch related to the number */
-        .quirky-text {
-            margin-top: 20px;
-            font-size: 0.9em;
-            color: #A9A9A9; /* Dark Grey */
-            font-style: italic;
-        }
-
-        /* --- CSS code ends here --- */
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to My EGGSHELLS Site!</h1>
-        <p>Here are some links:</p>
+    <canvas id="rainCanvas"></canvas>
+    <div id="terminal-box"><div id="terminal-content">            <p>>  Welcome, user.</p>
 
-        <ul>
-            <li>
-                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">
-                    ESP Trainer
-                </a>
-            </li>
-            <li>
-                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">
-                    Hacked Terminal
-                </a>
-            </li>
-            <li>
-                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">
-                    Rune Fate
-                </a>
-            </li>
-            </ul>
+                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a> A test string of words about the project.
+         
+                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+          
+                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
 
-        <p class="quirky-text">Built with 577345663 energy.</p>
+                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+         
+                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+          
+                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+
+                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+         
+                <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+          
+                <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+
+                <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+         
+
+            <p>>  Status: <span style="color: #00ff00;">ONLINE</span></p>
+               </div>
     </div>
+
+    <script>
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+        const terminalBox = document.getElementById('terminal-box');
+        const terminalContent = document.getElementById('terminal-content');
+
+
+        let width, height;
+        const particles = [];
+        const particleCount = 400; // Particle count remains the same
+
+        // Define the possible colors (RGB objects)
+        const colors = [
+            { r: 255, g: 0, b: 0 },   // Red
+            { r: 0, g: 0, b: 255 },   // Blue
+            { r: 0, g: 255, b: 0 },   // Green
+            { r: 255, g: 255, b: 0 }, // Yellow
+            { r: 255, g: 165, b: 0 }, // Orange
+            { r: 128, g: 0, b: 128 }  // Purple
+        ];
+
+        // Randomly select a color (simulate d6 roll)
+        const selectedColor = colors[Math.floor(Math.random() * colors.length)];
+        const selectedColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 1)`; // Solid color for frame/text
+        const selectedColorRgbaTransparent = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.6)`; // Semi-transparent for rain
+
+
+        // Update CSS variable for text color
+        document.documentElement.style.setProperty('--frame-color', selectedColorRgba);
+
+
+        // Terminal Box Dimensions (percentage of viewport)
+        const boxWidthPercent = 60; // Increased size
+        const boxHeightPercent = 70; // Increased size
+        const lineThickness = 1; // Thickness of each border line
+        const lineSeparation = 3; // Space between the two lines
+
+        let boxOuterWidth, boxOuterHeight; // Dimensions of the full double border area
+        let terminalBoxInnerWidth, terminalBoxInnerHeight; // Dimensions of the inner content area
+        let boxOuterX, boxOuterY; // Top-left position of the full double border area
+
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+
+            // Calculate dynamic box dimensions and position based on percentages
+            boxOuterWidth = width * (boxWidthPercent / 100);
+            boxOuterHeight = height * (boxHeightPercent / 100);
+
+            // Calculate the dimensions and position of the *inner* area where text goes
+            const totalFrameThickness = lineThickness * 2 + lineSeparation;
+            terminalBoxInnerWidth = boxOuterWidth - totalFrameThickness * 2; // Subtract total frame thickness from both sides
+            terminalBoxInnerHeight = boxOuterHeight - totalFrameThickness * 2; // Subtract total frame thickness from top/bottom
+
+            boxOuterX = (width - boxOuterWidth) / 2;
+            boxOuterY = (height - boxOuterHeight) / 2;
+
+            // Position the HTML terminal box (#terminal-box) to align with the inner black fill area
+            terminalBox.style.width = `${terminalBoxInnerWidth}px`;
+            terminalBox.style.height = `${terminalBoxInnerHeight}px`;
+            terminalBox.style.left = `${boxOuterX + totalFrameThickness}px`; // Position relative to the inner top-left corner
+            terminalBox.style.top = `${boxOuterY + totalFrameThickness}px`;
+
+
+            // Re-initialize particles on resize for better distribution across new size
+            initParticles();
+        }
+
+        function initParticles() {
+            particles.length = 0; // Clear existing particles
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height, // Start anywhere on the screen initially
+                    speed: Math.random() * 5 + 2, // Increased speed range
+                    length: Math.random() * 30 + 15, // Slightly increased length
+                    opacity: Math.random() * 0.7 + 0.3 // Slightly increased max opacity
+                });
+            }
+        }
+
+
+        function draw() {
+            // Draw background (slightly transparent black for subtle trail effect)
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.fillRect(0, 0, width, height);
+
+            // Update and draw particles (rain)
+            ctx.strokeStyle = selectedColorRgbaTransparent; // Use the selected color with transparency
+            ctx.lineWidth = 1; // Adjust line thickness
+
+            particles.forEach(p => {
+                // Update position
+                p.y += p.speed;
+                // Wrap around if it goes off screen
+                if (p.y > height + p.length) { // Reset when the entire particle is below the screen
+                    p.y = -p.length; // Reset above the screen
+                    p.x = Math.random() * width; // New random x position
+                    p.speed = Math.random() * 5 + 2; // New random speed
+                    p.length = Math.random() * 30 + 15; // New random length
+                    p.opacity = Math.random() * 0.7 + 0.3; // New random opacity
+                }
+
+                // Draw particle (line segment)
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x, p.y + p.length);
+                // To use individual particle opacity:
+                // ctx.strokeStyle = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, ${p.opacity})`;
+                ctx.stroke();
+            });
+
+            // Draw the terminal box (double frame and inner black fill)
+
+            // Draw solid black rectangle for the area behind the terminal box text (covers rain)
+            // This area corresponds to the inner dimensions and position calculated in resizeCanvas
+            ctx.fillStyle = '#000';
+            ctx.fillRect(boxOuterX + (lineThickness * 2 + lineSeparation), boxOuterY + (lineThickness * 2 + lineSeparation), terminalBoxInnerWidth, terminalBoxInnerHeight);
+
+
+            // Draw the double terminal box frame
+            ctx.strokeStyle = selectedColorRgba;
+            ctx.lineWidth = lineThickness;
+
+            // Draw outer line
+            ctx.strokeRect(boxOuterX + lineThickness / 2, boxOuterY + lineThickness / 2, boxOuterWidth - lineThickness, boxOuterHeight - lineThickness);
+
+            // Draw inner line
+            const innerOffsetDraw = lineThickness + lineSeparation;
+            ctx.strokeRect(boxOuterX + innerOffsetDraw + lineThickness / 2, boxOuterY + innerOffsetDraw + lineThickness / 2, boxOuterWidth - innerOffsetDraw * 2 - lineThickness, boxOuterHeight - innerOffsetDraw * 2 - lineThickness);
+
+            requestAnimationFrame(draw); // Loop the animation
+        }
+
+        // Initial setup
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // Set initial canvas size, calculate box dimensions, and position box
+        // initParticles() is called within resizeCanvas
+        draw(); // Start the animation loop
+
+    </script>
+
 </body>
 </html>
