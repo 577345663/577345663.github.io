@@ -70,6 +70,20 @@
              text-decoration: underline; /* Add underline on hover */
          }
 
+         /* Style for the clickable status text */
+         #terminal-content #statusText {
+             cursor: pointer;
+         }
+
+         /* Status text colors */
+         #terminal-content #statusText.status-online {
+             color: #00ff00; /* Green */
+         }
+
+         #terminal-content #statusText.status-offline {
+             color: #ff0000; /* Red */
+         }
+
 
     </style>
 </head>
@@ -77,6 +91,8 @@
     <canvas id="rainCanvas"></canvas>
     <div id="terminal-box">
         <div id="terminal-content">
+            <!-- Your existing content starts here -->
+
 <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
 
 <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
@@ -97,15 +113,18 @@
 
 <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
          
-            <p>Status:<span style="color: #00ff00;">ONLINE</span></p></center>
+            <p>Status:<span id="statusText" class="status-online">ONLINE</span></p></center>
             </div>
     </div>
+
+    <!-- Your existing content ends here -->
 
     <script>
         const canvas = document.getElementById('rainCanvas');
         const ctx = canvas.getContext('2d');
         const terminalBox = document.getElementById('terminal-box');
         const terminalContent = document.getElementById('terminal-content');
+        const statusText = document.getElementById('statusText'); // Get reference to the status span
 
 
         let width, height;
@@ -145,10 +164,14 @@
         let fillProgress = 0;
         // Increased fillDuration for much slower rise (60 * 240 = 4 minutes)
         const fillDuration = 60 * 240;
+        const drainDuration = fillDuration / 2; // Drain twice as fast as filling
 
 
         // Variables for the splash effect
         const splashes = [];
+
+        // Variable to track online/offline status
+        let isOnline = true;
 
 
         function resizeCanvas() {
@@ -190,22 +213,49 @@
             }
         }
 
+        // Function to toggle online/offline status
+        function toggleStatus() {
+            isOnline = !isOnline; // Toggle the state
+
+            if (isOnline) {
+                // Go ONLINE
+                statusText.textContent = 'ONLINE';
+                statusText.classList.remove('status-offline');
+                statusText.classList.add('status-online');
+                 // Rain starts, Water fills (handled in draw loop)
+            } else {
+                // Go OFFLINE
+                statusText.textContent = 'OFFLINE';
+                statusText.classList.remove('status-online');
+                statusText.classList.add('status-offline');
+                 // Rain stops, Water drains (handled in draw loop)
+            }
+        }
+
 
         function draw() {
             // Clear canvas with slightly transparent black for subtle rain trails
             ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
             ctx.fillRect(0, 0, width, height);
 
-            // --- Draw the "filling up" effect ---
-            if (fillProgress < fillDuration) {
-                fillProgress++;
+            // --- Draw the "filling up" or "draining" effect ---
+            if (isOnline) {
+                if (fillProgress < fillDuration) {
+                    fillProgress++; // Fill if online
+                }
+            } else { // is Offline
+                 if (fillProgress > 0) {
+                     // Drain - calculate step based on drain duration
+                     fillProgress -= (fillDuration / drainDuration);
+                     if (fillProgress < 0) fillProgress = 0; // Don't go below zero
+                 }
             }
             const currentFillHeight = (fillProgress / fillDuration) * height;
 
             // Draw the filling rectangle from the bottom, underneath rain and box
             ctx.fillStyle = fillOpaqueColorRgba; // Use the less transparent color
             ctx.fillRect(0, height - currentFillHeight, width, currentFillHeight);
-            // --- End filling up effect ---
+            // --- End filling up/draining effect ---
 
 
             // Update and draw particles (rain)
@@ -213,23 +263,29 @@
             ctx.lineWidth = 1; // Adjust line thickness
 
             particles.forEach(p => {
-                // Update position
-                p.y += p.speed;
+                // Store old y before potential update
+                const oldY = p.y;
 
-                // Check if particle hits the "rising water" surface
+                // Update position ONLY if online
+                if (isOnline) {
+                     p.y += p.speed;
+                }
+
+                // Check if particle hit the "rising water" surface THIS frame WHILE ONLINE
                 const waterSurfaceY = height - currentFillHeight;
-                 // Check if the bottom of the particle is at or below the water surface, AND the top of the particle was above it in the previous frame
-                 if (p.y + p.length >= waterSurfaceY && (p.y - p.speed + p.length) < waterSurfaceY) {
-                     // Particle crosses the water surface - create splash and reset particle
-                     createSplash(p.x, waterSurfaceY); // Call createSplash at the hit point
-                     // Reset the rain particle above the screen
-                     p.y = -p.length;
-                     p.x = Math.random() * width;
-                     p.speed = Math.random() * 5 + 2;
-                     p.length = Math.random() * 30 + 15;
-                     p.opacity = Math.random() * 0.7 + 0.3;
+                 // Only create splashes if currently online (rain is falling)
+                 if (isOnline && p.y >= waterSurfaceY && oldY < waterSurfaceY) {
+                      createSplash(p.x, waterSurfaceY); // Splash at the hit point
+                      // Reset the rain particle above the screen (only if splashing)
+                      p.y = -p.length;
+                      p.x = Math.random() * width;
+                      p.speed = Math.random() * 5 + 2;
+                      p.length = Math.random() * 30 + 15;
+                      p.opacity = Math.random() * 0.7 + 0.3;
+
                  } else if (p.y > height + p.length) {
-                     // Particle went off the bottom of the screen without hitting the water
+                     // Particle went off the bottom of the screen (either fell off or wasn't reset after splashing)
+                     // Reset the rain particle above the screen
                      p.y = -p.length;
                      p.x = Math.random() * width;
                      p.speed = Math.random() * 5 + 2;
@@ -248,6 +304,7 @@
             });
 
             // --- Draw the splash particles ---
+            // Splashes are drawn regardless of online status, they just live and fade
             ctx.fillStyle = selectedColorRgba; // Use solid color for splashes
             const remainingSplashes = [];
             splashes.forEach(s => {
@@ -263,7 +320,7 @@
                     ctx.fill();
                     // If you wanted line splashes instead:
                     // ctx.moveTo(s.x, s.y);
-                    // ctx.lineTo(s.x + Math.cos(s.angle) * s.size, s.y + Math.sin(s.angle) * s.size);
+                    // ctx.lineTo(s.x + Math.cos(s.angle) * s.size, s.y + Math.sin(s.angle) * s.angle);
                     // ctx.stroke();
 
                     remainingSplashes.push(s);
@@ -325,6 +382,9 @@
         resizeCanvas(); // Set initial canvas size, calculate box dimensions, and position box
         // initParticles() is called within resizeCanvas
         draw(); // Start the animation loop
+
+        // Add event listener to the status text
+        statusText.addEventListener('click', toggleStatus);
 
     </script>
 
