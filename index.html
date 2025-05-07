@@ -266,17 +266,16 @@
                 // Store old y before potential update
                 const oldY = p.y;
 
-                // Update position ONLY if online
-                if (isOnline) {
-                     p.y += p.speed;
-                }
+                // Always update position (rain falls normally regardless of online status)
+                 p.y += p.speed;
 
-                // Check if particle hit the "rising water" surface THIS frame WHILE ONLINE
+
+                // Check if particle hits the "rising water" surface WHILE ONLINE
                 const waterSurfaceY = height - currentFillHeight;
-                 // Only create splashes if currently online (rain is falling)
+                 // Only create splashes if currently online (rain is falling actively towards water)
                  if (isOnline && p.y >= waterSurfaceY && oldY < waterSurfaceY) {
                       createSplash(p.x, waterSurfaceY); // Splash at the hit point
-                      // Reset the rain particle above the screen (only if splashing)
+                      // Reset the rain particle above the screen (only if splashing and online)
                       p.y = -p.length;
                       p.x = Math.random() * width;
                       p.speed = Math.random() * 5 + 2;
@@ -284,15 +283,20 @@
                       p.opacity = Math.random() * 0.7 + 0.3;
 
                  } else if (p.y > height + p.length) {
-                     // Particle went off the bottom of the screen (either fell off or wasn't reset after splashing)
-                     // Reset the rain particle above the screen
-                     p.y = -p.length;
-                     p.x = Math.random() * width;
-                     p.speed = Math.random() * 5 + 2;
-                     p.length = Math.random() * 30 + 15;
-                     p.opacity = Math.random() * 0.7 + 0.3;
+                     // Particle went off the bottom of the screen
+                     if (isOnline) {
+                        // If online, reset it to the top to continue raining
+                        p.y = -p.length;
+                        p.x = Math.random() * width;
+                        p.speed = Math.random() * 5 + 2;
+                        p.length = Math.random() * 30 + 15;
+                        p.opacity = Math.random() * 0.7 + 0.3;
+                     } else {
+                         // If offline, do NOT reset it. It's just gone.
+                         // The number of visible rain particles will decrease over time.
+                         // No explicit action needed here to remove it; it's just off-screen.
+                     }
                  }
-
 
                 // Draw particle (line segment)
                 ctx.beginPath();
@@ -320,7 +324,7 @@
                     ctx.fill();
                     // If you wanted line splashes instead:
                     // ctx.moveTo(s.x, s.y);
-                    // ctx.lineTo(s.x + Math.cos(s.angle) * s.size, s.y + Math.sin(s.angle) * s.angle);
+                    // ctx.lineTo(s.x + Math.cos(s.angle) * s.size, s.y + Math.sin(s.angle) * s.size);
                     // ctx.stroke();
 
                     remainingSplashes.push(s);
