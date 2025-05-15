@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Pixel Art Board</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .controls-row {
+            margin-bottom: 10px; /* Spacing between rows of controls */
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        #controls span, #controls label { /* Applied to a wrapping div now */
+            font-size: 0.9em;
+        }
+        #controls input[type="checkbox"] {
+            margin-left: 2px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        #controls button {
+            padding: 6px 12px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #controls button:hover {
+            background-color: #5a6268;
+        }
+        #controls button.active-size {
+            background-color: #007bff;
+            color: white;
+        }
+
+
+        #gridContainer {
+            display: grid;
+            width: 512px;
+            height: 512px;
+            border: 2px solid #555;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+            background-color: #fff;
+        }
+
+        .grid-square {
+            background-color: lightgrey;
+            box-sizing: border-box;
+            cursor: pointer;
+            border: 1px solid #eee; /* Borders on by default */
+        }
+    </style>
+</head>
+<body>
+    <h1>Pixel Art Board</h1>
+    <div id="controls">
+        <div class="controls-row" id="sizeControls">
+            <span>Grid Size:</span>
+            <button class="size-button" data-size="8">8x8</button>
+            <button class="size-button" data-size="16">16x16</button>
+            <button class="size-button" data-size="32">32x32</button>
+            <button class="size-button active-size" data-size="64">64x64</button>
+        </div>
+        <div class="controls-row" id="toolControls">
+            <span>Color: </span>
+            <div id="currentColorDisplay" style="width: 20px; height: 20px; border: 1px solid black; display: inline-block; margin-left: 5px;"></div>
+            <input type="checkbox" id="lockColorCheckbox" title="Lock current color for drawing">
+            <label for="lockColorCheckbox" style="font-size: 0.8em; margin-right: 10px;">Lock</label>
+
+            <button id="clearButton">Clear Board</button>
+            <button id="toggleBordersButton">Hide Borders</button>
+        </div>
+    </div>
+    <div id="gridContainer"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('gridContainer');
+            const currentColorDisplay = document.getElementById('currentColorDisplay');
+            const clearButton = document.getElementById('clearButton');
+            const toggleBordersButton = document.getElementById('toggleBordersButton');
+            const sizeButtons = document.querySelectorAll('.size-button'); // Still select all size buttons
+            const lockColorCheckbox = document.getElementById('lockColorCheckbox');
+
+            let gridSize = 64;
+            const initialColor = 'lightgrey';
+            const colors = [
+                initialColor, 'red', 'blue', 'yellow', 'green',
+                'orange', 'purple', 'brown', 'black'
+            ];
+
+            let showBorders = true;
+            let isMouseDown = false;
+            let currentPaintColorIndex = 0;
+
+            function createGrid() {
+                gridContainer.innerHTML = '';
+                gridContainer.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+                gridContainer.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+
+                for (let i = 0; i < gridSize * gridSize; i++) {
+                    const square = document.createElement('div');
+                    square.classList.add('grid-square');
+                    square.dataset.colorIndex = 0;
+                    square.style.backgroundColor = colors[0];
+                    if (showBorders) {
+                        square.style.border = '1px solid #eee';
+                    } else {
+                        square.style.border = 'none';
+                    }
+                    gridContainer.appendChild(square);
+                }
+                updateCurrentColorDisplay(colors[currentPaintColorIndex]);
+            }
+
+            function updateCurrentColorDisplay(color) {
+                if (currentColorDisplay) {
+                    currentColorDisplay.style.backgroundColor = color;
+                }
+            }
+
+            function handleSquareInteraction(squareElement, isClick) {
+                if (!squareElement.classList.contains('grid-square')) {
+                    return;
+                }
+
+                if (isClick) {
+                    let squareColorIndex = parseInt(squareElement.dataset.colorIndex);
+                    if (!lockColorCheckbox.checked) {
+                        squareColorIndex = (squareColorIndex + 1) % colors.length;
+                        squareElement.dataset.colorIndex = squareColorIndex;
+                        squareElement.style.backgroundColor = colors[squareColorIndex];
+                        currentPaintColorIndex = squareColorIndex;
+                    } else {
+                        squareElement.style.backgroundColor = colors[currentPaintColorIndex];
+                        squareElement.dataset.colorIndex = currentPaintColorIndex;
+                    }
+                } else {
+                    squareElement.style.backgroundColor = colors[currentPaintColorIndex];
+                    squareElement.dataset.colorIndex = currentPaintColorIndex;
+                }
+                updateCurrentColorDisplay(colors[currentPaintColorIndex]);
+            }
+
+
+            gridContainer.addEventListener('mousedown', (event) => {
+                isMouseDown = true;
+                handleSquareInteraction(event.target, true);
+                event.preventDefault();
+            });
+
+            gridContainer.addEventListener('mouseover', (event) => {
+                if (isMouseDown && event.target.classList.contains('grid-square')) {
+                    handleSquareInteraction(event.target, false);
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+
+            gridContainer.addEventListener('dragstart', (event) => {
+                event.preventDefault();
+            });
+
+            clearButton.addEventListener('click', () => {
+                const squares = gridContainer.querySelectorAll('.grid-square');
+                squares.forEach(square => {
+                    square.style.backgroundColor = initialColor;
+                    square.dataset.colorIndex = 0;
+                });
+                if (!lockColorCheckbox.checked) {
+                    currentPaintColorIndex = 0;
+                    updateCurrentColorDisplay(initialColor);
+                }
+            });
+
+            toggleBordersButton.addEventListener('click', () => {
+                showBorders = !showBorders;
+                const squares = gridContainer.querySelectorAll('.grid-square');
+                squares.forEach(square => {
+                    if (showBorders) {
+                        square.style.border = '1px solid #eee';
+                    } else {
+                        square.style.border = 'none';
+                    }
+                });
+                toggleBordersButton.textContent = showBorders ? "Hide Borders" : "Show Borders";
+            });
+
+            sizeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    gridSize = parseInt(button.dataset.size);
+                    sizeButtons.forEach(btn => btn.classList.remove('active-size'));
+                    button.classList.add('active-size');
+                    createGrid();
+                    if (!lockColorCheckbox.checked) {
+                        currentPaintColorIndex = 0;
+                        updateCurrentColorDisplay(initialColor);
+                    }
+                });
+            });
+
+            // Initial setup
+            createGrid();
+            toggleBordersButton.textContent = showBorders ? "Hide Borders" : "Show Borders";
+            updateCurrentColorDisplay(colors[currentPaintColorIndex]);
+        });
+    </script>
+</body>
+</html>
