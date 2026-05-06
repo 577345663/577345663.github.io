@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Soundsplainer</title>
+<style>
+  :root{
+    --bg:#070707;
+    --panel:#111;
+    --panel2:#181818;
+    --line:#444;
+    --line2:#777;
+    --text:#eee;
+    --muted:#999;
+    --hot:#fff;
+    --warn:#bdbdbd;
+    --cell:42px;
+    --gap:6px;
+    --font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 15%, #191919 0%, #080808 45%, #000 100%);
+    color:var(--text);
+    font-family:var(--font);
+  }
+
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px;
+  }
+
+  .app{
+    width:min(1220px, 100vw - 20px);
+    height:min(740px, 100vh - 20px);
+    border:2px solid var(--line2);
+    background:linear-gradient(180deg,#101010,#060606);
+    box-shadow:0 0 0 2px #000, 0 0 30px rgba(255,255,255,.08);
+    padding:10px;
+    display:grid;
+    grid-template-rows:auto auto 1fr auto;
+    gap:8px;
+  }
+
+  header{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:10px;
+    border:1px solid var(--line);
+    background:#0b0b0b;
+    padding:8px 10px;
+  }
+
+  h1{
+    margin:0;
+    font-size:20px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    line-height:1;
+  }
+
+  .subtitle{
+    color:var(--muted);
+    font-size:11px;
+    margin-top:4px;
+    letter-spacing:1px;
+  }
+
+  .topControls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  button, select, input[type="range"]{
+    font-family:var(--font);
+  }
+
+  .ctlBtn{
+    border:1px solid var(--line2);
+    color:var(--text);
+    background:#191919;
+    padding:6px 10px;
+    cursor:pointer;
+    font-size:12px;
+    text-transform:uppercase;
+  }
+
+  .ctlBtn:hover{background:#2a2a2a;}
+  .ctlBtn:active{transform:translateY(1px);}
+  .ctlBtn.on{
+    background:#eaeaea;
+    color:#000;
+    border-color:#fff;
+  }
+
+  .readout{
+    border:1px solid var(--line);
+    background:#050505;
+    min-width:190px;
+    padding:6px 10px;
+    font-size:12px;
+    color:#fff;
+    text-align:center;
+  }
+
+  .sliders{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+    border:1px solid var(--line);
+    padding:7px 8px;
+    background:#0b0b0b;
+  }
+
+  label{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:6px;
+    align-items:center;
+    font-size:11px;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+
+  input[type="range"]{width:100%;}
+
+  .board{
+    min-height:0;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:8px;
+  }
+
+  .cat{
+    min-width:0;
+    min-height:0;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#151515,#090909);
+    padding:7px;
+    display:grid;
+    grid-template-rows:auto 1fr;
+    gap:6px;
+  }
+
+  .catHead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+    padding-bottom:5px;
+    border-bottom:1px solid #333;
+  }
+
+  .catName{
+    font-size:15px;
+    font-weight:bold;
+    letter-spacing:2px;
+  }
+
+  .catHint{
+    color:var(--muted);
+    font-size:10px;
+    text-align:right;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .pads{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:var(--gap);
+    align-content:stretch;
+  }
+
+  .pad{
+    min-width:0;
+    min-height:0;
+    height:var(--cell);
+    border:1px solid #555;
+    background:#161616;
+    color:#eee;
+    font-size:12px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    user-select:none;
+  }
+
+  .pad:hover{
+    background:#262626;
+    border-color:#aaa;
+  }
+
+  .pad:active, .pad.playing{
+    background:#eaeaea;
+    color:#000;
+    border-color:#fff;
+  }
+
+  footer{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px;
+    align-items:center;
+    border:1px solid var(--line);
+    padding:7px 9px;
+    background:#0b0b0b;
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  .legend{
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+
+  .copybox{
+    border:1px solid var(--line);
+    background:#050505;
+    color:#fff;
+    padding:5px 8px;
+    min-width:210px;
+    text-align:center;
+  }
+
+
+  .modalBackdrop{
+    position:fixed;
+    inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    background:rgba(0,0,0,.74);
+    z-index:20;
+  }
+
+  .modalBackdrop.show{display:flex;}
+
+  .modal{
+    width:min(760px, 96vw);
+    max-height:86vh;
+    overflow:auto;
+    border:2px solid var(--line2);
+    background:#0b0b0b;
+    color:var(--text);
+    padding:14px;
+  }
+
+  .modalTop{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:9px;
+    margin-bottom:10px;
+  }
+
+  .modal h2{
+    margin:0;
+    font-size:18px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+  }
+
+  .modal p,
+  .modal li{
+    color:var(--text);
+    font-size:12px;
+    line-height:1.55;
+  }
+
+  .modal ul{padding-left:20px;}
+
+  .modal code{
+    color:#fff;
+    background:#050505;
+    border:1px solid var(--line);
+    padding:1px 4px;
+    font-family:var(--font);
+  }
+
+  @media (max-width: 900px){
+    .app{height:calc(100vh - 12px); width:calc(100vw - 12px); padding:6px; gap:6px;}
+    h1{font-size:16px;}
+    .subtitle{display:none;}
+    .sliders{grid-template-columns:repeat(2, 1fr);}
+    .board{grid-template-columns:repeat(3, 1fr);}
+    :root{--cell:34px;--gap:4px;}
+    .catName{font-size:13px;}
+    .catHint{display:none;}
+    footer{grid-template-columns:1fr;}
+    .copybox{min-width:0;}
+  }
+
+  @media (max-height: 670px){
+    :root{--cell:32px;--gap:4px;}
+    .app{gap:5px;padding:6px;}
+    header{padding:5px 7px;}
+    .sliders{padding:5px 7px;}
+    .cat{padding:5px;gap:4px;}
+    .catHead{padding-bottom:3px;}
+    footer{padding:5px 7px;}
+  }
+</style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>Soundsplainer</h1>
+        <div class="subtitle">Click any pad. Reference format includes sliders, example BEEP-04 V28:L180:G105:F35.</div>
+      </div>
+      <div class="topControls">
+        <button class="ctlBtn" id="loopBtn">LOOP:OFF</button>
+        <button class="ctlBtn" id="stopBtn">STOP</button>
+        <button class="ctlBtn" id="copyBtn">COPY</button>
+        <button class="ctlBtn" id="readmeBtn">README</button>
+        <div class="readout" id="readout">READY</div>
+      </div>
+    </header>
+
+    <section class="sliders">
+      <label>VOL <input id="vol" type="range" min="0" max="100" value="28"><span id="volVal">28</span></label>
+      <label>LEN <input id="len" type="range" min="40" max="700" value="180"><span id="lenVal">180</span></label>
+      <label>GAP <input id="gap" type="range" min="40" max="400" value="105"><span id="gapVal">105</span></label>
+      <label>FX <input id="fx" type="range" min="0" max="100" value="35"><span id="fxVal">35</span></label>
+    </section>
+
+    <section class="board" id="board"></section>
+
+    <footer>
+      <div class="legend">
+        Codes include sliders: V volume, L length, G gap, F effect. Keys: L loop, Enter copy, Esc stop.
+      </div>
+      <div class="copybox" id="copybox">LAST: NONE</div>
+    </footer>
+  </main>
+
+  <div class="modalBackdrop" id="readmeModal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalTop">
+        <h2>Soundsplainer README</h2>
+        <button class="ctlBtn" id="closeReadmeBtn">CLOSE</button>
+      </div>
+      <p><strong>What this is:</strong> Soundsplainer is a browser-native Web Audio palette board. It lets you audition simple generated sounds, tune them with sliders, and copy a reusable sound code.</p>
+      <p><strong>Why it exists:</strong> describing a sound with words is vague. A copied code like <code>POPP-08 V28:L180:G105:F35</code> gives a future dev session an exact reference for the selected sound family, pad number, and slider settings.</p>
+      <ul>
+        <li><strong>VOL / V:</strong> playback volume.</li>
+        <li><strong>LEN / L:</strong> sound length in milliseconds.</li>
+        <li><strong>GAP / G:</strong> repeat gap used when loop is on.</li>
+        <li><strong>FX / F:</strong> effect intensity, interpreted differently by sound type.</li>
+      </ul>
+      <p><strong>Workflow:</strong> click pads until you hear a useful sound, adjust sliders, use LOOP if needed, then COPY the final code. Paste that code into notes or a dev chat to assign the sound to a game action.</p>
+      <p><strong>Controls:</strong> LOOP repeats the last/next selected pad, STOP kills current audio and loop, COPY copies the last full sound code, ESC stops, L toggles loop, Enter copies.</p>
+    </div>
+  </div>
+
+<script>
+(() => {
+  let ctx;
+  let master;
+  let active = [];
+  let loopOn = false;
+  let loopTimer = null;
+  let loopCode = null;
+  let loopBtn = null;
+  let lastCode = "NONE";
+  let lastFullCode = "NONE";
+
+  const categories = [
+    ["BEEP","clean sine beeps"],
+    ["BOOP","round low boops"],
+    ["BLIP","short square blips"],
+    ["BUZZ","saw buzz tones"],
+    ["FUZZ","noisy static fuzz"],
+    ["WAVE","soft pulse waves"],
+    ["UPLO","low upward sweeps"],
+    ["UPHI","high upward sweeps"],
+    ["DNLO","low downward sweeps"],
+    ["DNHI","high downward sweeps"],
+    ["BEAT","drum/percussion hits"],
+    ["PING","tiny bell pings"],
+    ["ZAPP","arcade zap hits"],
+    ["TICK","menu ticks/clicks"],
+    ["POPP","bubble pop sounds"],
+    ["CHIR","chip chirps"]
+  ];
+
+  const board = document.getElementById("board");
+  const readout = document.getElementById("readout");
+  const copybox = document.getElementById("copybox");
+
+  const vol = document.getElementById("vol");
+  const len = document.getElementById("len");
+  const gap = document.getElementById("gap");
+  const fx = document.getElementById("fx");
+
+  const volVal = document.getElementById("volVal");
+  const lenVal = document.getElementById("lenVal");
+  const gapVal = document.getElementById("gapVal");
+  const fxVal = document.getElementById("fxVal");
+
+  [vol,len,gap,fx].forEach(el => {
+    el.addEventListener("input", () => {
+      volVal.textContent = vol.value;
+      lenVal.textContent = len.value;
+      gapVal.textContent = gap.value;
+      fxVal.textContent = fx.value;
+    });
+  });
+
+  function fullSoundCode(code){
+    return `${code} V${vol.value}:L${len.value}:G${gap.value}:F${fx.value}`;
+  }
+
+  function ensureAudio(){
+    if(!ctx){
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      master = ctx.createGain();
+      master.gain.value = Number(vol.value) / 100;
+      master.connect(ctx.destination);
+    }
+    if(ctx.state === "suspended") ctx.resume();
+    master.gain.setTargetAtTime(Number(vol.value) / 100, ctx.currentTime, 0.015);
+  }
+
+  function stopAll(){
+    if(loopTimer){
+      clearTimeout(loopTimer);
+      loopTimer = null;
+    }
+    loopCode = null;
+
+    if(ctx){
+      active.forEach(n => {
+        try{ n.stop && n.stop(); }catch(e){}
+        try{ n.disconnect && n.disconnect(); }catch(e){}
+      });
+    }
+
+    active = [];
+    readout.textContent = "STOPPED";
+    copybox.textContent = "LAST: " + lastFullCode;
+    document.querySelectorAll(".pad.playing").forEach(p => p.classList.remove("playing"));
+  }
+
+  function envGain(start, dur, peak=1, end=0.0001){
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0001), start + Math.min(0.025, dur * 0.18));
+    g.gain.exponentialRampToValueAtTime(end, start + dur);
+    return g;
+  }
+
+  function osc(type, freq, start, dur, gainNode, drift=0){
+    const o = ctx.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, start);
+    if(drift) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq + drift), start + dur);
+    o.connect(gainNode);
+    gainNode.connect(master);
+    o.start(start);
+    o.stop(start + dur + 0.03);
+    active.push(o, gainNode);
+    return o;
+  }
+
+  function noiseBuffer(seconds=0.5){
+    const size = Math.max(1, Math.floor(ctx.sampleRate * seconds));
+    const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<size;i++) data[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  function noise(start, dur, gainNode, filterType="bandpass", freq=700, q=2){
+    const src = ctx.createBufferSource();
+    const filter = ctx.createBiquadFilter();
+    filter.type = filterType;
+    filter.frequency.setValueAtTime(freq, start);
+    filter.Q.value = q;
+    src.buffer = noiseBuffer(dur + 0.1);
+    src.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(master);
+    src.start(start);
+    src.stop(start + dur);
+    active.push(src, filter, gainNode);
+    return src;
+  }
+
+  function play(code, btn){
+    ensureAudio();
+
+    const [cat, numText] = code.split("-");
+    const n = Number(numText);
+    const t = ctx.currentTime + 0.01;
+    const dur = Number(len.value) / 1000;
+    const fxAmt = Number(fx.value) / 100;
+
+    const packedCode = fullSoundCode(code);
+    readout.textContent = packedCode;
+    copybox.textContent = "LAST: " + packedCode;
+    lastCode = code;
+    lastFullCode = packedCode;
+
+    if(btn){
+      btn.classList.add("playing");
+      setTimeout(() => btn.classList.remove("playing"), Math.max(90, dur * 1000));
+    }
+
+    const step = n - 1;
+    const pitchA = 180 + step * 45;
+    const pitchB = 80 + step * 18;
+    const high = 520 + step * 105;
+    const low = 75 + step * 22;
+
+    switch(cat){
+      case "BEEP":{
+        const g = envGain(t, dur * 0.78, 0.75);
+        osc("sine", 420 + step * 70, t, dur * 0.78, g);
+        break;
+      }
+      case "BOOP":{
+        const g = envGain(t, dur * 1.05, 0.82);
+        osc("triangle", 180 + step * 24, t, dur * 1.05, g, -22 - step * 3);
+        break;
+      }
+      case "BLIP":{
+        const g = envGain(t, Math.max(0.045, dur * 0.42), 0.66);
+        osc("square", 500 + step * 90, t, Math.max(0.045, dur * 0.42), g);
+        break;
+      }
+      case "BUZZ":{
+        const g = envGain(t, dur * 1.05, 0.50);
+        osc("sawtooth", 95 + step * 28, t, dur * 1.05, g);
+        break;
+      }
+      case "FUZZ":{
+        const g = envGain(t, dur * 1.05, 0.75);
+        noise(t, dur * 1.05, g, "bandpass", 220 + step * 120, 1 + fxAmt * 9);
+        break;
+      }
+      case "WAVE":{
+        const base = 220 + step * 36;
+        const g = envGain(t, dur * 1.15, 0.50);
+        const lfo = ctx.createOscillator();
+        const lfoGain = ctx.createGain();
+        const o = ctx.createOscillator();
+        o.type = "sine";
+        o.frequency.setValueAtTime(base, t);
+        lfo.type = "sine";
+        lfo.frequency.value = 4 + step * 0.8;
+        lfoGain.gain.value = 10 + fxAmt * 45;
+        lfo.connect(lfoGain);
+        lfoGain.connect(o.frequency);
+        o.connect(g);
+        g.connect(master);
+        lfo.start(t); o.start(t);
+        lfo.stop(t + dur * 1.15); o.stop(t + dur * 1.15);
+        active.push(lfo,lfoGain,o,g);
+        break;
+      }
+      case "UPLO":{
+        const g = envGain(t, dur, 0.58);
+        osc("sine", low, t, dur, g, 260 + step * 24);
+        break;
+      }
+      case "UPHI":{
+        const g = envGain(t, dur, 0.52);
+        osc("triangle", high, t, dur, g, 420 + step * 60);
+        break;
+      }
+      case "DNLO":{
+        const g = envGain(t, dur, 0.60);
+        osc("sine", low + 330 + step * 20, t, dur, g, -(250 + step * 24));
+        break;
+      }
+      case "DNHI":{
+        const g = envGain(t, dur, 0.52);
+        osc("sawtooth", high + 520 + step * 80, t, dur, g, -(460 + step * 62));
+        break;
+      }
+      case "BEAT":{
+        beat(t, n, dur, fxAmt);
+        break;
+      }
+      case "PING":{
+        const g1 = envGain(t, dur * 1.4, 0.45);
+        const g2 = envGain(t, dur * 1.0, 0.25);
+        osc("sine", 720 + step * 95, t, dur * 1.4, g1);
+        osc("sine", 1440 + step * 190, t, dur * 0.75, g2);
+        break;
+      }
+      case "ZAPP":{
+        const g = envGain(t, dur * 0.9, 0.56);
+        osc("square", 1200 + step * 90, t, dur * 0.9, g, -(650 + step * 55));
+        setTimeout(() => playTinyNoise(t, dur * 0.45, 3600, 0.16), 0);
+        break;
+      }
+      case "TICK":{
+        const g = envGain(t, Math.max(0.025, dur * 0.18), 0.50);
+        noise(t, Math.max(0.025, dur * 0.18), g, "highpass", 700 + step * 180, 3);
+        break;
+      }
+      case "POPP":{
+        const g = envGain(t, dur * 0.35, 0.68);
+        osc("sine", 110 + step * 16, t, dur * 0.35, g, 160 + step * 12);
+        break;
+      }
+      case "CHIR":{
+        const g = envGain(t, dur * 0.55, 0.50);
+        osc("square", 820 + step * 100, t, dur * 0.24, g, 250 + step * 35);
+        const g2 = envGain(t + dur * 0.28, dur * 0.24, 0.42);
+        osc("square", 900 + step * 110, t + dur * 0.28, dur * 0.24, g2, 220 + step * 28);
+        break;
+      }
+    }
+
+    if(loopOn){
+      loopCode = code;
+      if(loopTimer) clearTimeout(loopTimer);
+      const loopDelay = Math.max(60, Number(len.value) + Number(gap.value));
+      loopTimer = setTimeout(() => {
+        if(loopOn && loopCode === code){
+          const nextBtn = document.querySelector(`.pad[data-code="${code}"]`);
+          play(code, nextBtn);
+        }
+      }, loopDelay);
+    }
+  }
+
+  function playTinyNoise(t, dur, freq, peak){
+    const g = envGain(t, dur, peak);
+    noise(t, dur, g, "highpass", freq, 1);
+  }
+
+  function beat(t, n, dur, fxAmt){
+    const step = n - 1;
+    const d = Math.max(0.055, dur * 0.55);
+
+    if(n <= 3){
+      const g = envGain(t, d * 1.45, 0.92);
+      osc("sine", 95 - step * 14, t, d * 1.45, g, -55);
+      playTinyNoise(t, d * 0.35, 1800, 0.13 + fxAmt * 0.18);
+    } else if(n <= 6){
+      const g = envGain(t, d * 0.85, 0.70);
+      noise(t, d * 0.85, g, "bandpass", 900 + step * 130, 3 + fxAmt * 8);
+      const clickG = envGain(t, d * 0.12, 0.42);
+      osc("square", 190 + step * 35, t, d * 0.12, clickG);
+    } else if(n <= 8){
+      const g = envGain(t, d * 1.2, 0.55);
+      noise(t, d * 1.2, g, "highpass", 3600 + step * 240, .5 + fxAmt * 2);
+    } else {
+      const g = envGain(t, d * 1.6, 0.72);
+      osc("triangle", 180 + step * 35, t, d * 1.6, g, -80);
+      const g2 = envGain(t + d * .2, d * 0.7, 0.35);
+      noise(t + d * .2, d * 0.7, g2, "bandpass", 1300 + step * 220, 5);
+    }
+  }
+
+  function makeBoard(){
+    categories.forEach(([name,hint]) => {
+      const cat = document.createElement("div");
+      cat.className = "cat";
+      cat.innerHTML = `
+        <div class="catHead">
+          <div class="catName">${name}</div>
+          <div class="catHint">${hint}</div>
+        </div>
+        <div class="pads"></div>
+      `;
+      const pads = cat.querySelector(".pads");
+      for(let i=1;i<=10;i++){
+        const btn = document.createElement("button");
+        btn.className = "pad";
+        const num = String(i).padStart(2,"0");
+        const code = `${name}-${num}`;
+        btn.textContent = num;
+        btn.title = code;
+        btn.dataset.code = code;
+        btn.addEventListener("click", () => play(code, btn));
+        pads.appendChild(btn);
+      }
+      board.appendChild(cat);
+    });
+  }
+
+  async function copyLast(){
+    try{
+      await navigator.clipboard.writeText(lastFullCode);
+      copybox.textContent = "COPIED: " + lastFullCode;
+      setTimeout(() => copybox.textContent = "LAST: " + lastFullCode, 700);
+    }catch(e){
+      copybox.textContent = "COPY FAILED";
+      setTimeout(() => copybox.textContent = "LAST: " + lastFullCode, 700);
+    }
+  }
+
+  function toggleLoop(){
+    loopOn = !loopOn;
+    loopBtn.classList.toggle("on", loopOn);
+    loopBtn.textContent = loopOn ? "LOOP:ON" : "LOOP:OFF";
+    readout.textContent = loopOn ? "LOOP ARMED" : "LOOP OFF";
+    if(!loopOn && loopTimer){
+      clearTimeout(loopTimer);
+      loopTimer = null;
+      loopCode = null;
+    }
+  }
+
+  loopBtn = document.getElementById("loopBtn");
+  const readmeModal = document.getElementById("readmeModal");
+  const readmeBtn = document.getElementById("readmeBtn");
+  const closeReadmeBtn = document.getElementById("closeReadmeBtn");
+
+  function openReadme(){ readmeModal.classList.add("show"); }
+  function closeReadme(){ readmeModal.classList.remove("show"); }
+
+  loopBtn.addEventListener("click", toggleLoop);
+  document.getElementById("stopBtn").addEventListener("click", stopAll);
+  document.getElementById("copyBtn").addEventListener("click", copyLast);
+  readmeBtn.addEventListener("click", openReadme);
+  closeReadmeBtn.addEventListener("click", closeReadme);
+  readmeModal.addEventListener("click", e => { if(e.target === readmeModal) closeReadme(); });
+
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape"){ closeReadme(); stopAll(); }
+    if(e.key.toLowerCase() === "l") toggleLoop();
+    if(e.key === "Enter") copyLast();
+  });
+
+  copybox.addEventListener("click", copyLast);
+
+  makeBoard();
+})();
+</script>
+</body>
+</html>
