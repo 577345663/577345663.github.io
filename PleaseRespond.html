@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Please Respond v1</title>
+<style>
+  :root{
+    --bg:#0b0b0b;
+    --panel:#151515;
+    --panel2:#1f1f1f;
+    --line:#3d3d3d;
+    --text:#eeeeee;
+    --muted:#a8a8a8;
+    --danger:#ff5f5f;
+    --good:#8aff8a;
+    --warn:#ffd36a;
+    --shadow:rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;overflow:hidden;}
+  button,input,textarea{font:inherit;}
+  .app{height:100vh;display:grid;grid-template-rows:auto auto 1fr;background:linear-gradient(180deg,#0d0d0d,#050505);}
+  .topbar{display:grid;grid-template-columns:auto 1fr auto auto auto auto;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--line);background:var(--panel);box-shadow:0 2px 12px var(--shadow);}
+  .title{font-weight:900;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+  .subtitle{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.02em;}
+  .titlebox{line-height:1.05;}
+  input[type="file"]{display:none;}
+  button,.fakefile{background:#101010;color:var(--text);border:1px solid var(--line);padding:9px 11px;cursor:pointer;min-height:36px;text-transform:uppercase;letter-spacing:.05em;font-size:12px;white-space:nowrap;}
+  button:hover,.fakefile:hover{border-color:#fff;background:#191919;}
+  button.active{background:#eee;color:#050505;border-color:#eee;}
+  button.warn{border-color:#66511d;color:var(--warn);}
+  button.danger{border-color:#663333;color:var(--danger);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .modebar{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);background:#101010;}
+  .tabs{display:flex;gap:6px;overflow:auto;scrollbar-width:thin;}
+  .tabs button{padding:7px 9px;min-height:30px;font-size:11px;}
+  .status{font-size:12px;color:var(--muted);white-space:nowrap;text-align:right;}
+  .main{display:grid;grid-template-columns:230px 1fr;min-height:0;}
+  .sidebar{border-right:1px solid var(--line);background:var(--panel);padding:10px;display:grid;grid-template-rows:auto 1fr auto;gap:10px;min-height:0;}
+  .sidehead{font-size:12px;color:var(--muted);line-height:1.35;border:1px solid var(--line);padding:8px;background:#0b0b0b;}
+  .devicelist{overflow:auto;display:flex;flex-direction:column;gap:6px;padding-right:2px;scrollbar-width:thin;}
+  .devicebtn{text-align:left;text-transform:none;letter-spacing:0;padding:8px;line-height:1.2;}
+  .devicebtn b{display:block;font-size:12px;letter-spacing:.03em;text-transform:uppercase;}
+  .devicebtn span{display:block;color:var(--muted);font-size:11px;margin-top:2px;}
+  .devicebtn.active span{color:#111;}
+  .safety{font-size:11px;color:var(--muted);line-height:1.35;border:1px dashed #555;padding:8px;background:#0b0b0b;}
+  .safety strong{color:var(--good);}
+  .stagewrap{min-width:0;min-height:0;display:grid;grid-template-rows:auto 1fr;background:#070707;}
+  .deviceinfo{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--line);background:#111;min-width:0;}
+  .deviceinfo .left{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;}
+  .deviceinfo .right{font-size:12px;color:var(--muted);white-space:nowrap;display:flex;gap:6px;align-items:center;}
+  .stage{position:relative;overflow:auto;min-height:0;background:
+    linear-gradient(45deg,#080808 25%,transparent 25%),
+    linear-gradient(-45deg,#080808 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#080808 75%),
+    linear-gradient(-45deg,transparent 75%,#080808 75%);
+    background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0;
+  }
+  .centerer{min-width:100%;min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .viewportShell{background:#000;border:2px solid var(--text);box-shadow:0 0 0 6px #1b1b1b,0 18px 40px var(--shadow);transform-origin:center center;flex:none;position:relative;}
+  .viewportShell.empty::after{content:"LOAD A LOCAL HTML FILE OR PASTE HTML";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#777;font-size:14px;letter-spacing:.08em;text-align:center;padding:20px;z-index:2;pointer-events:none;}
+  iframe{display:block;width:100%;height:100%;border:0;background:white;}
+  .modalBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .modalBackdrop.show{display:flex;}
+  .modal{width:min(900px,96vw);max-height:88vh;display:grid;grid-template-rows:auto 1fr auto;background:var(--panel);border:1px solid var(--line);box-shadow:0 18px 60px #000;}
+  .modal.small{width:min(620px,96vw);}
+  .modal h2{margin:0;padding:12px;border-bottom:1px solid var(--line);font-size:16px;letter-spacing:.06em;text-transform:uppercase;}
+  .modalBody{padding:12px;min-height:0;display:grid;gap:8px;}
+  textarea{width:100%;min-height:48vh;resize:vertical;background:#050505;border:1px solid var(--line);color:var(--text);padding:10px;outline:none;line-height:1.35;}
+  .modalActions{display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--line);padding:10px;}
+  .note{font-size:12px;color:var(--muted);line-height:1.4;}
+  .alert{position:fixed;right:12px;bottom:12px;max-width:360px;background:#111;border:1px solid var(--line);color:var(--text);padding:10px 12px;box-shadow:0 8px 26px #000;display:none;font-size:12px;line-height:1.35;z-index:60;}
+  .alert.show{display:block;}
+  @media(max-width:760px){
+    .topbar{grid-template-columns:1fr auto auto;}
+    .topbar .hideSmall{display:none;}
+    .main{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
+    .sidebar{grid-template-rows:auto auto;max-height:210px;border-right:0;border-bottom:1px solid var(--line);}
+    .sidehead,.safety{display:none;}
+    .devicelist{flex-direction:row;overflow:auto;}
+    .devicebtn{min-width:170px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="titlebox">
+      <div class="title">Please Respond</div>
+      <div class="subtitle">v1 static / dev files only / sandboxed</div>
+    </div>
+    <label class="fakefile" for="fileInput">Load HTML File</label>
+    <input id="fileInput" type="file" accept=".html,.htm,text/html" />
+    <button id="pasteBtn">Paste HTML</button>
+    <button id="safeBtn" class="active" title="Scripts disabled in preview iframe">Scripts Off</button>
+    <button id="interactiveBtn" title="Scripts enabled inside sandboxed iframe">Scripts On</button>
+    <button id="clearBtn" class="danger">Clear</button>
+  </div>
+
+  <div class="modebar">
+    <div class="tabs" id="groupTabs"></div>
+    <div class="status" id="statusText">No file loaded</div>
+  </div>
+
+  <div class="main">
+    <aside class="sidebar">
+      <div class="sidehead">
+        <strong>Local-first safety model:</strong><br>
+        load your own HTML files or pasted code. Nothing uploads, saves, fetches, or shares.
+      </div>
+      <div class="devicelist" id="deviceList"></div>
+      <div class="safety">
+        <strong>Scripts Off</strong> disables JavaScript. <strong>Scripts On</strong> allows scripts/forms in a sandbox for testing your own trusted projects.
+      </div>
+    </aside>
+
+    <section class="stagewrap">
+      <div class="deviceinfo">
+        <div class="left" id="deviceName">No device selected</div>
+        <div class="right">
+          <button id="rotateBtn">Rotate</button>
+          <button id="fitBtn" class="active">Fit</button>
+          <button id="actualBtn">100%</button>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="centerer" id="centerer">
+          <div class="viewportShell empty" id="viewportShell">
+            <iframe id="previewFrame" title="Responsive preview sandbox"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="modalBackdrop" id="pasteModal">
+  <div class="modal">
+    <h2>Paste HTML</h2>
+    <div class="modalBody">
+      <div class="note">Paste a full HTML document or fragment. It previews only in your current browser session and is not saved.</div>
+      <textarea id="pasteArea" spellcheck="false" placeholder="<!DOCTYPE html>..."></textarea>
+    </div>
+    <div class="modalActions">
+      <button id="cancelPaste">Cancel</button>
+      <button id="loadPaste">Load Paste</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalBackdrop" id="scriptsModal">
+  <div class="modal small">
+    <h2>Turn Scripts On?</h2>
+    <div class="modalBody">
+      <div class="note">
+        This will allow the loaded HTML to run JavaScript inside the sandboxed preview iframe. Only use Scripts On for your own files or files you trust. Bad scripts could freeze this tab, make network requests, or display misleading content inside the preview.
+      </div>
+    </div>
+    <div class="modalActions">
+      <button id="cancelScripts">No</button>
+      <button id="confirmScripts" class="warn">Yes, Scripts On</button>
+    </div>
+  </div>
+</div>
+
+<div class="alert" id="alertBox"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const groups = {
+    "Desktop": [
+      { name:"Old XGA / Netbook", w:1024, h:768 },
+      { name:"SXGA 5:4", w:1280, h:1024 },
+      { name:"HD Desktop", w:1366, h:768 },
+      { name:"WXGA+", w:1440, h:900 },
+      { name:"HD+ Desktop", w:1600, h:900 },
+      { name:"WSXGA+", w:1680, h:1050 },
+      { name:"1080p Monitor", w:1920, h:1080 },
+      { name:"WUXGA", w:1920, h:1200 },
+      { name:"1440p Monitor", w:2560, h:1440 },
+      { name:"Ultrawide", w:3440, h:1440 },
+      { name:"4K Monitor", w:3840, h:2160 }
+    ],
+    "Laptop": [
+      { name:"Old Small Laptop", w:1024, h:768 },
+      { name:"Small Widescreen", w:1280, h:720 },
+      { name:"Older MacBook-ish", w:1280, h:800 },
+      { name:"Classic Laptop", w:1366, h:768 },
+      { name:"MacBook Air-ish", w:1440, h:900 },
+      { name:"Scaled Windows Laptop", w:1536, h:864 },
+      { name:"Tall Laptop", w:1536, h:960 },
+      { name:"Wide Laptop", w:1600, h:900 },
+      { name:"Large 16:10 Laptop", w:1680, h:1050 },
+      { name:"Full HD Laptop", w:1920, h:1080 }
+    ],
+    "Tablet": [
+      { name:"iPad Mini-ish", w:768, h:1024, rot:true },
+      { name:"Small Android Tablet", w:800, h:1280, rot:true },
+      { name:"iPad 10/11-ish", w:820, h:1180, rot:true },
+      { name:"iPad Air/Pro 11-ish", w:834, h:1194, rot:true },
+      { name:"Large iPad-ish", w:1024, h:1366, rot:true },
+      { name:"Surface-ish Tablet", w:912, h:1368, rot:true }
+    ],
+    "Phone": [
+      { name:"Small Android", w:360, h:800, rot:true },
+      { name:"iPhone SE-ish", w:375, h:667, rot:true },
+      { name:"Modern iPhone", w:390, h:844, rot:true },
+      { name:"iPhone 15-ish", w:393, h:852, rot:true },
+      { name:"Pixel-ish", w:412, h:915, rot:true },
+      { name:"Large iPhone", w:428, h:926, rot:true },
+      { name:"Large Modern Phone", w:430, h:932, rot:true },
+      { name:"Fold Outer-ish", w:344, h:882, rot:true }
+    ],
+    "Misc": [
+      { name:"Tiny Stress Test", w:320, h:568, rot:true },
+      { name:"Square Kiosk", w:1024, h:1024 },
+      { name:"Short Wide Embed", w:1024, h:600 },
+      { name:"Tall Narrow Panel", w:480, h:1200 },
+      { name:"4K Layout Check", w:3840, h:2160 }
+    ]
+  };
+
+  const els = {
+    groupTabs: document.getElementById("groupTabs"),
+    deviceList: document.getElementById("deviceList"),
+    statusText: document.getElementById("statusText"),
+    deviceName: document.getElementById("deviceName"),
+    fileInput: document.getElementById("fileInput"),
+    pasteBtn: document.getElementById("pasteBtn"),
+    safeBtn: document.getElementById("safeBtn"),
+    interactiveBtn: document.getElementById("interactiveBtn"),
+    clearBtn: document.getElementById("clearBtn"),
+    rotateBtn: document.getElementById("rotateBtn"),
+    fitBtn: document.getElementById("fitBtn"),
+    actualBtn: document.getElementById("actualBtn"),
+    stage: document.getElementById("stage"),
+    centerer: document.getElementById("centerer"),
+    shell: document.getElementById("viewportShell"),
+    frame: document.getElementById("previewFrame"),
+    pasteModal: document.getElementById("pasteModal"),
+    pasteArea: document.getElementById("pasteArea"),
+    cancelPaste: document.getElementById("cancelPaste"),
+    loadPaste: document.getElementById("loadPaste"),
+    scriptsModal: document.getElementById("scriptsModal"),
+    cancelScripts: document.getElementById("cancelScripts"),
+    confirmScripts: document.getElementById("confirmScripts"),
+    alertBox: document.getElementById("alertBox")
+  };
+
+  let activeGroup = "Desktop";
+  let activeIndex = 0;
+  let rotated = false;
+  let fitMode = true;
+  let scriptsOn = false;
+  let loadedHTML = "";
+  let loadedName = "No file loaded";
+  let alertTimer = null;
+
+  function showAlert(msg){
+    clearTimeout(alertTimer);
+    els.alertBox.textContent = msg;
+    els.alertBox.classList.add("show");
+    alertTimer = setTimeout(() => els.alertBox.classList.remove("show"), 3600);
+  }
+
+  function escapeHTML(str){
+    return String(str).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch]));
+  }
+
+  function currentDevice(){
+    return groups[activeGroup][activeIndex] || groups.Desktop[0];
+  }
+
+  function currentSize(){
+    const d = currentDevice();
+    if(rotated && d.rot) return { w:d.h, h:d.w };
+    return { w:d.w, h:d.h };
+  }
+
+  function renderTabs(){
+    els.groupTabs.innerHTML = "";
+    Object.keys(groups).forEach(group => {
+      const btn = document.createElement("button");
+      btn.textContent = group;
+      btn.className = group === activeGroup ? "active" : "";
+      btn.addEventListener("click", () => {
+        activeGroup = group;
+        activeIndex = 0;
+        rotated = false;
+        renderAll();
+      });
+      els.groupTabs.appendChild(btn);
+    });
+  }
+
+  function renderDevices(){
+    els.deviceList.innerHTML = "";
+    groups[activeGroup].forEach((d, i) => {
+      const btn = document.createElement("button");
+      btn.className = "devicebtn" + (i === activeIndex ? " active" : "");
+      btn.innerHTML = `<b>${escapeHTML(d.name)}</b><span>${d.w} × ${d.h}${d.rot ? " / rotates" : ""}</span>`;
+      btn.addEventListener("click", () => {
+        activeIndex = i;
+        rotated = false;
+        renderAll();
+      });
+      els.deviceList.appendChild(btn);
+    });
+  }
+
+  function updateSandbox(){
+    if(scriptsOn){
+      els.frame.setAttribute("sandbox", "allow-scripts allow-forms");
+    }else{
+      els.frame.setAttribute("sandbox", "");
+    }
+  }
+
+  function loadIntoFrame(){
+    updateSandbox();
+    els.frame.srcdoc = loadedHTML || "";
+    els.shell.classList.toggle("empty", !loadedHTML);
+  }
+
+  function applyViewport(){
+    const d = currentDevice();
+    const s = currentSize();
+    els.shell.style.width = s.w + "px";
+    els.shell.style.height = s.h + "px";
+    els.rotateBtn.disabled = !d.rot;
+    els.rotateBtn.classList.toggle("active", rotated && d.rot);
+
+    let scale = 1;
+    if(fitMode){
+      const stageRect = els.stage.getBoundingClientRect();
+      const usableW = Math.max(100, stageRect.width - 56);
+      const usableH = Math.max(100, stageRect.height - 56);
+      scale = Math.min(1, usableW / s.w, usableH / s.h);
+      scale = Math.max(.08, scale);
+      els.centerer.style.alignItems = "center";
+      els.centerer.style.justifyContent = "center";
+    }else{
+      els.centerer.style.alignItems = "flex-start";
+      els.centerer.style.justifyContent = "flex-start";
+    }
+
+    els.shell.style.transform = `scale(${fitMode ? scale : 1})`;
+    els.centerer.style.width = fitMode ? "100%" : (s.w + 60) + "px";
+    els.centerer.style.height = fitMode ? "100%" : (s.h + 60) + "px";
+
+    const scaleText = fitMode ? `Displayed at ${Math.round(scale * 100)}%` : "Displayed at 100%";
+    els.deviceName.textContent = `${d.name} — viewport ${s.w} × ${s.h} ${rotated && d.rot ? "landscape" : "default"}`;
+    els.statusText.textContent = `${loadedName} | ${scriptsOn ? "Scripts On sandbox" : "Scripts Off"} | ${scaleText}`;
+  }
+
+  function renderAll(){
+    renderTabs();
+    renderDevices();
+    applyViewport();
+  }
+
+  function setScripts(nextOn){
+    scriptsOn = nextOn;
+    els.safeBtn.classList.toggle("active", !scriptsOn);
+    els.interactiveBtn.classList.toggle("active", scriptsOn);
+    if(loadedHTML) loadIntoFrame();
+    applyViewport();
+    showAlert(scriptsOn ? "Scripts On: scripts/forms allowed inside sandbox." : "Scripts Off: scripts disabled in preview.");
+  }
+
+  function setFit(nextFit){
+    fitMode = nextFit;
+    els.fitBtn.classList.toggle("active", fitMode);
+    els.actualBtn.classList.toggle("active", !fitMode);
+    applyViewport();
+  }
+
+  els.fileInput.addEventListener("change", async () => {
+    const file = els.fileInput.files && els.fileInput.files[0];
+    if(!file) return;
+    const lower = file.name.toLowerCase();
+    if(!lower.endsWith(".html") && !lower.endsWith(".htm") && file.type && file.type !== "text/html"){
+      showAlert("That does not look like an HTML file.");
+      return;
+    }
+    try{
+      loadedHTML = await file.text();
+      loadedName = file.name;
+      loadIntoFrame();
+      applyViewport();
+      showAlert("Loaded locally. Nothing uploaded or saved.");
+    }catch(err){
+      showAlert("Could not read that file.");
+    }
+  });
+
+  els.pasteBtn.addEventListener("click", () => {
+    els.pasteModal.classList.add("show");
+    els.pasteArea.focus();
+  });
+
+  els.cancelPaste.addEventListener("click", () => els.pasteModal.classList.remove("show"));
+  els.pasteModal.addEventListener("click", e => {
+    if(e.target === els.pasteModal) els.pasteModal.classList.remove("show");
+  });
+  els.loadPaste.addEventListener("click", () => {
+    const txt = els.pasteArea.value.trim();
+    if(!txt){ showAlert("Paste area is empty."); return; }
+    loadedHTML = txt;
+    loadedName = "Pasted HTML";
+    els.pasteModal.classList.remove("show");
+    loadIntoFrame();
+    applyViewport();
+    showAlert("Pasted HTML loaded in this tab only.");
+  });
+
+  els.safeBtn.addEventListener("click", () => setScripts(false));
+  els.interactiveBtn.addEventListener("click", () => {
+    if(scriptsOn) return;
+    els.scriptsModal.classList.add("show");
+  });
+  els.cancelScripts.addEventListener("click", () => els.scriptsModal.classList.remove("show"));
+  els.confirmScripts.addEventListener("click", () => {
+    els.scriptsModal.classList.remove("show");
+    setScripts(true);
+  });
+  els.scriptsModal.addEventListener("click", e => {
+    if(e.target === els.scriptsModal) els.scriptsModal.classList.remove("show");
+  });
+
+  els.clearBtn.addEventListener("click", () => {
+    loadedHTML = "";
+    loadedName = "No file loaded";
+    els.fileInput.value = "";
+    els.pasteArea.value = "";
+    setScripts(false);
+    loadIntoFrame();
+    applyViewport();
+    showAlert("Preview cleared.");
+  });
+
+  els.rotateBtn.addEventListener("click", () => {
+    const d = currentDevice();
+    if(!d.rot){ showAlert("This preset does not rotate."); return; }
+    rotated = !rotated;
+    applyViewport();
+  });
+
+  els.fitBtn.addEventListener("click", () => setFit(true));
+  els.actualBtn.addEventListener("click", () => setFit(false));
+  window.addEventListener("resize", applyViewport);
+
+  document.addEventListener("keydown", e => {
+    const tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : "";
+    const typing = tag === "textarea" || tag === "input";
+    if(e.key === "Escape"){
+      els.pasteModal.classList.remove("show");
+      els.scriptsModal.classList.remove("show");
+    }
+    if(typing) return;
+    if(e.key.toLowerCase() === "r") els.rotateBtn.click();
+    if(e.key.toLowerCase() === "f") els.fitBtn.click();
+    if(e.key === "ArrowRight"){
+      activeIndex = Math.min(groups[activeGroup].length - 1, activeIndex + 1);
+      rotated = false;
+      renderAll();
+    }
+    if(e.key === "ArrowLeft"){
+      activeIndex = Math.max(0, activeIndex - 1);
+      rotated = false;
+      renderAll();
+    }
+  });
+
+  updateSandbox();
+  loadIntoFrame();
+  renderAll();
+})();
+</script>
+</body>
+</html>
