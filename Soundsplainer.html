@@ -327,12 +327,13 @@
     <header>
       <div>
         <h1>Soundsplainer</h1>
-        <div class="subtitle">Click any pad. Reference format includes sliders, example BEEP-04 V28:L180:G105:F35.</div>
+        <div class="subtitle">Use KEY to copy the audio key so your LLM can interpret Soundsplainer codes. Use COPY to load the last sound to your clipboard.</div>
       </div>
       <div class="topControls">
         <button class="ctlBtn" id="loopBtn">LOOP:OFF</button>
         <button class="ctlBtn" id="stopBtn">STOP</button>
         <button class="ctlBtn" id="copyBtn">COPY</button>
+        <button class="ctlBtn" id="keyBtn">KEY</button>
         <button class="ctlBtn" id="readmeBtn">README</button>
         <div class="readout" id="readout">READY</div>
       </div>
@@ -349,7 +350,7 @@
 
     <footer>
       <div class="legend">
-        Codes include sliders: V volume, L length, G gap, F effect. Keys: L loop, Enter copy, Esc stop.
+        Codes include sliders: V volume, L length, G gap, F effect. Use KEY to copy the decoder for a fresh LLM chat. Keys: L loop, Enter copy, Esc stop.
       </div>
       <div class="copybox" id="copybox">LAST: NONE</div>
     </footer>
@@ -361,16 +362,16 @@
         <h2>Soundsplainer README</h2>
         <button class="ctlBtn" id="closeReadmeBtn">CLOSE</button>
       </div>
-      <p><strong>What this is:</strong> Soundsplainer is a browser-native Web Audio palette board. It lets you audition simple generated sounds, tune them with sliders, and copy a reusable sound code.</p>
-      <p><strong>Why it exists:</strong> describing a sound with words is vague. A copied code like <code>POPP-08 V28:L180:G105:F35</code> gives a future dev session an exact reference for the selected sound family, pad number, and slider settings.</p>
+      <p><strong>What this is:</strong> Soundsplainer is a browser-native Web Audio palette board built for <strong>user-to-LLM communication</strong>. It lets you audition simple generated sounds, tune them with sliders, and copy reusable sound codes.</p>
+      <p><strong>Why it exists:</strong> describing a sound with words is vague. A copied code like <code>POPP-08 V28:L180:G105:F35</code> gives a future dev session an exact reference for the selected sound family, pad number, and slider settings. The <strong>KEY</strong> button copies the decoder block you should paste into a new LLM chat so the model knows what categories like <code>POPP</code>, <code>CHIR</code>, or <code>TICK</code> mean.</p>
       <ul>
         <li><strong>VOL / V:</strong> playback volume.</li>
         <li><strong>LEN / L:</strong> sound length in milliseconds.</li>
         <li><strong>GAP / G:</strong> repeat gap used when loop is on.</li>
         <li><strong>FX / F:</strong> effect intensity, interpreted differently by sound type.</li>
       </ul>
-      <p><strong>Workflow:</strong> click pads until you hear a useful sound, adjust sliders, use LOOP if needed, then COPY the final code. Paste that code into notes or a dev chat to assign the sound to a game action.</p>
-      <p><strong>Controls:</strong> LOOP repeats the last/next selected pad, STOP kills current audio and loop, COPY copies the last full sound code, ESC stops, L toggles loop, Enter copies.</p>
+      <p><strong>Workflow:</strong> click pads until you hear a useful sound, adjust sliders, use LOOP if needed, then COPY the final code. If you are in a fresh LLM session, click <strong>KEY</strong> and paste that decoder first, then paste your copied sound code. This gives the model both the code and the meaning behind the sound families.</p>
+      <p><strong>Controls:</strong> LOOP repeats the last/next selected pad, STOP kills current audio and loop, COPY copies the last full sound code, KEY copies the Soundsplainer decoder/key, README explains the tool, ESC stops, L toggles loop, Enter copies.</p>
     </div>
   </div>
 
@@ -705,6 +706,38 @@
     });
   }
 
+
+  function soundKeyText(){
+    const lines = [
+      "SOUNDSPLAINER_KEY_V1",
+      "PURPOSE=user_to_llm_communication_for_browser_native_procedural_sound_codes",
+      "FORMAT=CAT-NN Vvol:Llen:Ggap:Ffx",
+      "V=volume_0_to_100",
+      "L=length_in_milliseconds",
+      "G=loop_gap_in_milliseconds",
+      "F=effect_amount_0_to_100_category_specific",
+      "NN=numbered_variant_within_the_sound_family",
+      "NOTE=higher_numbers_shift_character_within_a_family_but_are_not_a_universal_scale",
+      "CATEGORIES:",
+      ...categories.map(([name, hint]) => `${name}=${hint.replace(/\s+/g, "_")}`),
+      "USAGE=paste_this_key_into_a_chat_first_then_paste_individual_soundsplainer_codes",
+      "EXAMPLE=POPP-08 V28:L180:G105:F35"
+    ];
+    return lines.join("\\n");
+  }
+
+  async function copyKey(){
+    const keyText = soundKeyText();
+    try{
+      await navigator.clipboard.writeText(keyText);
+      readout.textContent = "KEY COPIED";
+      setTimeout(() => readout.textContent = lastFullCode === "NONE" ? "READY" : lastFullCode, 900);
+    }catch(e){
+      readout.textContent = "KEY COPY FAILED";
+      setTimeout(() => readout.textContent = lastFullCode === "NONE" ? "READY" : lastFullCode, 900);
+    }
+  }
+
   async function copyLast(){
     try{
       await navigator.clipboard.writeText(lastFullCode);
@@ -739,6 +772,7 @@
   loopBtn.addEventListener("click", toggleLoop);
   document.getElementById("stopBtn").addEventListener("click", stopAll);
   document.getElementById("copyBtn").addEventListener("click", copyLast);
+  document.getElementById("keyBtn").addEventListener("click", copyKey);
   readmeBtn.addEventListener("click", openReadme);
   closeReadmeBtn.addEventListener("click", closeReadme);
   readmeModal.addEventListener("click", e => { if(e.target === readmeModal) closeReadme(); });
@@ -746,6 +780,7 @@
   document.addEventListener("keydown", e => {
     if(e.key === "Escape"){ closeReadme(); stopAll(); }
     if(e.key.toLowerCase() === "l") toggleLoop();
+    if(e.key.toLowerCase() === "k") copyKey();
     if(e.key === "Enter") copyLast();
   });
 
