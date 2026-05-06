@@ -5,16 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>https://577345663.xyz/</title>
     <style>
+        :root {
+            --frame-color: #00ff00;
+            --frame-color-dim: rgba(0, 255, 0, 0.45);
+            --bg-color: #000;
+            --panel-width: 220px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            overflow: hidden; /* Prevent scrollbars from canvas/rain/content overflow */
-            background-color: #000; /* Pure black background initially */
+            overflow: hidden;
+            background-color: var(--bg-color);
             display: flex;
-            justify-content: center; /* Center terminal box horizontally */
-            align-items: center; /* Center terminal box vertically */
-            height: 100vh; /* Full viewport height */
-            width: 100vw;  /* Full viewport width */
-            position: relative; /* Needed for absolute positioning of canvas */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100vw;
+            position: relative;
+            image-rendering: pixelated;
         }
 
         canvas {
@@ -22,371 +34,427 @@
             position: absolute;
             top: 0;
             left: 0;
-            z-index: 1; /* Rain and filling effect layer */
+            z-index: 1;
+            image-rendering: pixelated;
         }
 
         #terminal-box {
-            /* No fixed size here - size is determined by content + padding */
-            /* No absolute positioning here - centering handled by body flexbox */
-            z-index: 3; /* Above the rain and splash canvas layers */
-            background-color: #000; /* Black background inside the frame */
-            padding: 50px; /* 50px buffer on all sides */
-            box-sizing: border-box; /* Include padding in element's final size */
-            display: flex; /* Still a flex container for content alignment */
-            justify-content: flex-start; /* Align content to the top (main axis) */
-            align-items: center; /* Center content horizontally (cross axis) - keeps content block centered if narrower than box */
+            z-index: 3;
+            background-color: #000;
+            padding: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-direction: column;
-            /* overflow: auto; */ /* Removed scroll */
+            border: 2px solid var(--frame-color);
+            outline: 2px solid var(--frame-color);
+            outline-offset: 5px;
+            box-shadow:
+                0 0 0 10px #000,
+                0 0 18px var(--frame-color-dim);
         }
 
         #terminal-content {
-            font-family: 'Courier New', Courier, monospace; /* Vintage terminal font */
-            font-size: 16px; /* Adjust font size as needed */
-            white-space: pre-wrap; /* Preserve whitespace and wrap text */
-            word-wrap: break-word; /* Break long words */
-            color: var(--frame-color, #0f0); /* Use CSS variable for dynamic color, green default */
-            /* width: 100%; */ /* Removed - allow content to determine width */
-            /* max-height: 100%; */ /* Removed max-height */
-            /* overflow-y: auto; */ /* Removed scroll */
-             text-align: center; /* Center text and inline elements horizontally within the content div */
+            font-family: "Press Start 2P", "Powerup", "Pixel NES", "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.75;
+            letter-spacing: 1px;
+            color: var(--frame-color);
+            text-align: center;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0 #001400;
         }
 
-        /* Styles to remove default margins on common first/last elements */
-        #terminal-content > :first-child {
-            margin-top: 0; /* Remove default top margin from the very first element */
+        .site-title {
+            margin: 0 0 26px;
+            font-size: 18px;
+            line-height: 1.4;
         }
 
-        #terminal-content > :last-child {
-            margin-bottom: 0; /* Remove default bottom margin from the very last element */
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(2, var(--panel-width));
+            gap: 28px;
+            align-items: start;
+            justify-content: center;
         }
 
-         /* Style for links within the terminal box */
-         #terminal-content a {
-             color: var(--frame-color, #0f0); /* Links use the terminal color */
-             text-decoration: none; /* Remove underline */
-         }
+        .link-card {
+            width: var(--panel-width);
+            min-height: 132px;
+            padding: 18px 14px 16px;
+            background: #000;
+            border: 2px solid var(--frame-color);
+            outline: 1px solid var(--frame-color);
+            outline-offset: -7px;
+            box-shadow:
+                inset 0 0 0 4px #000,
+                0 0 0 3px #000,
+                0 0 10px var(--frame-color-dim);
+        }
 
-         #terminal-content a:hover {
-             text-decoration: underline; /* Add underline on hover */
-         }
+        .link-card h2 {
+            margin: 0 0 14px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
 
-         /* Style for the clickable status text */
-         #terminal-content #statusText {
-             cursor: pointer;
-         }
+        .link-card a {
+            display: block;
+            color: var(--frame-color);
+            text-decoration: none;
+            margin: 9px 0;
+            padding: 2px 0;
+        }
 
-         /* Status text colors */
-         #terminal-content #statusText.status-online {
-             color: #00ff00; /* Green */
-         }
+        .link-card a:hover,
+        .link-card a:focus {
+            color: #000;
+            background: var(--frame-color);
+            text-decoration: none;
+            outline: none;
+            text-shadow: none;
+        }
 
-         #terminal-content #statusText.status-offline {
-             color: #ff0000; /* Red */
-         }
+        #status-box {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 4;
+            display: none;
+            min-width: 160px;
+            padding: 12px 13px 10px;
+            background: #000;
+            border: 2px solid var(--frame-color);
+            outline: 1px solid var(--frame-color);
+            outline-offset: -6px;
+            color: var(--frame-color);
+            font-family: "Press Start 2P", "Powerup", "Pixel NES", "Courier New", monospace;
+            font-size: 10px;
+            line-height: 1.55;
+            letter-spacing: 1px;
+            text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 0 0 3px #000, 0 0 12px var(--frame-color-dim);
+        }
 
+        #status-box.visible {
+            display: block;
+        }
 
+        #statusText {
+            cursor: pointer;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        #statusText.status-online {
+            color: #00ff00;
+        }
+
+        #statusText.status-offline {
+            color: #ff0000;
+        }
+
+        @media (max-width: 620px), (max-height: 600px) {
+            body {
+                overflow: auto;
+                align-items: flex-start;
+                padding: 28px 0 92px;
+            }
+
+            canvas {
+                position: fixed;
+            }
+
+            #terminal-box {
+                padding: 26px 22px;
+                max-width: calc(100vw - 34px);
+            }
+
+            .link-grid {
+                grid-template-columns: var(--panel-width);
+                gap: 22px;
+            }
+        }
     </style>
 </head>
 <body>
     <canvas id="rainCanvas"></canvas>
-    <div id="terminal-box">
+
+    <main id="terminal-box">
         <div id="terminal-content">
-<a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+            <h1 class="site-title">#Title</h1>
 
-<a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+            <section class="link-grid" aria-label="Site links">
+                <div class="link-card">
+                    <h2>Box 01</h2>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
+                </div>
 
-<a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
-          
-<a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                <div class="link-card">
+                    <h2>Box 02</h2>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
+                </div>
 
-<a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
-         
-<a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
-          
-<a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
-         
-<a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
-          
-<a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                <div class="link-card">
+                    <h2>Box 03</h2>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
+                </div>
 
-<a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
-         
-            <p>Status:<span id="statusText" class="status-online">ONLINE</span></p></center>
-            </div>
-    </div>
+                <div class="link-card">
+                    <h2>Box 04</h2>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <aside id="status-box" aria-label="Connection status">
+        Status:<span id="statusText" class="status-online">ONLINE</span>
+    </aside>
 
     <script>
+        const status = true; // Set false to hide the bottom-right status box.
+
         const canvas = document.getElementById('rainCanvas');
         const ctx = canvas.getContext('2d');
         const terminalBox = document.getElementById('terminal-box');
-        const terminalContent = document.getElementById('terminal-content');
-        const statusText = document.getElementById('statusText'); // Get reference to the status span
-
+        const statusBox = document.getElementById('status-box');
+        const statusText = document.getElementById('statusText');
 
         let width, height;
+        const pixel = 4;
         const particles = [];
-        const particleCount = 400; // Particle count remains the same
-
-        // Define the possible colors (RGB objects)
-        const colors = [
-            { r: 255, g: 0, b: 0 },   // Red
-            { r: 0, g: 0, b: 255 },   // Blue
-            { r: 0, g: 255, b: 0 },   // Green
-            { r: 255, g: 255, b: 0 }, // Yellow
-            { r: 255, g: 165, b: 0 }, // Orange
-            { r: 128, g: 0, b: 128 }  // Purple
-        ];
-
-        // Randomly select a color (simulate d6 roll)
-        const selectedColor = colors[Math.floor(Math.random() * colors.length)];
-        const selectedColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 1)`; // Solid color for frame/text
-        const selectedColorRgbaTransparent = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.6)`; // Semi-transparent for rain
-
-        // Color for the filling up effect - use the selected color with high opacity
-        // Alpha increased to 0.95 for less transparency
-        const fillOpaqueColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.95)`;
-
-
-        // Update CSS variable for text color
-        document.documentElement.style.setProperty('--frame-color', selectedColorRgba);
-
-        // Double border drawing parameters
-        const lineThickness = 1; // Thickness of each border line
-        const lineSeparation = 3; // Space between the two lines
-        const totalFrameThickness = lineThickness * 2 + lineSeparation; // Total thickness of the double border area
-
-
-        // Variables for the "filling up" effect
-        let fillProgress = 0;
-        // Increased fillDuration for much slower rise (60 * 240 = 4 minutes)
-        const fillDuration = 60 * 240;
-        const drainDuration = fillDuration / 2; // Drain twice as fast as filling
-
-
-        // Variables for the splash effect
+        const particleCount = 340;
         const splashes = [];
-
-        // Variable to track online/offline status
+        let fillProgress = 0;
+        const fillDuration = 60 * 240;
+        const drainDuration = fillDuration / 2;
         let isOnline = true;
 
+        const colors = [
+            { r: 255, g: 0, b: 0 },
+            { r: 0, g: 0, b: 255 },
+            { r: 0, g: 255, b: 0 },
+            { r: 255, g: 255, b: 0 },
+            { r: 255, g: 165, b: 0 },
+            { r: 128, g: 0, b: 128 }
+        ];
+
+        const selectedColor = colors[Math.floor(Math.random() * colors.length)];
+        const selectedColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 1)`;
+        const selectedColorDim = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.45)`;
+        const selectedColorRain = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.58)`;
+        const fillOpaqueColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.92)`;
+
+        document.documentElement.style.setProperty('--frame-color', selectedColorRgba);
+        document.documentElement.style.setProperty('--frame-color-dim', selectedColorDim);
+
+        function snap(value) {
+            return Math.round(value / pixel) * pixel;
+        }
 
         function resizeCanvas() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-
-            // Particles need to be re-initialized as canvas size changes
+            ctx.imageSmoothingEnabled = false;
             initParticles();
-            // Terminal box positioning is now handled by CSS flexbox on body
-            // Size is handled by content + padding + CSS flexbox
         }
 
         function initParticles() {
-            particles.length = 0; // Clear existing particles
+            particles.length = 0;
             for (let i = 0; i < particleCount; i++) {
                 particles.push({
-                    x: Math.random() * width,
-                    y: Math.random() * height, // Start anywhere on the screen initially
-                    speed: Math.random() * 5 + 2, // Increased speed range
-                    length: Math.random() * 30 + 15, // Slightly increased length
-                    opacity: Math.random() * 0.7 + 0.3 // Slightly increased max opacity
+                    x: snap(Math.random() * width),
+                    y: snap(Math.random() * height),
+                    speed: (Math.floor(Math.random() * 3) + 2) * pixel,
+                    length: (Math.floor(Math.random() * 4) + 3) * pixel,
+                    width: Math.random() > 0.75 ? pixel * 2 : pixel
                 });
             }
         }
 
-        // Function to create splash particles at a given x, y
-        function createSplash(x, y) { // Removed color parameter, using global selectedColor
-            const numSplashParticles = Math.random() * 5 + 3; // 3 to 8 splash particles per splash
-            for (let i = 0; i < numSplashParticles; i++) {
+        function getImpactRects() {
+            const rects = [terminalBox.getBoundingClientRect()];
+            document.querySelectorAll('.link-card').forEach(card => rects.push(card.getBoundingClientRect()));
+            if (status && statusBox.classList.contains('visible')) rects.push(statusBox.getBoundingClientRect());
+            return rects;
+        }
+
+        function createSplash(x, y, intensity = 1) {
+            const pieces = Math.floor(4 + Math.random() * 5) * intensity;
+            for (let i = 0; i < pieces; i++) {
+                const dir = Math.random() > 0.5 ? 1 : -1;
                 splashes.push({
-                    x: x,
-                    y: y,
-                    size: Math.random() * 3 + 1, // Initial size of splash particle
-                    speed: Math.random() * 2 + 0.5, // Speed of expansion
-                    life: Math.random() * 15 + 10, // Lifespan in frames
-                    opacity: Math.random() * 0.6 + 0.4, // Initial opacity
-                    angle: Math.random() * Math.PI * 2 // Random direction for potential line splash
+                    x: snap(x),
+                    y: snap(y),
+                    vx: dir * (Math.floor(Math.random() * 3) + 1) * pixel,
+                    vy: -(Math.floor(Math.random() * 3) + 1) * pixel,
+                    life: Math.floor(Math.random() * 10) + 8,
+                    size: Math.random() > 0.65 ? pixel * 2 : pixel
                 });
             }
         }
 
-        // Function to toggle online/offline status
+        function resetParticle(p) {
+            p.x = snap(Math.random() * width);
+            p.y = -p.length - snap(Math.random() * height * 0.15);
+            p.speed = (Math.floor(Math.random() * 3) + 2) * pixel;
+            p.length = (Math.floor(Math.random() * 4) + 3) * pixel;
+            p.width = Math.random() > 0.75 ? pixel * 2 : pixel;
+        }
+
+        function particleHitBox(p, oldY, rects) {
+            for (const rect of rects) {
+                const left = rect.left - pixel * 2;
+                const right = rect.right + pixel * 2;
+                const top = rect.top - pixel * 2;
+                const bottom = rect.bottom + pixel * 2;
+
+                if (p.x >= left && p.x <= right && oldY < top && p.y + p.length >= top) {
+                    createSplash(p.x, top, 1);
+                    return true;
+                }
+
+                if (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom && Math.random() > 0.88) {
+                    const edgeX = p.x < rect.left + rect.width / 2 ? rect.left : rect.right;
+                    createSplash(edgeX, p.y, 1);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function toggleStatus() {
-            isOnline = !isOnline; // Toggle the state
+            isOnline = !isOnline;
 
             if (isOnline) {
-                // Go ONLINE
                 statusText.textContent = 'ONLINE';
                 statusText.classList.remove('status-offline');
                 statusText.classList.add('status-online');
-                 // Rain starts, Water fills (handled in draw loop)
             } else {
-                // Go OFFLINE
                 statusText.textContent = 'OFFLINE';
                 statusText.classList.remove('status-online');
                 statusText.classList.add('status-offline');
-                 // Rain stops, Water drains (handled in draw loop)
             }
         }
 
-
-        function draw() {
-            // Clear canvas with slightly transparent black for subtle rain trails
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-            ctx.fillRect(0, 0, width, height);
-
-            // --- Draw the "filling up" or "draining" effect ---
-            if (isOnline) {
-                if (fillProgress < fillDuration) {
-                    fillProgress++; // Fill if online
-                }
-            } else { // is Offline
-                 if (fillProgress > 0) {
-                     // Drain - calculate step based on drain duration
-                     fillProgress -= (fillDuration / drainDuration);
-                     if (fillProgress < 0) fillProgress = 0; // Don't go below zero
-                 }
+        function drawFill(currentFillHeight) {
+            const startY = snap(height - currentFillHeight);
+            ctx.fillStyle = fillOpaqueColorRgba;
+            for (let y = startY; y < height; y += pixel * 2) {
+                ctx.fillRect(0, y, width, pixel);
             }
-            const currentFillHeight = (fillProgress / fillDuration) * height;
+        }
 
-            // Draw the filling rectangle from the bottom, underneath rain and box
-            ctx.fillStyle = fillOpaqueColorRgba; // Use the less transparent color
-            ctx.fillRect(0, height - currentFillHeight, width, currentFillHeight);
-            // --- End filling up/draining effect ---
+        function drawBubbles(currentFillHeight) {
+            if (currentFillHeight <= 0) return;
+            ctx.fillStyle = selectedColorDim;
+            const waterTop = height - currentFillHeight;
+            for (let i = 0; i < 24; i++) {
+                const x = snap((i * 97 + fillProgress * 0.35) % width);
+                const y = snap(height - ((i * 53 + fillProgress * 0.65) % Math.max(currentFillHeight, pixel * 2)));
+                if (y > waterTop) {
+                    ctx.fillRect(x, y, pixel, pixel);
+                    if (i % 3 === 0) ctx.fillRect(x + pixel, y - pixel, pixel, pixel);
+                }
+            }
+        }
 
-
-            // Update and draw particles (rain)
-            ctx.strokeStyle = selectedColorRgbaTransparent; // Use the selected color with transparency
-            ctx.lineWidth = 1; // Adjust line thickness
+        function drawRain(currentFillHeight) {
+            const waterSurfaceY = height - currentFillHeight;
+            const rects = getImpactRects();
+            ctx.fillStyle = selectedColorRain;
 
             particles.forEach(p => {
-                // Store old y before potential update
                 const oldY = p.y;
+                p.y += isOnline ? p.speed : p.speed * 1.25;
 
-                // Always update position (rain falls normally regardless of online status)
-                 p.y += p.speed;
+                if (isOnline && particleHitBox(p, oldY, rects)) {
+                    resetParticle(p);
+                    return;
+                }
 
+                if (isOnline && p.y >= waterSurfaceY && oldY < waterSurfaceY) {
+                    createSplash(p.x, waterSurfaceY, 1);
+                    resetParticle(p);
+                    return;
+                }
 
-                // Check if particle hits the "rising water" surface WHILE ONLINE
-                const waterSurfaceY = height - currentFillHeight;
-                 // Only create splashes if currently online (rain is falling actively towards water)
-                 if (isOnline && p.y >= waterSurfaceY && oldY < waterSurfaceY) {
-                      createSplash(p.x, waterSurfaceY); // Splash at the hit point
-                      // Reset the rain particle above the screen (only if splashing and online)
-                      p.y = -p.length;
-                      p.x = Math.random() * width;
-                      p.speed = Math.random() * 5 + 2;
-                      p.length = Math.random() * 30 + 15;
-                      p.opacity = Math.random() * 0.7 + 0.3;
+                if (p.y > height + p.length) {
+                    if (isOnline) resetParticle(p);
+                    return;
+                }
 
-                 } else if (p.y > height + p.length) {
-                     // Particle went off the bottom of the screen
-                     if (isOnline) {
-                        // If online, reset it to the top to continue raining
-                        p.y = -p.length;
-                        p.x = Math.random() * width;
-                        p.speed = Math.random() * 5 + 2;
-                        p.length = Math.random() * 30 + 15;
-                        p.opacity = Math.random() * 0.7 + 0.3;
-                     } else {
-                         // If offline, do NOT reset it. It's just gone.
-                         // The number of visible rain particles will decrease over time.
-                         // No explicit action needed here to remove it; it's just off-screen.
-                     }
-                 }
-
-                // Draw particle (line segment)
-                ctx.beginPath();
-                ctx.moveTo(p.x, p.y);
-                ctx.lineTo(p.x, p.y + p.length);
-                // To use individual particle opacity:
-                // ctx.strokeStyle = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, ${p.opacity})`;
-                ctx.stroke();
-            });
-
-            // --- Draw the splash particles ---
-            // Splashes are drawn regardless of online status, they just live and fade
-            ctx.fillStyle = selectedColorRgba; // Use solid color for splashes
-            const remainingSplashes = [];
-            splashes.forEach(s => {
-                s.life--;
-                s.size += s.speed * 0.1; // Expand slightly
-                s.opacity -= 0.03; // Fade out
-
-                if (s.life > 0 && s.opacity > 0) {
-                    ctx.globalAlpha = s.opacity; // Apply individual splash particle opacity
-                    ctx.beginPath();
-                    // Draw a circle for splash particle
-                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    // If you wanted line splashes instead:
-                    // ctx.moveTo(s.x, s.y);
-                    // ctx.lineTo(s.x + Math.cos(s.angle) * s.size, s.y + Math.sin(s.angle) * s.size);
-                    // ctx.stroke();
-
-                    remainingSplashes.push(s);
+                const drawX = snap(p.x);
+                const drawY = snap(p.y);
+                for (let y = 0; y < p.length; y += pixel * 2) {
+                    ctx.fillRect(drawX, drawY + y, p.width, pixel);
                 }
             });
-            splashes.length = 0; // Clear the original array
-            splashes.push(...remainingSplashes); // Add back the ones that are still alive
-            ctx.globalAlpha = 1; // Reset global alpha after drawing splashes
-            // --- End splash drawing ---
-
-
-            // --- Draw the terminal box (double frame and inner black fill) based on HTML element's live position/size ---
-
-            // Get the live position and dimensions of the HTML terminal box
-            const rect = terminalBox.getBoundingClientRect();
-
-            // Calculate the position and size for the canvas drawing relative to the canvas origin (0,0)
-            const boxXCanvas = rect.left;
-            const boxYCanvas = rect.top;
-            const boxWidthCanvas = rect.width;
-            const boxHeightCanvas = rect.height;
-
-            // Draw solid black rectangle for the area behind the terminal box text (covers rain and fill)
-            // This area corresponds to the HTML element's content box + padding, drawn on the canvas
-            ctx.fillStyle = '#000';
-             // The rect gives us the border-box size. We need the content box + padding for the black fill area
-            ctx.fillRect(boxXCanvas, boxYCanvas, boxWidthCanvas, boxHeightCanvas);
-
-
-            // Draw the double terminal box frame
-            ctx.strokeStyle = selectedColorRgba; // Use the solid selected color for the frame
-            ctx.lineWidth = lineThickness;
-
-            // Calculate the outer border position relative to the canvas
-            const outerBorderX = boxXCanvas - totalFrameThickness;
-            const outerBorderY = boxYCanvas - totalFrameThickness;
-            const outerBorderWidth = boxWidthCanvas + totalFrameThickness * 2;
-            const outerBorderHeight = boxHeightCanvas + totalFrameThickness * 2;
-
-
-            // Draw outer line
-             // Adjust strokeRect position by half lineThickness to center the stroke on the intended edge
-            ctx.strokeRect(outerBorderX + lineThickness / 2, outerBorderY + lineThickness / 2, outerBorderWidth - lineThickness, outerBorderHeight - lineThickness);
-
-            // Draw inner line
-            const innerOffsetDraw = lineThickness + lineSeparation;
-             // Inner line starts further in from the outer border
-            ctx.strokeRect(outerBorderX + innerOffsetDraw + lineThickness / 2, outerBorderY + innerOffsetDraw + lineThickness / 2, outerBorderWidth - innerOffsetDraw * 2 - lineThickness, outerBorderHeight - innerOffsetDraw * 2 - lineThickness);
-
-
-            // --- End terminal box drawing ---
-
-
-            requestAnimationFrame(draw); // Loop the animation
         }
 
-        // Initial setup
+        function drawSplashes() {
+            ctx.fillStyle = selectedColorRgba;
+            for (let i = splashes.length - 1; i >= 0; i--) {
+                const s = splashes[i];
+                s.life--;
+                s.x += s.vx;
+                s.y += s.vy;
+                s.vy += pixel * 0.35;
+
+                if (s.life <= 0) {
+                    splashes.splice(i, 1);
+                    continue;
+                }
+
+                ctx.fillRect(snap(s.x), snap(s.y), s.size, s.size);
+                if (s.life % 4 === 0) ctx.fillRect(snap(s.x - s.vx), snap(s.y), pixel, pixel);
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+            ctx.fillRect(0, 0, width, height);
+
+            if (isOnline) {
+                if (fillProgress < fillDuration) fillProgress++;
+            } else if (fillProgress > 0) {
+                fillProgress -= (fillDuration / drainDuration);
+                if (fillProgress < 0) fillProgress = 0;
+            }
+
+            const currentFillHeight = (fillProgress / fillDuration) * height;
+            drawFill(currentFillHeight);
+            drawBubbles(currentFillHeight);
+            drawRain(currentFillHeight);
+            drawSplashes();
+
+            requestAnimationFrame(draw);
+        }
+
         window.addEventListener('resize', resizeCanvas);
-        resizeCanvas(); // Set initial canvas size, calculate box dimensions, and position box
-        // initParticles() is called within resizeCanvas
-        draw(); // Start the animation loop
 
-        // Add event listener to the status text
+        if (status) {
+            statusBox.classList.add('visible');
+        }
+
         statusText.addEventListener('click', toggleStatus);
-
+        resizeCanvas();
+        draw();
     </script>
-
 </body>
 </html>
