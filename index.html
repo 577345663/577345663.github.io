@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>https://577345663.xyz/</title>
     <style>
+        @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
         :root {
             --frame-color: #00ff00;
             --frame-color-dim: rgba(0, 255, 0, 0.45);
             --bg-color: #000;
-            --panel-width: 220px;
+            --panel-width: 260px;
         }
 
         * {
@@ -40,24 +42,18 @@
 
         #terminal-box {
             z-index: 3;
-            background-color: #000;
-            padding: 34px;
+            background: transparent;
+            padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            border: 2px solid var(--frame-color);
-            outline: 2px solid var(--frame-color);
-            outline-offset: 5px;
-            box-shadow:
-                0 0 0 10px #000,
-                0 0 18px var(--frame-color-dim);
         }
 
         #terminal-content {
-            font-family: "Press Start 2P", "Powerup", "Pixel NES", "Courier New", monospace;
-            font-size: 13px;
-            line-height: 1.75;
+            font-family: "Powerup", "Powerup NES", "Press Start 2P", "Pixel NES", "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.9;
             letter-spacing: 1px;
             color: var(--frame-color);
             text-align: center;
@@ -66,23 +62,31 @@
         }
 
         .site-title {
-            margin: 0 0 26px;
+            display: inline-block;
+            min-width: 260px;
+            margin: 0 0 34px;
+            padding: 16px 22px 14px;
+            background: #000;
+            border: 2px solid var(--frame-color);
+            outline: 1px solid var(--frame-color);
+            outline-offset: -7px;
+            box-shadow: 0 0 0 4px #000, 0 0 12px var(--frame-color-dim);
             font-size: 18px;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         .link-grid {
             display: grid;
             grid-template-columns: repeat(2, var(--panel-width));
-            gap: 28px;
+            gap: 42px;
             align-items: start;
             justify-content: center;
         }
 
         .link-card {
             width: var(--panel-width);
-            min-height: 132px;
-            padding: 18px 14px 16px;
+            min-height: 158px;
+            padding: 24px 20px 22px;
             background: #000;
             border: 2px solid var(--frame-color);
             outline: 1px solid var(--frame-color);
@@ -94,8 +98,8 @@
         }
 
         .link-card h2 {
-            margin: 0 0 14px;
-            font-size: 11px;
+            margin: 0 0 18px;
+            font-size: 12px;
             line-height: 1.5;
         }
 
@@ -103,8 +107,8 @@
             display: block;
             color: var(--frame-color);
             text-decoration: none;
-            margin: 9px 0;
-            padding: 2px 0;
+            margin: 11px 0;
+            padding: 3px 0;
         }
 
         .link-card a:hover,
@@ -129,7 +133,7 @@
             outline: 1px solid var(--frame-color);
             outline-offset: -6px;
             color: var(--frame-color);
-            font-family: "Press Start 2P", "Powerup", "Pixel NES", "Courier New", monospace;
+            font-family: "Powerup", "Powerup NES", "Press Start 2P", "Pixel NES", "Courier New", monospace;
             font-size: 10px;
             line-height: 1.55;
             letter-spacing: 1px;
@@ -168,7 +172,6 @@
             }
 
             #terminal-box {
-                padding: 26px 22px;
                 max-width: calc(100vw - 34px);
             }
 
@@ -184,7 +187,7 @@
 
     <main id="terminal-box">
         <div id="terminal-content">
-            <h1 class="site-title">https://577345663.xyz/</h1>
+            <h1 class="site-title">577345663.xyz</h1>
 
             <section class="link-grid" aria-label="Site links">
                 <div class="link-card">
@@ -288,7 +291,9 @@
         }
 
         function getImpactRects() {
-            const rects = [terminalBox.getBoundingClientRect()];
+            const rects = [];
+            const title = document.querySelector('.site-title');
+            if (title) rects.push(title.getBoundingClientRect());
             document.querySelectorAll('.link-card').forEach(card => rects.push(card.getBoundingClientRect()));
             if (status && statusBox.classList.contains('visible')) rects.push(statusBox.getBoundingClientRect());
             return rects;
@@ -353,10 +358,17 @@
         }
 
         function drawFill(currentFillHeight) {
+            if (currentFillHeight <= 0) return;
             const startY = snap(height - currentFillHeight);
             ctx.fillStyle = fillOpaqueColorRgba;
-            for (let y = startY; y < height; y += pixel * 2) {
-                ctx.fillRect(0, y, width, pixel);
+            ctx.fillRect(0, startY, width, height - startY);
+
+            // Subtle blocky surface shimmer only on the top edge; the water body stays solid.
+            ctx.fillStyle = selectedColorRgba;
+            for (let x = 0; x < width; x += pixel * 6) {
+                if (((x / pixel) + Math.floor(fillProgress / 18)) % 4 === 0) {
+                    ctx.fillRect(x, startY, pixel * 2, pixel);
+                }
             }
         }
 
