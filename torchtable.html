@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Torch Table 0.4</title>
+<style>
+:root{
+  --bg:#161616;
+  --panel:#202020;
+  --panel2:#262626;
+  --line:#4a4a4a;
+  --line2:#666;
+  --text:#e7e7e7;
+  --muted:#a7a7a7;
+  --dark:#0d0d0d;
+  --accent:#d9d9d9;
+  --danger:#ff5c5c;
+  --good:#9be09b;
+  --warn:#ffd36b;
+  --cell:16px;
+  --font: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  padding:clamp(6px,1vw,12px);
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font);
+  overflow:hidden;
+  font-size:clamp(10px,.78vw,13px);
+}
+body.light{
+  --bg:#efefef; --panel:#fbfbfb; --panel2:#ececec; --line:#999; --line2:#777;
+  --text:#141414; --muted:#555; --dark:#fff; --accent:#111;
+}
+button,input,select,textarea{
+  font:inherit;
+  color:var(--text);
+  background:var(--dark);
+  border:1px solid var(--line);
+  border-radius:0;
+}
+body.light button,body.light input,body.light select,body.light textarea{color:var(--text);background:#fff;}
+body.light #grid{background:#d7d7d7;}
+body.light .cell{border-color:rgba(0,0,0,.18);}
+body.light .cell .icon{text-shadow:0 0 1px rgba(255,255,255,.6);}
+button{cursor:pointer;padding:3px 7px;min-height:22px;text-transform:uppercase;letter-spacing:.02em;}
+button:hover{border-color:var(--accent);}
+button:active{transform:translateY(1px);}
+button.danger{color:var(--danger);}
+button.primary{border-color:var(--accent);}
+input[type="checkbox"]{vertical-align:middle;}
+h3,h4{margin:0 0 4px 0;line-height:1.05;text-transform:uppercase;letter-spacing:.06em;}
+h3{font-size:clamp(10px,.85vw,14px);}
+h4{font-size:clamp(9px,.75vw,12px);color:var(--muted);}
+
+.app{
+  height:calc(100vh - clamp(12px,2vw,24px));
+  display:grid;
+  grid-template-columns:minmax(430px, 1fr) minmax(410px, 1.1fr);
+  grid-template-rows:minmax(0, 1fr) clamp(160px, 24vh, 230px);
+  grid-template-areas:
+    "entities map"
+    "tools dice";
+  gap:clamp(5px,.7vw,10px);
+}
+.panel{
+  border:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel),var(--dark));
+  padding:clamp(4px,.55vw,8px);
+  overflow:hidden;
+  min-width:0;
+  min-height:0;
+}
+.panelTitle{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;
+}
+.panelTitle .miniBtns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;}
+
+.entitiesPanel{grid-area:entities;display:grid;grid-template-rows:auto auto auto;gap:clamp(4px,.65vw,8px);}
+.entitySection{min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+.entityGrid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(3px,.45vw,6px);
+  min-height:0;
+}
+.entity{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.03);
+  padding:clamp(3px,.45vw,6px);
+  min-width:0;
+  display:grid;
+  grid-template-rows:auto auto;
+  gap:3px;
+}
+.entityTop{display:grid;grid-template-columns:auto 1fr auto;gap:4px;align-items:center;min-width:0;}
+.keyBadge{min-width:22px;text-align:center;border:1px solid var(--line2);background:var(--dark);padding:1px 3px;color:var(--warn);overflow:hidden;}
+.keyBadge.hidden{display:none;}
+.entityName{width:100%;min-width:0;font-size:clamp(10px,.8vw,12px);padding:2px 3px;}
+.hpWrap{display:flex;align-items:center;gap:2px;white-space:nowrap;color:var(--muted);}
+.hpInput{width:clamp(36px,4vw,54px);padding:2px 3px;}
+.statusRow{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.statusRow select{width:100%;min-width:0;padding:2px;font-size:clamp(9px,.72vw,11px);}
+
+.mapPanel{grid-area:map;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.mapTabs{width:100%;display:grid;grid-template-columns:repeat(6,1fr);gap:2px;}
+.gridTab{background:#303030;border:1px solid var(--line);text-align:center;padding:2px;cursor:pointer;user-select:none;overflow:hidden;white-space:nowrap;}
+.gridTab.active{background:#666;color:white;border-color:#aaa;}
+#gridShell{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+#grid{display:grid;border:1px solid var(--line2);background:#111;touch-action:none;}
+.cell{
+  width:var(--cell);height:var(--cell);
+  border:1px solid rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;
+  user-select:none;overflow:hidden;box-sizing:border-box;
+}
+.cell .icon{color:black;pointer-events:none;line-height:1;font-size:calc(var(--cell) * .68);font-weight:400;text-shadow:0 0 1px rgba(255,255,255,.35);}
+.cell .icon.bold{font-weight:900;}
+.gridControls{width:100%;display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;font-size:clamp(9px,.72vw,11px);}
+.gridControls label{white-space:nowrap;}
+
+.toolsPanel{grid-area:tools;display:grid;grid-template-columns:minmax(150px,.65fr) minmax(360px,1.75fr) minmax(135px,.55fr);gap:clamp(4px,.55vw,8px);}
+.toolBox{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:clamp(4px,.5vw,7px);min-width:0;overflow:hidden;}
+.generatorBox{display:flex;flex-direction:column;min-height:0;}
+.generatorBox .buttonGrid{flex:0 0 auto;}
+.generatorBox #genOutput{flex:1 1 auto;min-height:42px;max-height:none;}
+.timerBox{display:flex;flex-direction:column;min-height:0;}
+.timerBox .torchPanel{flex:1 1 auto;min-height:0;}
+.buttonGrid{display:flex;flex-wrap:wrap;gap:3px;align-content:flex-start;}
+#genOutput,.readout{
+  margin-top:4px;border:1px solid var(--line);background:var(--dark);padding:4px;min-height:32px;max-height:64px;overflow:auto;white-space:pre-wrap;color:var(--good);
+}
+.timerDisplay{font-size:clamp(18px,2.35vw,30px);letter-spacing:.08em;text-align:center;border:1px solid var(--line);background:#070707;margin:3px 0;padding:3px;color:var(--warn);}
+body.light .timerDisplay{background:#fff;}
+.timerControls,.presetControls,.counterControls{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;align-items:center;}
+.timerControls.oneLine{flex-wrap:nowrap;gap:2px;}
+.timerControls.oneLine button{padding-left:4px;padding-right:4px;min-width:auto;}
+.counterPill{border:1px solid var(--line);padding:2px 4px;background:var(--dark);display:grid;grid-template-columns:minmax(44px,1fr) auto auto auto;gap:3px;align-items:center;width:100%;}
+.counterName{width:5.8ch;min-width:0;padding:1px 2px;text-transform:uppercase;color:var(--text);background:transparent;border:1px solid transparent;}
+.counterName:focus{border-color:var(--line2);background:var(--dark);outline:none;}
+.counterPill span{min-width:2ch;text-align:center;color:var(--warn);}
+.counterBox{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:clamp(4px,.5vw,7px);display:flex;flex-direction:column;gap:4px;overflow:hidden;}
+.counterControls{display:flex;flex-direction:column;gap:4px;justify-content:flex-start;align-items:stretch;overflow:auto;}
+.torchPanel{margin-top:3px;border:1px solid var(--line);padding:4px;background:rgba(255,255,255,.025);}
+.torchRow{display:grid;grid-template-columns:1fr auto;gap:4px;align-items:center;}
+.torchButton{position:relative;overflow:hidden;text-align:center;color:var(--text);background:#101010;min-height:24px;}
+.torchButton::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--torchFill,0%);background:rgba(255,50,50,.62);z-index:0;}
+.torchButton span{position:relative;z-index:1;}
+.torchButton.lit{border-color:var(--danger);}
+.torchTime{text-align:center;color:var(--warn);font-size:9px;margin-top:2px;}
+
+.dicePanel{grid-area:dice;display:grid;grid-template-columns:minmax(235px,1fr) clamp(120px,12vw,155px) minmax(176px,.58fr);gap:clamp(4px,.55vw,8px);}
+.diceControls{display:flex;flex-wrap:wrap;gap:3px;align-items:center;}
+.diceControls button{min-width:32px;padding-left:4px;padding-right:4px;}
+.diceHistory{
+  margin-top:5px;border:1px solid var(--line);background:var(--dark);padding:5px;
+  height:calc(100% - 54px);min-height:58px;overflow:auto;white-space:normal;line-height:1.45;
+}
+.diceToken{display:inline;color:var(--muted);}
+.diceToken strong{color:var(--text);font-weight:700;}
+.quickStats{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:clamp(4px,.5vw,7px);display:flex;flex-direction:column;gap:5px;}
+.quickStatsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;}
+.quickStatsGrid div{border:1px solid var(--line);padding:3px;background:var(--dark);display:flex;justify-content:space-between;gap:5px;}
+.quickStatsGrid span{color:var(--warn);}
+
+.modalShade{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;}
+.modalShade.open{display:flex;}
+.modal{width:min(920px,96vw);max-height:90vh;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);border:2px solid var(--line2);box-shadow:0 0 0 4px rgba(0,0,0,.35);}
+.modalHeader{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px;}
+.modalBody{padding:8px;overflow:auto;}
+.modalFooter{padding:8px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:5px;}
+.notesTabs{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px;}
+.noteTab{border:1px solid var(--line);background:#333;padding:3px 7px;cursor:pointer;}
+.noteTab.active{background:#666;color:white;}
+textarea.bigText{width:100%;height:55vh;resize:none;padding:6px;}
+.inventoryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.invBox{border:1px solid var(--line);padding:5px;min-height:130px;display:flex;flex-direction:column;gap:3px;}
+.invBox textarea{flex:1;min-height:95px;resize:none;padding:5px;}
+.setupGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.setupBox{border:1px solid var(--line);padding:7px;background:rgba(255,255,255,.025);}
+.setupRow{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin:5px 0;}
+.statusEditor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;}
+.keyEditor{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;}
+.paletteGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;}
+.paletteSwatch{height:34px;border:1px solid var(--line2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;text-transform:uppercase;color:#111;background:#eee;}
+.paletteSwatch.darkText{color:#111;}
+.paletteSwatch.lightText{color:#eee;}
+.customColorRow{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap;}
+.statusEditor input,.keyEditor input{width:100%;padding:3px;}
+.helpText{line-height:1.55;white-space:pre-wrap;}
+.hiddenFile{display:none;}
+.isOff{display:none!important;}
+.setupOptions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;}
+.setupOptions label{border:1px solid var(--line);padding:4px;background:var(--dark);}
+
+@media (max-width:1050px){
+  body{overflow:auto;}
+  .app{height:auto;min-height:100vh;grid-template-columns:1fr;grid-template-rows:auto 70vh auto auto;grid-template-areas:"map" "entities" "dice" "tools";}
+  .entitiesPanel{min-height:560px;}
+  .toolsPanel{grid-template-columns:1fr;}
+  .dicePanel{grid-template-columns:1fr;}
+  .inventoryGrid,.setupGrid{grid-template-columns:1fr;}
+}
+@media (min-width:1500px){
+  .app{grid-template-columns:minmax(620px, .9fr) minmax(720px,1.1fr);}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="panel entitiesPanel">
+    <div class="entitySection">
+      <div class="panelTitle"><h3>Players</h3><div class="miniBtns"><button onclick="openModal('setup')">Setup</button><button id="inventoryBtn" onclick="openModal('inventory')">Inventory</button><button onclick="openModal('notes')">Notes</button></div></div>
+      <div id="players" class="entityGrid"></div>
+    </div>
+    <div class="entitySection">
+      <div class="panelTitle"><h3>Allies</h3></div>
+      <div id="allies" class="entityGrid"></div>
+    </div>
+    <div class="entitySection">
+      <div class="panelTitle"><h3>Monsters</h3></div>
+      <div id="monsters" class="entityGrid"></div>
+    </div>
+  </section>
+
+  <section class="panel mapPanel">
+    <div id="gridTabsTop" class="mapTabs"></div>
+    <div id="gridShell"><div id="grid"></div></div>
+    <div id="gridTabsBottom" class="mapTabs"></div>
+    <div class="gridControls">
+      <label><input type="checkbox" id="keyToggle" onchange="renderEntities();refreshKeySelects();"> Key</label>
+      <label><input type="checkbox" id="boldToggle" onchange="applyIconStyle()"> Bold</label>
+      <label><input type="checkbox" id="quest" onchange="refreshKeySelects()"> Quest</label>
+      <label><input type="checkbox" id="party" onchange="refreshKeySelects()"> Party</label>
+      <label><input type="checkbox" id="extra1" onchange="refreshKeySelects()"> Extra 1</label>
+      <label><input type="checkbox" id="extra2" onchange="refreshKeySelects()"> Extra 2</label>
+      <button onclick="openModal('key')">Edit Key</button>
+      <button onclick="openPalette()">Palette</button>
+      <input type="color" id="colorPicker" style="display:none;">
+      <label><input type="checkbox" id="customToggle"> Custom</label>
+      <button onclick="resetGrid()">Reset</button>
+      <label><input type="checkbox" id="lockToggle" checked> Lock</label>
+    </div>
+  </section>
+
+  <section class="panel toolsPanel">
+    <div class="toolBox">
+      <div class="panelTitle"><h3>Torch Table 0.4</h3></div>
+      <div class="buttonGrid">
+        <button onclick="exportState()">Export</button>
+        <button onclick="document.getElementById('importFile').click()">Import</button>
+        <button onclick="openModal('help')">Help</button>
+        <button id="lightBtn" onclick="toggleLight()">Light</button>
+      </div>
+      <input id="importFile" class="hiddenFile" type="file" accept="application/json,.json" onchange="importState(event)">
+      <div class="readout" id="saveReadout">Welcome to Torch Table 0.4.</div>
+    </div>
+
+    <div class="toolBox generatorBox">
+      <div class="panelTitle"><h3>Generators</h3></div>
+      <div class="buttonGrid">
+        <button onclick="genNPC('masc')">NPC1</button>
+        <button onclick="genNPC('fem')">NPC2</button>
+        <button onclick="genNPC('bad')">NPC3</button>
+        <button onclick="genPlace()">Place</button>
+        <button onclick="genThing()">Thing</button>
+        <button onclick="genLoot()">Loot</button>
+        <button onclick="genEncounter()">Encounter</button>
+        <button onclick="genRumor()">Rumor</button>
+        <button onclick="genQuest()">Quest</button>
+        <button onclick="genTrap()">Trap</button>
+        <button onclick="genWeather()">Weather</button>
+      </div>
+      <div id="genOutput">Generator output appears here.</div>
+    </div>
+
+    <div class="counterBox" id="counterBox">
+      <div class="panelTitle"><h3>Counters</h3></div>
+      <div class="counterControls" id="counterControls"></div>
+    </div>
+  </section>
+
+  <section class="panel dicePanel">
+    <div class="toolBox">
+      <div class="panelTitle"><h3>Dice</h3><button onclick="clearDiceHistory()">Clear</button></div>
+      <div class="diceControls">
+        <button onclick="rollDiceExpr('d2')">d2</button>
+        <button onclick="rollDiceExpr('d3')">d3</button>
+        <button onclick="rollDiceExpr('d4')">d4</button>
+        <button onclick="rollDiceExpr('d6')">d6</button>
+        <button onclick="rollDiceExpr('d8')">d8</button>
+        <button onclick="rollDiceExpr('d10')">d10</button>
+        <button onclick="rollDiceExpr('d12')">d12</button>
+        <button onclick="rollDiceExpr('d20')">d20</button>
+        <button onclick="rollDiceExpr('d100')">d100</button>
+        <button onclick="rollDiceExpr('2d6')">2d6</button>
+        <button onclick="rollDiceExpr('3d6')">3d6</button>
+        <button onclick="rollDropLowest()">4d6-L</button>
+        <span id="diceExtraControls"><label>X <input type="number" id="diceMultiplier" value="1" min="1" max="99" style="width:42px"></label>
+        <label><input type="checkbox" id="sumCheck" checked> SUM</label></span>
+      </div>
+      <div class="diceHistory" id="diceHistory"></div>
+    </div>
+    <div class="quickStats" id="quickStatsBox">
+      <div class="panelTitle"><h3>Quick Stats</h3></div>
+      <label><input type="checkbox" id="dropLowestStats"> 4d6 drop lowest</label>
+      <div class="quickStatsGrid">
+        <div>STR <span id="statSTR">0</span></div><div>DEX <span id="statDEX">0</span></div>
+        <div>CON <span id="statCON">0</span></div><div>INT <span id="statINT">0</span></div>
+        <div>WIS <span id="statWIS">0</span></div><div>CHA <span id="statCHA">0</span></div>
+      </div>
+      <button onclick="rollQuickStats()">Roll</button>
+    </div>
+    <div class="toolBox timerBox">
+      <div class="panelTitle"><h3>Timer</h3></div>
+      <div id="timerDisplay" class="timerDisplay">00:00</div>
+      <div class="timerControls oneLine">
+        <button onclick="timerStartPause()" id="timerStartBtn">Start</button>
+        <button onclick="timerReset()">Reset</button>
+        <button onclick="timerMode='up';timerSet(0)">SW</button>
+        <button onclick="timerMode='down';timerSet(30)">30s</button>
+        <button onclick="timerMode='down';timerSet(60)">1m</button>
+        <button onclick="timerMode='down';timerSet(300)">5m</button>
+        <button onclick="timerMode='down';timerSet(600)">10m</button>
+        <button onclick="timerMode='down';timerSet(1800)">30m</button>
+      </div>
+      <div class="torchPanel">
+        <div class="torchRow">
+          <button id="torchButton" class="torchButton" onclick="lightTorch()"><span>Light Torch</span></button>
+          <button class="danger" onclick="killTorch()">X</button>
+        </div>
+        <div id="torchTime" class="torchTime">60:00</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modalShade" id="modalShade" onclick="shadeClose(event)">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modalHeader"><h3 id="modalTitle">Modal</h3><button onclick="closeModal()">X</button></div>
+    <div class="modalBody" id="modalBody"></div>
+    <div class="modalFooter" id="modalFooter"><button onclick="closeModal()">Close</button></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const r = arr => arr[Math.random()*arr.length|0];
+
+const defaultStatuses=["Normal","Blinded","Charmed","Deafened","Frightened","Grappled","Incapacitated","Invisible","Paralyzed","Petrified","Poisoned","Prone","Restrained","Stunned","Unconscious","Burning","Frozen","Bleeding","Cursed","Blessed","Concentrating","Hidden","Exhausted","Dazed","Custom 1","Custom 2","Custom 3","Custom 4","Custom 5","Custom 6","Custom 7","Custom 8"];
+const maxCounts={players:9,allies:9,monsters:9};
+let state={
+  counts:{players:6,allies:3,monsters:9},
+  statuses:[...defaultStatuses],
+  entities:{players:[],allies:[],monsters:[]},
+  notes:Array(12).fill(""), noteNames:Array.from({length:12},(_,i)=>"Note "+(i+1)), currentNote:0,
+  inventory:{players:Array(9).fill(""),allies:Array(9).fill("")},
+  keys:{players:[],allies:[],monsters:[]},
+  counters:[{name:'Round',value:0},{name:'Turn',value:0},{name:'Alert',value:0},{name:'Pass',value:0}],
+  options:{showInventory:true,showQuickStats:true,showCounters:true,showLight:true,showGenOutput:true,showDiceExtras:true},
+  theme:{light:false}
+};
+for(const type of Object.keys(maxCounts)){
+  for(let i=0;i<maxCounts[type];i++){
+    const label=type==='players'?'Player':type==='allies'?'Ally':'Monster';
+    state.entities[type].push({name:`${label} ${i+1}`,hp: type==='monsters'?8:10,status1:"Normal",status2:"Normal"});
+  }
+}
+
+const baseIconSets={base:["","X","O"],quest:["?","!","$"],party:["Ω","Ψ","Δ","Θ","Σ","Φ","@","&","%"],extra1:["+","=","*","#"],extra2:["Y","Z","▲","◆"]};
+state.keys.players=["Ω","Ψ","Δ","Θ","Σ","Φ","@","&","%"];
+state.keys.allies=["+","=","*"];
+state.keys.monsters=["X","O","#","Y","Z","?","!","$","◆"];
+
+const palette=["","white","red","pink","blue","cyan","green","lime","purple","yellow","orange","brown","gray","black"];
+let currentCustom=null;
+let tabs=[
+  {name:"L1",rows:24,cols:32,data:[]},{name:"L2",rows:24,cols:32,data:[]},{name:"L3",rows:24,cols:32,data:[]},{name:"L4",rows:24,cols:32,data:[]},{name:"L5",rows:24,cols:32,data:[]},{name:"L6",rows:24,cols:32,data:[]},
+  {name:"S1",rows:12,cols:16,data:[]},{name:"S2",rows:12,cols:16,data:[]},{name:"S3",rows:12,cols:16,data:[]},{name:"S4",rows:12,cols:16,data:[]},{name:"S5",rows:12,cols:16,data:[]},{name:"S6",rows:12,cols:16,data:[]}
+];
+let currentTab=0;
+
+function normalizeEntity(type,idx){
+  const label=type==='players'?'Player':type==='allies'?'Ally':'Monster';
+  if(!state.entities[type][idx]) state.entities[type][idx]={name:`${label} ${idx+1}`,hp:type==='monsters'?8:10,status1:"Normal",status2:"Normal"};
+  return state.entities[type][idx];
+}
+function statusOptions(selected){return state.statuses.map(s=>`<option value="${escapeHtml(s)}" ${s===selected?'selected':''}>${escapeHtml(s)}</option>`).join('');}
+function escapeHtml(str){return String(str).replace(/[&<>"]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));}
+function renderEntities(){
+  renderEntityType('players',$('players'));
+  renderEntityType('allies',$('allies'));
+  renderEntityType('monsters',$('monsters'));
+}
+function renderEntityType(type,container){
+  container.innerHTML='';
+  const count=state.counts[type];
+  for(let i=0;i<count;i++){
+    const e=normalizeEntity(type,i);
+    const div=document.createElement('div');
+    div.className='entity';
+    div.innerHTML=`
+      <div class="entityTop">
+        <span class="keyBadge ${$('keyToggle') && !$('keyToggle').checked ? 'hidden' : ''}" title="Map key symbol">${escapeHtml(state.keys[type][i]||'')}</span>
+        <input class="entityName" value="${escapeHtml(e.name)}" data-type="${type}" data-idx="${i}" data-field="name">
+        <label class="hpWrap">HP <input class="hpInput" type="number" value="${escapeHtml(e.hp)}" data-type="${type}" data-idx="${i}" data-field="hp"></label>
+      </div>
+      <div class="statusRow">
+        <select data-type="${type}" data-idx="${i}" data-field="status1">${statusOptions(e.status1)}</select>
+        <select data-type="${type}" data-idx="${i}" data-field="status2">${statusOptions(e.status2)}</select>
+      </div>`;
+    container.appendChild(div);
+  }
+  container.querySelectorAll('input,select').forEach(el=>el.onchange=entityChanged);
+}
+function entityChanged(ev){const el=ev.target;const e=normalizeEntity(el.dataset.type,+el.dataset.idx);e[el.dataset.field]=el.value;}
+
+function buildGridTabs(){
+  $('gridTabsTop').innerHTML=''; $('gridTabsBottom').innerHTML='';
+  tabs.forEach((tab,i)=>{
+    const d=document.createElement('div'); d.className='gridTab'; d.textContent=tab.name;
+    d.onclick=()=>switchTab(i);
+    d.ondblclick=()=>{ if(currentTab!==i)return; const n=prompt('Rename map:',tab.name); if(n){tab.name=n;buildGridTabs();} };
+    (i<6?$('gridTabsTop'):$('gridTabsBottom')).appendChild(d);
+  });
+  updateTabActive();
+}
+function updateTabActive(){document.querySelectorAll('.gridTab').forEach((el,i)=>el.classList.toggle('active',i===currentTab));}
+function computeCellSize(){
+  const shell=$('gridShell'); const tab=tabs[currentTab];
+  const rect=shell.getBoundingClientRect();
+  const maxW=Math.max(120,rect.width-8), maxH=Math.max(120,rect.height-8);
+  const size=Math.floor(Math.min(maxW/tab.cols, maxH/tab.rows));
+  document.documentElement.style.setProperty('--cell', Math.max(9,Math.min(30,size))+'px');
+}
+function buildGrid(){
+  computeCellSize();
+  const tab=tabs[currentTab]; const g=$('grid'); g.innerHTML='';
+  g.style.gridTemplateColumns=`repeat(${tab.cols}, var(--cell))`;
+  for(let i=0;i<tab.rows*tab.cols;i++){
+    const d=tab.data[i]||{bg:"",txt:""};
+    const cell=document.createElement('div'); cell.className='cell'; cell.dataset.index=i; cell.style.background=d.bg||'';
+    const span=document.createElement('div'); span.className='icon'; span.textContent=d.txt||''; if($('boldToggle').checked)span.classList.add('bold');
+    cell.appendChild(span);
+    cell.onclick=()=>{ const current=cell.style.backgroundColor||cell.style.background; if($('customToggle').checked && currentCustom){ cell.style.background=currentCustom; }
+      else { const saved=tab.data[i]?.bg||''; let p=palette.indexOf(saved); if(p<0)p=0; p=(p+1)%palette.length; cell.style.background=palette[p]; }
+      saveGrid(); };
+    cell.oncontextmenu=e=>{ e.preventDefault(); const icons=getActiveIcons(); const cur=span.textContent; let idx=icons.indexOf(cur); span.textContent=icons[(idx+1)%icons.length]; saveGrid(); };
+    g.appendChild(cell);
+  }
+}
+function saveGrid(){
+  const tab=tabs[currentTab]; tab.data=[];
+  $('grid').querySelectorAll('.cell').forEach(c=>tab.data.push({bg:c.style.background||'',txt:c.firstChild.textContent||''}));
+}
+function switchTab(i){saveGrid();currentTab=i;buildGrid();updateTabActive();}
+function resetGrid(){if($('lockToggle').checked)return;tabs[currentTab].data=[];buildGrid();}
+function applyIconStyle(){document.querySelectorAll('.icon').forEach(i=>i.classList.toggle('bold',$('boldToggle').checked));}
+function getActiveIcons(){
+  let icons=[...baseIconSets.base];
+  if($('quest').checked)icons.push(...baseIconSets.quest);
+  if($('party').checked)icons.push(...baseIconSets.party);
+  if($('extra1').checked)icons.push(...baseIconSets.extra1);
+  if($('extra2').checked)icons.push(...baseIconSets.extra2);
+  if($('keyToggle').checked){
+    const assigned=[...state.keys.players,...state.keys.allies,...state.keys.monsters].filter(Boolean);
+    assigned.forEach(x=>{ if(!icons.includes(x))icons.push(x); });
+  }
+  return [...new Set(icons)];
+}
+function openPalette(){openModal('palette');}
+$('colorPicker').addEventListener('input',function(){currentCustom=this.value;$('customToggle').checked=true;});
+
+let activeModal=null;
+function openModal(name){activeModal=name;$('modalShade').classList.add('open');renderModal(name);}
+function closeModal(){activeModal=null;$('modalShade').classList.remove('open');}
+function shadeClose(e){if(e.target.id==='modalShade')closeModal();}
+function renderModal(name){
+  const title=$('modalTitle'), body=$('modalBody'), foot=$('modalFooter'); foot.innerHTML='<button onclick="closeModal()">Close</button>';
+  if(name==='notes')return renderNotesModal(title,body,foot);
+  if(name==='inventory')return renderInventoryModal(title,body,foot);
+  if(name==='setup')return renderSetupModal(title,body,foot);
+  if(name==='key')return renderKeyModal(title,body,foot);
+  if(name==='palette')return renderPaletteModal(title,body,foot);
+  if(name==='help')return renderHelpModal(title,body,foot);
+}
+function renderNotesModal(title,body,foot){
+  title.textContent='Notes';
+  foot.innerHTML='<button onclick="exportNotesTxt()">Export TXT</button><button onclick="closeModal()">Close</button>';
+  body.innerHTML=`<div class="notesTabs" id="notesTabs"></div><textarea id="noteText" class="bigText"></textarea>`;
+  const tabsEl=$('notesTabs');
+  state.noteNames.forEach((n,i)=>{const b=document.createElement('button');b.className='noteTab';b.textContent=n;b.classList.toggle('active',i===state.currentNote);b.onclick=()=>{saveCurrentNote();state.currentNote=i;renderModal('notes');};b.ondblclick=()=>{const nn=prompt('Rename note:',state.noteNames[i]);if(nn){state.noteNames[i]=nn;renderModal('notes');}};tabsEl.appendChild(b);});
+  $('noteText').value=state.notes[state.currentNote]||'';
+  $('noteText').oninput=saveCurrentNote;
+}
+function saveCurrentNote(){const t=$('noteText'); if(t)state.notes[state.currentNote]=t.value;}
+function renderInventoryModal(title,body,foot){
+  title.textContent='Inventory';
+  let html='<h4>Players</h4><div class="inventoryGrid">';
+  for(let i=0;i<state.counts.players;i++)html+=invBox('players',i);
+  html+='</div><br><h4>Allies</h4><div class="inventoryGrid">';
+  for(let i=0;i<state.counts.allies;i++)html+=invBox('allies',i);
+  html+='</div>'; body.innerHTML=html;
+  body.querySelectorAll('textarea').forEach(t=>t.oninput=()=>{state.inventory[t.dataset.type][+t.dataset.idx]=t.value;});
+}
+function invBox(type,i){const e=normalizeEntity(type,i);return `<div class="invBox"><h4>${escapeHtml(e.name)}</h4><textarea data-type="${type}" data-idx="${i}">${escapeHtml(state.inventory[type][i]||'')}</textarea></div>`;}
+function renderSetupModal(title,body,foot){
+  title.textContent='Setup';
+  body.innerHTML=`<div class="setupGrid">
+    <div class="setupBox"><h4>Visible Boxes</h4>${countControl('players','Players')}${countControl('allies','Allies')}${countControl('monsters','Monsters')}<button onclick="applyCountsFromSetup()">Apply Counts</button></div>
+    <div class="setupBox"><h4>Table Options</h4><div class="setupOptions">
+      ${optionToggle('showInventory','Inventory button')}
+      ${optionToggle('showQuickStats','Quick Stats')}
+      ${optionToggle('showCounters','Counters')}
+      ${optionToggle('showLight','Light button')}
+      ${optionToggle('showGenOutput','Generator output')}
+      ${optionToggle('showDiceExtras','Dice X/SUM')}
+    </div></div>
+    <div class="setupBox" style="grid-column:1/-1"><h4>Status List</h4><div class="setupRow"><button onclick="resetStatuses()">Reset Defaults</button></div><div id="statusEditor" class="statusEditor"></div></div>
+  </div>`;
+  const ed=$('statusEditor'); ed.innerHTML=''; state.statuses.forEach((s,i)=>{const inp=document.createElement('input');inp.value=s;inp.onchange=()=>{state.statuses[i]=inp.value||s;renderEntities();};ed.appendChild(inp);});
+  body.querySelectorAll('[data-option]').forEach(cb=>cb.onchange=()=>{state.options[cb.dataset.option]=cb.checked;applyOptions();});
+}
+function optionToggle(key,label){return `<label><input type="checkbox" data-option="${key}" ${state.options[key]?'checked':''}> ${label}</label>`;}
+function countControl(type,label){return `<div class="setupRow"><strong>${label}</strong><label><input name="${type}Count" type="radio" value="0" ${state.counts[type]===0?'checked':''}>0</label><label><input name="${type}Count" type="radio" value="3" ${state.counts[type]===3?'checked':''}>3</label><label><input name="${type}Count" type="radio" value="6" ${state.counts[type]===6?'checked':''}>6</label><label><input name="${type}Count" type="radio" value="9" ${state.counts[type]===9?'checked':''}>9</label></div>`;}
+function applyCountsFromSetup(){for(const type of Object.keys(maxCounts)){const chosen=document.querySelector(`input[name="${type}Count"]:checked`);if(chosen)state.counts[type]=+chosen.value;}renderEntities();renderModal('setup');}
+function resetStatuses(){state.statuses=[...defaultStatuses];renderEntities();renderModal('setup');}
+function renderKeyModal(title,body,foot){
+  title.textContent='Edit Key';
+  const icons=getActiveIcons().filter(Boolean);
+  body.innerHTML='<p class="helpText">Key assignments use the existing Quest / Party / Extra 1 / Extra 2 icon sets. Turn those toggles on behind this modal to expand the available icon pool.</p>'+keySection('players','Players',icons)+keySection('allies','Allies',icons)+keySection('monsters','Monsters',icons);
+  body.querySelectorAll('select').forEach(s=>s.onchange=()=>{state.keys[s.dataset.type][+s.dataset.idx]=s.value;renderEntities();});
+}
+function keySection(type,label,icons){let h=`<h4>${label}</h4><div class="keyEditor">`;for(let i=0;i<maxCounts[type];i++){const e=normalizeEntity(type,i);h+=`<label>${escapeHtml(e.name)} <select data-type="${type}" data-idx="${i}">${icons.map(ic=>`<option value="${escapeHtml(ic)}" ${state.keys[type][i]===ic?'selected':''}>${escapeHtml(ic)}</option>`).join('')}</select></label>`;}return h+'</div><br>';}
+function refreshKeySelects(){if(activeModal==='key')renderModal('key');}
+function renderPaletteModal(title,body,foot){
+  title.textContent='Palette';
+  const named=palette.filter(Boolean);
+  body.innerHTML=`<p class="helpText">Choose a color to use when Custom is checked. Leave Custom off to cycle the normal palette with left-click.</p><div class="paletteGrid">${named.map(c=>`<button class="paletteSwatch ${['black','blue','purple','brown','red'].includes(c)?'lightText':'darkText'}" style="background:${c}" onclick="selectPaletteColor('${c}')">${c}</button>`).join('')}</div><div class="customColorRow"><label>Custom color <input type="color" id="modalColorPicker" value="${currentCustom||'#ffffff'}"></label><button onclick="selectPaletteColor(document.getElementById('modalColorPicker').value)">Use Custom</button><button onclick="currentCustom=null;$('customToggle').checked=false;closeModal();">Cycle Palette</button></div>`;
+}
+function selectPaletteColor(c){currentCustom=c;$('customToggle').checked=true;closeModal();}
+function renderHelpModal(title,body,foot){title.textContent='Help';body.innerHTML=`<div class="helpText">Torch Table 0.4
+
+MAP
+Left-click a cell to cycle its color. Right-click a cell to cycle icons. Turn on Quest / Party / Extra icon sets to add more symbols. Turn on Key to show entity key badges and include assigned key symbols in the right-click cycle.
+
+RESET
+Map reset is locked by default. Uncheck Lock before pressing Reset.
+
+NOTES / INVENTORY
+Notes and inventory live in modal windows to keep the table view clean.
+
+SETUP
+Use Setup to change visible entity counts, edit the status list, and turn optional table modules on/off.
+
+DICE
+History writes left-to-right like a typed log. Quick Stats defaults to 3d6 unless 4d6 drop lowest is checked.
+
+EXPORT / IMPORT
+Export saves the current board to JSON. Import restores a saved JSON board. Notes modal also has Export TXT for quick session notes.</div>`;}
+
+const gen={
+  mascNames:["Aric","Thorne","Dain","Rurik","Garrick","Borin","Cedric","Lucan","Merrick","Osric","Kellan","Brand"],
+  femNames:["Lyra","Elowen","Mira","Sylva","Nyra","Vessa","Kaela","Iris","Rowan","Seren","Talia","Maera"],
+  badNames:["Varkul","Mordane","Sable Vex","Karn Blackhand","The Hollow Prior","Dread Marrow","Voss Nine-Eyes","Lady Ash"],
+  last:["Fang","Caller","Whisper","Stone","Rook","Shade","Drift","Hollow","Vex","Mire","Crow","Vale"],
+  vibeM:["scarred caravan guard","tired sellsword","cheerful grave-digger","old shield-bearer","muddy road warden","one-eyed map seller"],
+  vibeF:["silver-tongued herbalist","watchful shrine keeper","laughing fence","masked courier","storm-eyed scholar","soft-spoken monster hunter"],
+  vibeB:["smiling tyrant","cult lieutenant","debt-collecting necromancer","fallen knight","bandit priest","royal poisoner"],
+  wants:["a stolen map recovered","a debt erased","safe passage through the ruins","someone framed","a relic hidden again","proof of a betrayal"],
+  secrets:["owes money to a monster","is using a false name","knows the villain personally","has royal blood","serves two masters","saw the missing heir alive"],
+  placesA:["Iron","Silent","Broken","Hidden","Shattered","Ancient","Frozen","Black","Red","Moonlit","Hollow","Glass"],
+  placesB:["Keep","Vale","Cavern","Sanctum","Ruins","Forest","Vault","Bridge","Market","Shrine","Mill","Tower"]
+};
+function genNPC(type){let name=type==='fem'?r(gen.femNames):type==='bad'?r(gen.badNames):r(gen.mascNames); if(type!=='bad')name+=' '+r(gen.last); let vibe=type==='fem'?r(gen.vibeF):type==='bad'?r(gen.vibeB):r(gen.vibeM); $('genOutput').textContent=`Name: ${name}\nVibe: ${vibe}\nWants: ${r(gen.wants)}\nSecret: ${r(gen.secrets)}`;}
+function genPlace(){$('genOutput').textContent=`${r(gen.placesA)} ${r(gen.placesB)}\nDetail: ${r(['smells of wet stone','has fresh claw marks','is guarded by nervous locals','hides a sealed lower room','rings with distant chanting','contains an impossible shadow'])}`;}
+function genThing(){$('genOutput').textContent=`${r(['Ancient','Broken','Cursed','Lost','Forgotten','Sacred','Silver','Bone'])} ${r(['Relic','Orb','Blade','Idol','Key','Crown','Mask','Lantern'])}\nTwist: ${r(['warm to the touch','whispers at night','points toward danger','belongs to someone still alive','cannot cross running water'])}`;}
+function genLoot(){$('genOutput').textContent=`Loot: ${r(['runed dagger','silver ring','weathered spellbook','black pearl','jeweled clasp','sealed letter','bone dice','minor healing charm'])}\nValue: ${r(['modest','useful','suspiciously high','unknown until appraised','valuable to one faction'])}`;}
+function genEncounter(){$('genOutput').textContent=`Encounter: ${r(['2 wounded scouts','a locked wagon','a hungry owlbear','cultists mid-ritual','a fleeing noble','silent armored figures','a false toll gate'])}\nComplication: ${r(['someone lies','weather turns bad','a monster arrives late','the prize is cursed','an ally recognizes them'])}`;}
+function genRumor(){$('genOutput').textContent=`Rumor: ${r(['The old well leads below the keep.','A dead king walks at moonrise.','The mayor pays bandits twice.','A saint was buried with a demon.','The bridge takes a name from each traveler.','The blacksmith hides royal steel.'])}\nTruth: ${r(['mostly true','half true','a trap','true, but backwards','planted by the villain'])}`;}
+function genQuest(){$('genOutput').textContent=`Quest Hook: ${r(['Recover','Escort','Destroy','Investigate','Steal','Protect','Decode'])} ${r(['the ash crown','a missing child','the red ledger','a talking skull','the bridge tax','the buried bell','a cursed harvest'])}\nPressure: ${r(['before dawn','before rivals arrive','without alerting the guard','while supplies run low','before the next storm'])}`;}
+function genTrap(){$('genOutput').textContent=`Trap: ${r(['falling stones','sleeping gas','false floor','needle lock','rune flare','bell alarm','flooding chamber'])}\nTell: ${r(['cold draft','scraped floor','strange dust','no footprints','faint ticking','new mortar'])}`;}
+function genWeather(){$('genOutput').textContent=`Atmosphere: ${r(['heavy rain','bone-dry wind','sour fog','ashfall','green lightning','heat shimmer','unnatural silence'])}\nEffect: ${r(['tracks vanish','torches struggle','voices carry too far','ranged attacks feel risky','animals refuse to move'])}`;}
+
+let timerSeconds=0,timerStartValue=0,timerRunning=false,timerMode='up',timerInt=null;
+let torchSeconds=3600,torchRunning=false,torchInt=null;
+function fmt(sec){sec=Math.max(0,sec|0);const h=(sec/3600)|0,m=((sec%3600)/60)|0,s=sec%60;return h?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+function timerRender(){$('timerDisplay').textContent=fmt(timerSeconds);$('timerStartBtn').textContent=timerRunning?'Pause':'Start';}
+function timerSet(sec){timerSeconds=sec;timerStartValue=sec;timerRunning=false;clearInterval(timerInt);timerRender();}
+function timerStartPause(){timerRunning=!timerRunning;clearInterval(timerInt);if(timerRunning){timerInt=setInterval(()=>{if(timerMode==='down'){timerSeconds--; if(timerSeconds<=0){timerSeconds=0;timerRunning=false;clearInterval(timerInt);}} else timerSeconds++; timerRender();},1000);}timerRender();}
+function timerReset(){timerRunning=false;clearInterval(timerInt);timerSeconds=timerStartValue;timerRender();}
+function renderTorch(){
+  const btn=$('torchButton'), time=$('torchTime'); if(!btn||!time)return;
+  const pct=Math.max(0,Math.min(100,(torchSeconds/3600)*100));
+  btn.style.setProperty('--torchFill',pct+'%');
+  btn.classList.toggle('lit',torchRunning||torchSeconds<3600);
+  btn.innerHTML=`<span>${torchSeconds<3600||torchRunning?'Relight':'Light Torch'}</span>`;
+  time.textContent=fmt(torchSeconds);
+}
+function lightTorch(){
+  torchSeconds=3600; torchRunning=true; clearInterval(torchInt);
+  torchInt=setInterval(()=>{torchSeconds--; if(torchSeconds<=0){torchSeconds=0;torchRunning=false;clearInterval(torchInt);} renderTorch();},1000);
+  renderTorch();
+}
+function killTorch(){torchRunning=false;clearInterval(torchInt);torchSeconds=3600;renderTorch();}
+function normalizeCounters(){
+  if(!Array.isArray(state.counters)){
+    const old=state.counters||{}; state.counters=Object.keys(old).map(k=>({name:k.slice(0,5),value:+old[k]||0}));
+  }
+  while(state.counters.length<4)state.counters.push({name:['Round','Turn','Alert','Pass'][state.counters.length]||'Count',value:0});
+  state.counters=state.counters.slice(0,4).map((c,i)=>({name:String(c.name||['Round','Turn','Alert','Pass'][i]).slice(0,5),value:+c.value||0}));
+}
+function renderCounters(){
+  normalizeCounters();
+  const el=$('counterControls');el.innerHTML='';
+  state.counters.forEach((c,i)=>{
+    const p=document.createElement('span');p.className='counterPill';
+    p.innerHTML=`<input class="counterName" maxlength="5" value="${escapeHtml(c.name)}" title="Click to rename"><button>-</button><span>${c.value}</span><button>+</button>`;
+    p.children[0].oninput=()=>{state.counters[i].name=p.children[0].value.slice(0,5);};
+    p.children[1].onclick=()=>{state.counters[i].value--;renderCounters();};
+    p.children[3].onclick=()=>{state.counters[i].value++;renderCounters();};
+    el.appendChild(p);
+  });
+}
+
+let diceHistory=[];
+function die(s){return Math.floor(Math.random()*s)+1;}
+function rollDiceExpr(expr){const m=expr.match(/^(?:(\d+))?d(\d+)$/);if(!m)return;const count=+(m[1]||1),sides=+m[2],mult=Math.max(1,+$('diceMultiplier').value||1);let entries=[];for(let x=0;x<mult;x++){let rolls=[];for(let i=0;i<count;i++)rolls.push(die(sides));const total=rolls.reduce((a,b)=>a+b,0);entries.push($('sumCheck').checked && count>1?`[${rolls.join(',')}]→${total}`:count>1?`[${rolls.join(',')}]`:String(total));}addDiceLog(expr,entries.join(' | '));}
+function rollDropLowest(){let rolls=[die(6),die(6),die(6),die(6)];let sorted=[...rolls].sort((a,b)=>a-b);addDiceLog('4d6-L',`[${rolls.join(',')}] drop ${sorted[0]} → ${sorted.slice(1).reduce((a,b)=>a+b,0)}`);}
+function rollAdv(dis){const a=die(20),b=die(20),v=dis?Math.min(a,b):Math.max(a,b);addDiceLog(dis?'DIS':'ADV',`${a}/${b} → ${v}`);}
+function addDiceLog(label,text){diceHistory.push(`<span class="diceToken"><strong>${label}</strong>: ${escapeHtml(text)};&nbsp;</span>`);if(diceHistory.length>60)diceHistory.shift();$('diceHistory').innerHTML=diceHistory.join('');$('diceHistory').scrollTop=$('diceHistory').scrollHeight;}
+function clearDiceHistory(){diceHistory=[];$('diceHistory').innerHTML='';}
+function roll3d6(){return die(6)+die(6)+die(6);}
+function roll4d6Drop(){let a=[die(6),die(6),die(6),die(6)].sort((x,y)=>x-y);return a[1]+a[2]+a[3];}
+function rollQuickStats(){['STR','DEX','CON','INT','WIS','CHA'].forEach(s=>$('stat'+s).textContent=$('dropLowestStats').checked?roll4d6Drop():roll3d6());}
+
+function exportNotesTxt(){
+  saveCurrentNote();
+  const lines=[];
+  state.noteNames.forEach((name,i)=>{
+    const text=(state.notes[i]||'').trim();
+    if(text){lines.push(`## ${name}`);lines.push(text);lines.push('');}
+  });
+  const body=lines.length?lines.join('\n'):'No notes entered.';
+  const blob=new Blob([body],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='torch-table-notes.txt';a.click();URL.revokeObjectURL(a.href);
+}
+
+function exportState(){saveGrid();saveCurrentNote();const payload={version:'0.4',app:'Torch Table',state,tabs,currentTab,diceHistory,timer:{timerSeconds,timerStartValue,timerMode},torch:{torchSeconds,torchRunning:false},toggles:{quest:$('quest').checked,party:$('party').checked,extra1:$('extra1').checked,extra2:$('extra2').checked,key:$('keyToggle').checked,bold:$('boldToggle').checked}};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='torch-table-save.json';a.click();URL.revokeObjectURL(a.href);$('saveReadout').textContent='Exported torch-table-save.json';}
+function importState(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(data.state)state=mergeState(data.state);if(data.tabs)tabs=data.tabs;if(Number.isInteger(data.currentTab))currentTab=data.currentTab;if(Array.isArray(data.diceHistory))diceHistory=data.diceHistory;if(data.timer){timerSeconds=data.timer.timerSeconds||0;timerStartValue=data.timer.timerStartValue||0;timerMode=data.timer.timerMode||'up';}if(data.torch){torchSeconds=data.torch.torchSeconds||3600;torchRunning=false;clearInterval(torchInt);}if(data.toggles){$('quest').checked=!!data.toggles.quest;$('party').checked=!!data.toggles.party;$('extra1').checked=!!data.toggles.extra1;$('extra2').checked=!!data.toggles.extra2;$('keyToggle').checked=!!data.toggles.key;$('boldToggle').checked=!!data.toggles.bold;}applyTheme();renderAll();$('saveReadout').textContent='Imported save file.';}catch(err){alert('Import failed: '+err.message);}};reader.readAsText(file);event.target.value='';}
+function mergeState(incoming){
+  const merged=Object.assign({},state,incoming||{});
+  merged.counts=Object.assign({},state.counts,incoming.counts||{});
+  merged.entities=Object.assign({},state.entities,incoming.entities||{});
+  merged.inventory=Object.assign({},state.inventory,incoming.inventory||{});
+  merged.keys=Object.assign({},state.keys,incoming.keys||{});
+  merged.options=Object.assign({},state.options,incoming.options||{});
+  merged.theme=Object.assign({},state.theme,incoming.theme||{});
+  return merged;
+}
+function toggleLight(){state.theme.light=!state.theme.light;applyTheme();}
+function applyTheme(){document.body.classList.toggle('light',!!state.theme.light);}
+function applyOptions(){
+  const o=state.options||{};
+  if($('inventoryBtn'))$('inventoryBtn').classList.toggle('isOff',o.showInventory===false);
+  if($('quickStatsBox'))$('quickStatsBox').classList.toggle('isOff',o.showQuickStats===false);
+  if($('counterBox'))$('counterBox').classList.toggle('isOff',o.showCounters===false);
+  if($('lightBtn'))$('lightBtn').classList.toggle('isOff',o.showLight===false);
+  if($('genOutput'))$('genOutput').classList.toggle('isOff',o.showGenOutput===false);
+  if($('diceExtraControls'))$('diceExtraControls').classList.toggle('isOff',o.showDiceExtras===false);
+}
+function renderAll(){normalizeCounters();renderEntities();buildGridTabs();buildGrid();renderCounters();timerRender();renderTorch();$('diceHistory').innerHTML=diceHistory.join('');applyOptions();}
+window.addEventListener('resize',()=>buildGrid());
+applyTheme();renderAll();timerRender();renderTorch();
+</script>
+</body>
+</html>
