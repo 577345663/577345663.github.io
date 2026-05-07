@@ -13,7 +13,6 @@
         --ink-faint:rgba(82,255,107,.16);
         --danger:#ff3d3d;
         --shadow:rgba(82,255,107,.32);
-        --scan:rgba(255,255,255,.035);
         --font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
@@ -132,6 +131,10 @@
         flex:0 0 auto;
     }
 
+    .lamp.denied{
+        animation:deniedBlink .42s steps(2,end) 3;
+    }
+
     .hint{
         color:var(--ink-dim);
         white-space:nowrap;
@@ -220,9 +223,7 @@
         padding:10px 0;
     }
 
-    .password-row span{
-        flex:0 0 auto;
-    }
+    .password-row span{ flex:0 0 auto; }
 
     #passwordInput{
         width:100%;
@@ -273,10 +274,6 @@
         animation:pop .16s steps(2,end);
     }
 
-    .flash .frame{
-        animation:flash .15s steps(2,end) 3;
-    }
-
     .game-layer{
         position:absolute;
         inset:42px 0 28px 0;
@@ -313,18 +310,22 @@
         text-shadow:0 0 8px var(--shadow);
     }
 
-    .game-title{
-        color:var(--ink);
-    }
+    .game-title{ color:var(--ink); }
 
     @keyframes pulse{
         0%, 50%{ opacity:1; }
         51%, 100%{ opacity:.2; }
     }
 
-    @keyframes flash{
-        0%, 100%{ filter:none; }
-        50%{ filter:invert(1) brightness(2.2); }
+    @keyframes deniedBlink{
+        0%, 100%{
+            background:var(--ink);
+            box-shadow:0 0 10px var(--ink);
+        }
+        50%{
+            background:var(--danger);
+            box-shadow:0 0 14px var(--danger), 0 0 24px var(--danger);
+        }
     }
 
     @keyframes pop{
@@ -332,9 +333,7 @@
         to{ transform:scale(1); opacity:1; }
     }
 
-    .shake{
-        animation:shake .24s steps(2,end);
-    }
+    .shake{ animation:shake .24s steps(2,end); }
 
     @keyframes shake{
         0%,100%{ transform:translate(0,0); }
@@ -371,7 +370,7 @@
             <canvas id="gameCanvas"></canvas>
             <div class="game-help">
                 <span class="game-title" id="gameTitle">PONG NODE</span>
-                <span>W/S or ↑/↓ Move · Space Serve · Esc Terminal</span>
+                <span id="gameHelp">W/S or ↑/↓ Move · Space Serve · Esc Terminal</span>
             </div>
         </div>
 
@@ -406,11 +405,11 @@
     const terminal = document.getElementById("terminal");
     const shell = document.getElementById("shell");
     const frame = document.getElementById("frame");
+    const lamp = document.querySelector(".lamp");
     const hint = document.getElementById("hint");
     const footerLeft = document.getElementById("footerLeft");
     const footerRight = document.getElementById("footerRight");
     const loginModal = document.getElementById("loginModal");
-    const loginBox = document.getElementById("loginBox");
     const passwordInput = document.getElementById("passwordInput");
     const submitPassword = document.getElementById("submitPassword");
     const toastModal = document.getElementById("toastModal");
@@ -418,6 +417,7 @@
     const gameLayer = document.getElementById("gameLayer");
     const gameCanvas = document.getElementById("gameCanvas");
     const gameTitle = document.getElementById("gameTitle");
+    const gameHelp = document.getElementById("gameHelp");
     const ctx = gameCanvas.getContext("2d");
 
     const characters =
@@ -443,15 +443,31 @@
         "TERMINAL PANIC SAFE MODE"
     ];
 
+    const gameClues = ["pong", "breakout", "snake"];
+    const clueFormats = [
+        "pass:{game}",
+        "pw:{game}",
+        "type-{game}",
+        "key:{game}",
+        "try/{game}",
+        "cmd>{game}",
+        "load:{game}",
+        "run-{game}"
+    ];
+
     let lineTimer = null;
+    let clueTimer = null;
     let intervalMs = 135;
     let loginOpen = false;
     let gameMode = false;
+    let activeGame = "";
     let currentTheme = "green";
 
     const keys = {
         up:false,
-        down:false
+        down:false,
+        left:false,
+        right:false
     };
 
     const pong = {
@@ -468,6 +484,36 @@
         lastTime:0
     };
 
+    const breakout = {
+        running:false,
+        launched:false,
+        paddleX:0,
+        ballX:0,
+        ballY:0,
+        ballVX:0,
+        ballVY:0,
+        bricks:[],
+        rows:5,
+        cols:10,
+        score:0,
+        lives:3,
+        lastTime:0
+    };
+
+    const snake = {
+        running:false,
+        paused:false,
+        grid:22,
+        body:[],
+        dir:{x:1,y:0},
+        nextDir:{x:1,y:0},
+        apple:{x:6,y:6},
+        score:0,
+        stepTimer:0,
+        stepMs:115,
+        lastTime:0
+    };
+
     function getInk() {
         return getComputedStyle(document.body).getPropertyValue("--ink").trim();
     }
@@ -475,8 +521,7 @@
     function setTheme(theme) {
         currentTheme = theme;
         document.body.className = "theme-" + theme;
-        const label = theme.toUpperCase();
-        footerLeft.textContent = "COLOR MODE: " + label;
+        footerLeft.textContent = "COLOR MODE: " + currentTheme.toUpperCase();
     }
 
     function randomCharacter() {
@@ -510,6 +555,20 @@
         return line;
     }
 
+    function generateGameClue() {
+        const game = gameClues[Math.floor(Math.random() * gameClues.length)];
+        const format = clueFormats[Math.floor(Math.random() * clueFormats.length)];
+        const clue = format.replace("{game}", game);
+        const left = randomHex(4) + randomCharacter() + randomCharacter();
+        const right = randomCharacter() + randomHex(6);
+        return left + " // " + clue + " // " + right;
+    }
+
+    function addGameClue() {
+        if (gameMode || loginOpen) return;
+        addLine(generateGameClue());
+    }
+
     function addLine(customLine) {
         const line = customLine || generateLine();
         terminal.textContent += line + "\n";
@@ -525,11 +584,23 @@
     function startTerminal() {
         stopTerminal();
         lineTimer = setInterval(() => addLine(), intervalMs);
+        startClues();
     }
 
     function stopTerminal() {
         if (lineTimer) clearInterval(lineTimer);
         lineTimer = null;
+        stopClues();
+    }
+
+    function startClues() {
+        stopClues();
+        clueTimer = setInterval(addGameClue, 30000);
+    }
+
+    function stopClues() {
+        if (clueTimer) clearInterval(clueTimer);
+        clueTimer = null;
     }
 
     function setSpeed(ms) {
@@ -560,17 +631,17 @@
     }
 
     function flashDenied() {
-        shell.classList.remove("flash");
+        lamp.classList.remove("denied");
         frame.classList.remove("shake");
-        void shell.offsetWidth;
-        shell.classList.add("flash");
+        void lamp.offsetWidth;
+        lamp.classList.add("denied");
         frame.classList.add("shake");
         addLine("> ACCESS DENIED");
         addLine("> PASSWORD REJECTED :: " + randomHex(12));
         setTimeout(() => {
-            shell.classList.remove("flash");
+            lamp.classList.remove("denied");
             frame.classList.remove("shake");
-        }, 520);
+        }, 1300);
     }
 
     function submitLogin() {
@@ -600,15 +671,18 @@
             return;
         }
 
-        if (["pong", "breakout", "asteroids", "astroids", "invaders"].includes(value)) {
-            if (value === "pong") {
-                launchPong();
-            } else {
-                showToast("PONG ONLY");
-                addLine("> GAME NODE FOUND: " + value.toUpperCase());
-                addLine("> MODULE NOT INSTALLED. ROUTING TO PONG.");
-                setTimeout(launchPong, 700);
-            }
+        if (value === "pong") {
+            launchPong();
+            return;
+        }
+
+        if (value === "breakout" || value === "breakoput") {
+            launchBreakout();
+            return;
+        }
+
+        if (value === "snake") {
+            launchSnake();
             return;
         }
 
@@ -623,6 +697,32 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
+    function enterGame(title, help) {
+        closeLogin();
+        gameMode = true;
+        stopTerminal();
+        gameLayer.classList.add("show");
+        gameTitle.textContent = title;
+        gameHelp.textContent = help;
+        hint.textContent = "Game Mode · Esc Terminal";
+        footerRight.textContent = "STATUS: ARCADE LEAK";
+        resizeCanvas();
+    }
+
+    function exitGame() {
+        if (!gameMode) return;
+        gameMode = false;
+        activeGame = "";
+        pong.running = false;
+        breakout.running = false;
+        snake.running = false;
+        gameLayer.classList.remove("show");
+        hint.textContent = "Enter Login";
+        footerRight.textContent = "STATUS: NO CARRIER";
+        addLine("> ARCADE NODE CLOSED");
+        startTerminal();
+    }
+
     function resetPongBall(direction = 1) {
         const w = gameCanvas.clientWidth;
         const h = gameCanvas.clientHeight;
@@ -634,15 +734,8 @@
     }
 
     function launchPong() {
-        closeLogin();
-        gameMode = true;
-        stopTerminal();
-        gameLayer.classList.add("show");
-        gameTitle.textContent = "PONG NODE";
-        hint.textContent = "GAME MODE · Space Serve · Esc Terminal";
-        footerRight.textContent = "STATUS: ARCADE LEAK";
-        resizeCanvas();
-
+        activeGame = "pong";
+        enterGame("PONG NODE", "W/S or ↑/↓ Move · Space Serve · Esc Terminal");
         const h = gameCanvas.clientHeight;
         pong.running = true;
         pong.served = false;
@@ -655,26 +748,12 @@
         requestAnimationFrame(pongLoop);
     }
 
-    function exitGame() {
-        if (!gameMode) return;
-        gameMode = false;
-        pong.running = false;
-        gameLayer.classList.remove("show");
-        hint.textContent = "Enter Login";
-        footerRight.textContent = "STATUS: NO CARRIER";
-        addLine("> ARCADE NODE CLOSED");
-        startTerminal();
-    }
-
     function pongLoop(now) {
         if (!pong.running) return;
-
         const dt = Math.min(.035, (now - pong.lastTime) / 1000);
         pong.lastTime = now;
-
         updatePong(dt);
         drawPong();
-
         requestAnimationFrame(pongLoop);
     }
 
@@ -686,7 +765,6 @@
 
         if (keys.up) pong.playerY -= speed * dt;
         if (keys.down) pong.playerY += speed * dt;
-
         pong.playerY = Math.max(paddleH / 2 + 10, Math.min(h - paddleH / 2 - 10, pong.playerY));
 
         const cpuTarget = pong.ballY;
@@ -712,21 +790,13 @@
         const cpuX = w - 38;
         const ballR = 7;
 
-        if (
-            pong.ballX - ballR < playerX + paddleW &&
-            pong.ballX + ballR > playerX &&
-            Math.abs(pong.ballY - pong.playerY) < paddleH / 2
-        ) {
+        if (pong.ballX - ballR < playerX + paddleW && pong.ballX + ballR > playerX && Math.abs(pong.ballY - pong.playerY) < paddleH / 2) {
             pong.ballX = playerX + paddleW + ballR;
             pong.ballVX = Math.abs(pong.ballVX) * 1.045;
             pong.ballVY += (pong.ballY - pong.playerY) * 5;
         }
 
-        if (
-            pong.ballX + ballR > cpuX &&
-            pong.ballX - ballR < cpuX + paddleW &&
-            Math.abs(pong.ballY - pong.cpuY) < paddleH / 2
-        ) {
+        if (pong.ballX + ballR > cpuX && pong.ballX - ballR < cpuX + paddleW && Math.abs(pong.ballY - pong.cpuY) < paddleH / 2) {
             pong.ballX = cpuX - ballR;
             pong.ballVX = -Math.abs(pong.ballVX) * 1.045;
             pong.ballVY += (pong.ballY - pong.cpuY) * 5;
@@ -747,7 +817,6 @@
         const w = gameCanvas.clientWidth;
         const h = gameCanvas.clientHeight;
         const ink = getInk();
-
         ctx.clearRect(0, 0, w, h);
         ctx.fillStyle = "rgba(0,0,0,.72)";
         ctx.fillRect(0, 0, w, h);
@@ -769,7 +838,6 @@
         const paddleH = Math.max(54, h * .16);
         ctx.fillRect(28, pong.playerY - paddleH / 2, 10, paddleH);
         ctx.fillRect(w - 38, pong.cpuY - paddleH / 2, 10, paddleH);
-
         ctx.fillRect(pong.ballX - 7, pong.ballY - 7, 14, 14);
 
         ctx.font = "24px monospace";
@@ -785,20 +853,326 @@
         ctx.shadowBlur = 0;
     }
 
+    function buildBricks() {
+        breakout.bricks = [];
+        for (let r = 0; r < breakout.rows; r++) {
+            for (let c = 0; c < breakout.cols; c++) {
+                breakout.bricks.push({r, c, alive:true});
+            }
+        }
+    }
+
+    function resetBreakoutBall() {
+        const h = gameCanvas.clientHeight;
+        breakout.ballX = breakout.paddleX;
+        breakout.ballY = h - 50;
+        breakout.ballVX = 170 * (Math.random() > .5 ? 1 : -1);
+        breakout.ballVY = -230;
+        breakout.launched = false;
+    }
+
+    function launchBreakout() {
+        activeGame = "breakout";
+        enterGame("BREAKOUT NODE", "A/D or ←/→ Move · Space Launch · Esc Terminal");
+        breakout.running = true;
+        breakout.launched = false;
+        breakout.paddleX = gameCanvas.clientWidth / 2;
+        breakout.score = 0;
+        breakout.lives = 3;
+        buildBricks();
+        resetBreakoutBall();
+        breakout.lastTime = performance.now();
+        requestAnimationFrame(breakoutLoop);
+    }
+
+    function breakoutLoop(now) {
+        if (!breakout.running) return;
+        const dt = Math.min(.035, (now - breakout.lastTime) / 1000);
+        breakout.lastTime = now;
+        updateBreakout(dt);
+        drawBreakout();
+        requestAnimationFrame(breakoutLoop);
+    }
+
+    function updateBreakout(dt) {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const paddleW = Math.max(72, w * .12);
+        const paddleH = 10;
+        const speed = 390;
+        const ballR = 7;
+
+        if (keys.left) breakout.paddleX -= speed * dt;
+        if (keys.right) breakout.paddleX += speed * dt;
+        breakout.paddleX = Math.max(paddleW / 2 + 12, Math.min(w - paddleW / 2 - 12, breakout.paddleX));
+
+        if (!breakout.launched) {
+            breakout.ballX = breakout.paddleX;
+            breakout.ballY = h - 50;
+            return;
+        }
+
+        breakout.ballX += breakout.ballVX * dt;
+        breakout.ballY += breakout.ballVY * dt;
+
+        if (breakout.ballX < ballR || breakout.ballX > w - ballR) {
+            breakout.ballVX *= -1;
+            breakout.ballX = Math.max(ballR, Math.min(w - ballR, breakout.ballX));
+        }
+
+        if (breakout.ballY < 48) {
+            breakout.ballVY *= -1;
+            breakout.ballY = 48;
+        }
+
+        const paddleY = h - 34;
+        if (breakout.ballY + ballR > paddleY && breakout.ballY - ballR < paddleY + paddleH && Math.abs(breakout.ballX - breakout.paddleX) < paddleW / 2) {
+            breakout.ballY = paddleY - ballR;
+            breakout.ballVY = -Math.abs(breakout.ballVY) * 1.02;
+            breakout.ballVX += (breakout.ballX - breakout.paddleX) * 4.2;
+        }
+
+        const margin = 26;
+        const top = 66;
+        const gap = 5;
+        const brickW = (w - margin * 2 - gap * (breakout.cols - 1)) / breakout.cols;
+        const brickH = 16;
+
+        for (const brick of breakout.bricks) {
+            if (!brick.alive) continue;
+            const bx = margin + brick.c * (brickW + gap);
+            const by = top + brick.r * (brickH + gap);
+            if (breakout.ballX + ballR > bx && breakout.ballX - ballR < bx + brickW && breakout.ballY + ballR > by && breakout.ballY - ballR < by + brickH) {
+                brick.alive = false;
+                breakout.score += 10;
+                breakout.ballVY *= -1;
+                break;
+            }
+        }
+
+        if (!breakout.bricks.some(b => b.alive)) {
+            buildBricks();
+            resetBreakoutBall();
+        }
+
+        if (breakout.ballY > h + 30) {
+            breakout.lives--;
+            if (breakout.lives <= 0) {
+                breakout.score = 0;
+                breakout.lives = 3;
+                buildBricks();
+            }
+            resetBreakoutBall();
+        }
+    }
+
+    function drawBreakout() {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const ink = getInk();
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(0,0,0,.72)";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = ink;
+        ctx.strokeStyle = ink;
+        ctx.shadowColor = ink;
+        ctx.shadowBlur = 9;
+
+        const margin = 26;
+        const top = 66;
+        const gap = 5;
+        const brickW = (w - margin * 2 - gap * (breakout.cols - 1)) / breakout.cols;
+        const brickH = 16;
+
+        for (const brick of breakout.bricks) {
+            if (!brick.alive) continue;
+            const bx = margin + brick.c * (brickW + gap);
+            const by = top + brick.r * (brickH + gap);
+            ctx.globalAlpha = .38 + brick.r * .1;
+            ctx.fillRect(bx, by, brickW, brickH);
+        }
+
+        ctx.globalAlpha = 1;
+        const paddleW = Math.max(72, w * .12);
+        const paddleY = h - 34;
+        ctx.fillRect(breakout.paddleX - paddleW / 2, paddleY, paddleW, 10);
+        ctx.fillRect(breakout.ballX - 7, breakout.ballY - 7, 14, 14);
+
+        ctx.font = "16px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("SCORE " + String(breakout.score).padStart(4, "0"), 22, 36);
+        ctx.textAlign = "right";
+        ctx.fillText("LIVES " + breakout.lives, w - 22, 36);
+
+        if (!breakout.launched) {
+            ctx.textAlign = "center";
+            ctx.font = "14px monospace";
+            ctx.fillText("PRESS SPACE", w / 2, h - 62);
+        }
+
+        ctx.shadowBlur = 0;
+    }
+
+    function placeSnakeApple() {
+        let safe = false;
+        while (!safe) {
+            snake.apple = {
+                x:Math.floor(Math.random() * snake.grid),
+                y:Math.floor(Math.random() * snake.grid)
+            };
+            safe = !snake.body.some(p => p.x === snake.apple.x && p.y === snake.apple.y);
+        }
+    }
+
+    function launchSnake() {
+        activeGame = "snake";
+        enterGame("SNAKE NODE", "WASD or Arrows Move · Space Pause · Esc Terminal");
+        snake.running = true;
+        snake.paused = false;
+        snake.score = 0;
+        snake.dir = {x:1,y:0};
+        snake.nextDir = {x:1,y:0};
+        snake.body = [{x:8,y:11},{x:7,y:11},{x:6,y:11}];
+        snake.stepTimer = 0;
+        placeSnakeApple();
+        snake.lastTime = performance.now();
+        requestAnimationFrame(snakeLoop);
+    }
+
+    function snakeLoop(now) {
+        if (!snake.running) return;
+        const dt = Math.min(.05, (now - snake.lastTime) / 1000);
+        snake.lastTime = now;
+        updateSnake(dt);
+        drawSnake();
+        requestAnimationFrame(snakeLoop);
+    }
+
+    function updateSnake(dt) {
+        if (snake.paused) return;
+
+        snake.stepTimer += dt * 1000;
+        if (snake.stepTimer < snake.stepMs) return;
+        snake.stepTimer = 0;
+        snake.dir = snake.nextDir;
+
+        const head = snake.body[0];
+        const next = {x:head.x + snake.dir.x, y:head.y + snake.dir.y};
+
+        if (
+            next.x < 0 ||
+            next.x >= snake.grid ||
+            next.y < 0 ||
+            next.y >= snake.grid ||
+            snake.body.some(p => p.x === next.x && p.y === next.y)
+        ) {
+            snake.body = [{x:8,y:11},{x:7,y:11},{x:6,y:11}];
+            snake.dir = {x:1,y:0};
+            snake.nextDir = {x:1,y:0};
+            snake.score = 0;
+            placeSnakeApple();
+            return;
+        }
+
+        snake.body.unshift(next);
+
+        if (next.x === snake.apple.x && next.y === snake.apple.y) {
+            snake.score += 10;
+            placeSnakeApple();
+        } else {
+            snake.body.pop();
+        }
+    }
+
+    function drawSnake() {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const ink = getInk();
+        const size = Math.min(w, h - 58) * .82;
+        const cell = Math.floor(size / snake.grid);
+        const board = cell * snake.grid;
+        const ox = Math.floor((w - board) / 2);
+        const oy = Math.floor((h - board) / 2) + 18;
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(0,0,0,.72)";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = ink;
+        ctx.fillStyle = ink;
+        ctx.shadowColor = ink;
+        ctx.shadowBlur = 7;
+
+        ctx.globalAlpha = .28;
+        ctx.strokeRect(ox - 2, oy - 2, board + 4, board + 4);
+        ctx.globalAlpha = 1;
+
+        for (const part of snake.body) {
+            ctx.fillRect(ox + part.x * cell + 1, oy + part.y * cell + 1, cell - 2, cell - 2);
+        }
+
+        ctx.globalAlpha = .72;
+        ctx.fillRect(ox + snake.apple.x * cell + 2, oy + snake.apple.y * cell + 2, cell - 4, cell - 4);
+        ctx.globalAlpha = 1;
+
+        ctx.font = "16px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("SCORE " + String(snake.score).padStart(4, "0"), 22, 36);
+
+        if (snake.paused) {
+            ctx.textAlign = "center";
+            ctx.font = "14px monospace";
+            ctx.fillText("PAUSED", w / 2, h - 22);
+        }
+
+        ctx.shadowBlur = 0;
+    }
+
     document.addEventListener("keydown", (event) => {
-        if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") {
+        const key = event.key.toLowerCase();
+
+        if (event.key === "ArrowUp" || key === "w") {
             keys.up = true;
             if (gameMode) event.preventDefault();
         }
 
-        if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") {
+        if (event.key === "ArrowDown" || key === "s") {
             keys.down = true;
             if (gameMode) event.preventDefault();
         }
 
+        if (event.key === "ArrowLeft" || key === "a") {
+            keys.left = true;
+            if (gameMode) event.preventDefault();
+        }
+
+        if (event.key === "ArrowRight" || key === "d") {
+            keys.right = true;
+            if (gameMode) event.preventDefault();
+        }
+
         if (gameMode) {
-            if (event.key === " ") {
+            if (activeGame === "snake") {
+                if ((event.key === "ArrowUp" || key === "w") && snake.dir.y !== 1) snake.nextDir = {x:0,y:-1};
+                if ((event.key === "ArrowDown" || key === "s") && snake.dir.y !== -1) snake.nextDir = {x:0,y:1};
+                if ((event.key === "ArrowLeft" || key === "a") && snake.dir.x !== 1) snake.nextDir = {x:-1,y:0};
+                if ((event.key === "ArrowRight" || key === "d") && snake.dir.x !== -1) snake.nextDir = {x:1,y:0};
+
+                if (event.key === " ") {
+                    snake.paused = !snake.paused;
+                    event.preventDefault();
+                }
+            }
+
+            if (activeGame === "pong" && event.key === " ") {
                 pong.served = true;
+                event.preventDefault();
+            }
+
+            if (activeGame === "breakout" && event.key === " ") {
+                breakout.launched = true;
                 event.preventDefault();
             }
 
@@ -830,8 +1204,11 @@
     });
 
     document.addEventListener("keyup", (event) => {
-        if (event.key === "ArrowUp" || event.key.toLowerCase() === "w") keys.up = false;
-        if (event.key === "ArrowDown" || event.key.toLowerCase() === "s") keys.down = false;
+        const key = event.key.toLowerCase();
+        if (event.key === "ArrowUp" || key === "w") keys.up = false;
+        if (event.key === "ArrowDown" || key === "s") keys.down = false;
+        if (event.key === "ArrowLeft" || key === "a") keys.left = false;
+        if (event.key === "ArrowRight" || key === "d") keys.right = false;
     });
 
     submitPassword.addEventListener("click", submitLogin);
@@ -848,7 +1225,10 @@
     });
 
     window.addEventListener("resize", () => {
-        if (gameMode) resizeCanvas();
+        if (!gameMode) return;
+        resizeCanvas();
+        if (activeGame === "pong") resetPongBall();
+        if (activeGame === "breakout") resetBreakoutBall();
     });
 
     for (let i = 0; i < 20; i++) addLine();
