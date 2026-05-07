@@ -1,472 +1,1239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>https://577345663.xyz/</title>
-    <style>
-        @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Access Denied</title>
+<style>
+    :root{
+        --bg:#050705;
+        --panel:#0b100b;
+        --ink:#52ff6b;
+        --ink-dim:rgba(82,255,107,.42);
+        --ink-faint:rgba(82,255,107,.16);
+        --danger:#ff3d3d;
+        --shadow:rgba(82,255,107,.32);
+        --font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
 
-        :root {
-            --frame-color: #00ff00;
-            --frame-color-dim: rgba(0, 255, 0, 0.45);
-            --bg-color: #000;
-            --panel-width: 260px;
+    *{ box-sizing:border-box; }
+
+    html,body{
+        width:100%;
+        height:100%;
+        margin:0;
+        overflow:hidden;
+        background:
+            radial-gradient(circle at 50% 20%, rgba(82,255,107,.08), transparent 32%),
+            linear-gradient(180deg, #020302, var(--bg));
+        color:var(--ink);
+        font-family:var(--font);
+    }
+
+    body.theme-amber{
+        --bg:#080604;
+        --panel:#120e07;
+        --ink:#ffbf47;
+        --ink-dim:rgba(255,191,71,.42);
+        --ink-faint:rgba(255,191,71,.16);
+        --shadow:rgba(255,191,71,.32);
+    }
+
+    body.theme-gray{
+        --bg:#060707;
+        --panel:#101111;
+        --ink:#d6d6d6;
+        --ink-dim:rgba(214,214,214,.42);
+        --ink-faint:rgba(214,214,214,.16);
+        --shadow:rgba(214,214,214,.24);
+    }
+
+    body.theme-red{
+        --bg:#080202;
+        --panel:#120606;
+        --ink:#ff3d3d;
+        --ink-dim:rgba(255,61,61,.44);
+        --ink-faint:rgba(255,61,61,.17);
+        --shadow:rgba(255,61,61,.38);
+    }
+
+    .shell{
+        position:relative;
+        width:100vw;
+        height:100vh;
+        padding:18px;
+        background:
+            repeating-linear-gradient(
+                to bottom,
+                rgba(255,255,255,.028) 0,
+                rgba(255,255,255,.028) 1px,
+                transparent 1px,
+                transparent 4px
+            );
+    }
+
+    .shell::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        background:
+            linear-gradient(90deg, transparent, rgba(255,255,255,.025), transparent),
+            radial-gradient(circle at center, transparent 50%, rgba(0,0,0,.44) 100%);
+        mix-blend-mode:screen;
+        opacity:.7;
+    }
+
+    .frame{
+        position:relative;
+        width:100%;
+        height:100%;
+        border:2px solid var(--ink);
+        background:
+            linear-gradient(180deg, rgba(255,255,255,.035), transparent 12%),
+            rgba(0,0,0,.72);
+        box-shadow:
+            0 0 0 3px rgba(0,0,0,.7),
+            0 0 24px var(--shadow),
+            inset 0 0 36px rgba(0,0,0,.9);
+        overflow:hidden;
+    }
+
+    .topbar{
+        height:42px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        padding:0 12px;
+        border-bottom:2px solid var(--ink);
+        background:rgba(0,0,0,.42);
+        text-transform:uppercase;
+        letter-spacing:.12em;
+        font-size:13px;
+        text-shadow:0 0 8px var(--shadow);
+    }
+
+    .status{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        min-width:0;
+    }
+
+    .lamp{
+        width:9px;
+        height:9px;
+        border-radius:50%;
+        background:var(--ink);
+        box-shadow:0 0 10px var(--ink);
+        animation:pulse 1.2s steps(2,end) infinite;
+        flex:0 0 auto;
+    }
+
+    .lamp.denied{
+        animation:deniedBlink .42s steps(2,end) 3;
+    }
+
+    .hint{
+        color:var(--ink-dim);
+        white-space:nowrap;
+        overflow:hidden;
+        text-overflow:ellipsis;
+    }
+
+    .terminal-wrap{
+        position:absolute;
+        inset:42px 0 28px 0;
+        padding:12px 14px;
+        overflow:hidden;
+    }
+
+    #terminal{
+        height:100%;
+        width:100%;
+        white-space:pre-wrap;
+        word-break:break-all;
+        line-height:1.18;
+        font-size:clamp(13px, 1.55vw, 18px);
+        text-shadow:0 0 8px var(--shadow);
+        opacity:.94;
+    }
+
+    .footer{
+        position:absolute;
+        left:0;
+        right:0;
+        bottom:0;
+        height:28px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        padding:0 12px;
+        border-top:1px solid var(--ink-dim);
+        color:var(--ink-dim);
+        font-size:12px;
+        background:rgba(0,0,0,.55);
+        text-transform:uppercase;
+        letter-spacing:.08em;
+    }
+
+    .modal-backdrop{
+        position:absolute;
+        inset:0;
+        display:none;
+        align-items:center;
+        justify-content:center;
+        background:rgba(0,0,0,.35);
+        z-index:10;
+    }
+
+    .modal-backdrop.show{ display:flex; }
+
+    .login,
+    .toast{
+        width:min(430px, calc(100vw - 48px));
+        border:2px solid var(--ink);
+        background:rgba(0,0,0,.92);
+        box-shadow:0 0 30px var(--shadow), inset 0 0 20px rgba(0,0,0,.85);
+        padding:18px;
+        text-transform:uppercase;
+        text-shadow:0 0 8px var(--shadow);
+    }
+
+    .login-title{
+        font-size:18px;
+        margin-bottom:14px;
+        letter-spacing:.1em;
+    }
+
+    .login-line{
+        color:var(--ink-dim);
+        font-size:13px;
+        margin-bottom:14px;
+        line-height:1.4;
+    }
+
+    .password-row{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        border-top:1px solid var(--ink-dim);
+        border-bottom:1px solid var(--ink-dim);
+        padding:10px 0;
+    }
+
+    .password-row span{ flex:0 0 auto; }
+
+    #passwordInput{
+        width:100%;
+        min-width:0;
+        border:0;
+        outline:0;
+        background:transparent;
+        color:var(--ink);
+        font:inherit;
+        text-transform:none;
+        caret-color:var(--ink);
+        text-shadow:0 0 8px var(--shadow);
+    }
+
+    .login-actions{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-top:14px;
+        gap:10px;
+        color:var(--ink-dim);
+        font-size:12px;
+    }
+
+    button{
+        border:1px solid var(--ink);
+        background:rgba(0,0,0,.7);
+        color:var(--ink);
+        font:inherit;
+        padding:7px 12px;
+        cursor:pointer;
+        text-transform:uppercase;
+        box-shadow:inset 0 0 12px var(--ink-faint);
+    }
+
+    button:hover,
+    button:focus{
+        background:var(--ink-faint);
+        outline:none;
+    }
+
+    .toast{
+        width:auto;
+        min-width:190px;
+        text-align:center;
+        font-size:24px;
+        letter-spacing:.12em;
+        animation:pop .16s steps(2,end);
+    }
+
+    .game-layer{
+        position:absolute;
+        inset:42px 0 28px 0;
+        display:none;
+        padding:12px;
+        background:rgba(0,0,0,.9);
+        z-index:6;
+    }
+
+    .game-layer.show{ display:block; }
+
+    #gameCanvas{
+        width:100%;
+        height:100%;
+        display:block;
+        border:1px solid var(--ink-dim);
+        background:rgba(0,0,0,.72);
+        box-shadow:inset 0 0 24px rgba(0,0,0,.9);
+    }
+
+    .game-help{
+        position:absolute;
+        top:20px;
+        left:22px;
+        right:22px;
+        display:flex;
+        justify-content:space-between;
+        gap:12px;
+        pointer-events:none;
+        color:var(--ink-dim);
+        font-size:12px;
+        text-transform:uppercase;
+        letter-spacing:.08em;
+        text-shadow:0 0 8px var(--shadow);
+    }
+
+    .game-title{ color:var(--ink); }
+
+    @keyframes pulse{
+        0%, 50%{ opacity:1; }
+        51%, 100%{ opacity:.2; }
+    }
+
+    @keyframes deniedBlink{
+        0%, 100%{
+            background:var(--ink);
+            box-shadow:0 0 10px var(--ink);
         }
-
-        * {
-            box-sizing: border-box;
+        50%{
+            background:var(--danger);
+            box-shadow:0 0 14px var(--danger), 0 0 24px var(--danger);
         }
+    }
 
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            width: 100vw;
-            position: relative;
-            image-rendering: pixelated;
-        }
+    @keyframes pop{
+        from{ transform:scale(.92); opacity:.5; }
+        to{ transform:scale(1); opacity:1; }
+    }
 
-        canvas {
-            display: block;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            image-rendering: pixelated;
-        }
+    .shake{ animation:shake .24s steps(2,end); }
 
-        #terminal-box {
-            z-index: 3;
-            background: transparent;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
+    @keyframes shake{
+        0%,100%{ transform:translate(0,0); }
+        25%{ transform:translate(3px,-2px); }
+        50%{ transform:translate(-3px,2px); }
+        75%{ transform:translate(2px,2px); }
+    }
 
-        #terminal-content {
-            font-family: "Powerup", "Powerup NES", "Press Start 2P", "Pixel NES", "Courier New", monospace;
-            font-size: 12px;
-            line-height: 1.9;
-            letter-spacing: 1px;
-            color: var(--frame-color);
-            text-align: center;
-            text-transform: uppercase;
-            text-shadow: 2px 2px 0 #001400;
-        }
-
-        .site-title {
-            display: inline-block;
-            min-width: 260px;
-            margin: 0 0 34px;
-            padding: 16px 22px 14px;
-            background: #000;
-            border: 2px solid var(--frame-color);
-            outline: 1px solid var(--frame-color);
-            outline-offset: -7px;
-            box-shadow: 0 0 0 4px #000, 0 0 12px var(--frame-color-dim);
-            font-size: 18px;
-            line-height: 1.45;
-        }
-
-        .link-grid {
-            display: grid;
-            grid-template-columns: repeat(2, var(--panel-width));
-            gap: 42px;
-            align-items: start;
-            justify-content: center;
-        }
-
-        .link-card {
-            width: var(--panel-width);
-            min-height: 158px;
-            padding: 24px 20px 22px;
-            background: #000;
-            border: 2px solid var(--frame-color);
-            outline: 1px solid var(--frame-color);
-            outline-offset: -7px;
-            box-shadow:
-                inset 0 0 0 4px #000,
-                0 0 0 3px #000,
-                0 0 10px var(--frame-color-dim);
-        }
-
-        .link-card h2 {
-            margin: 0 0 18px;
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .link-card a {
-            display: block;
-            color: var(--frame-color);
-            text-decoration: none;
-            margin: 11px 0;
-            padding: 3px 0;
-        }
-
-        .link-card a:hover,
-        .link-card a:focus {
-            color: #000;
-            background: var(--frame-color);
-            text-decoration: none;
-            outline: none;
-            text-shadow: none;
-        }
-
-        #status-box {
-            position: fixed;
-            right: 18px;
-            bottom: 18px;
-            z-index: 4;
-            display: none;
-            min-width: 160px;
-            padding: 12px 13px 10px;
-            background: #000;
-            border: 2px solid var(--frame-color);
-            outline: 1px solid var(--frame-color);
-            outline-offset: -6px;
-            color: var(--frame-color);
-            font-family: "Powerup", "Powerup NES", "Press Start 2P", "Pixel NES", "Courier New", monospace;
-            font-size: 10px;
-            line-height: 1.55;
-            letter-spacing: 1px;
-            text-align: center;
-            text-transform: uppercase;
-            box-shadow: 0 0 0 3px #000, 0 0 12px var(--frame-color-dim);
-        }
-
-        #status-box.visible {
-            display: block;
-        }
-
-        #statusText {
-            cursor: pointer;
-            display: inline-block;
-            margin-left: 5px;
-        }
-
-        #statusText.status-online {
-            color: #00ff00;
-        }
-
-        #statusText.status-offline {
-            color: #ff0000;
-        }
-
-        @media (max-width: 620px), (max-height: 600px) {
-            body {
-                overflow: auto;
-                align-items: flex-start;
-                padding: 28px 0 92px;
-            }
-
-            canvas {
-                position: fixed;
-            }
-
-            #terminal-box {
-                max-width: calc(100vw - 34px);
-            }
-
-            .link-grid {
-                grid-template-columns: var(--panel-width);
-                gap: 22px;
-            }
-        }
-    </style>
+    @media (max-width:700px){
+        .shell{ padding:10px; }
+        .topbar{ height:38px; font-size:11px; }
+        .terminal-wrap,
+        .game-layer{ inset:38px 0 28px 0; }
+        .hint{ max-width:58vw; }
+    }
+</style>
 </head>
-<body>
-    <canvas id="rainCanvas"></canvas>
-
-    <main id="terminal-box">
-        <div id="terminal-content">
-            <h1 class="site-title">577345663.xyz</h1>
-
-            <section class="link-grid" aria-label="Site links">
-                <div class="link-card">
-                    <h2>GAMES</h2>
-                    <a href="https://playfoursuit.com" target="_blank" rel="noopener noreferrer">Foursuit!</a>
-                    <a href="OSrunefate.html" target="_blank" rel="noopener noreferrer">Rune Fate</a>
-                    <a href="canepolecole.html" target="_blank" rel="noopener noreferrer">Cane Pole Cole</a>
-                    <a href="BLbaseball.html" target="_blank" rel="noopener noreferrer">Browser League Baseball</a>
-                </div>
-
-                <div class="link-card">
-                    <h2>TOOLS</h2>
-                    <a href="Pixel2Prompt.html" target="_blank" rel="noopener noreferrer">Pixel 2 Prompt</a>
-                    <a href="Soundsplainer.html" target="_blank" rel="noopener noreferrer">Soundsplainer</a>
-                    <a href="PleaseRespond.html" target="_blank" rel="noopener noreferrer">Please Respond</a>
-                    <a href="QRmatey.html" target="_blank" rel="noopener noreferrer">QR Matey</a>
-                </div>
-
-                <div class="link-card">
-                    <h2>MEDIA</h2>
-                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
-                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
-                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
-                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
-                </div>
-
-                <div class="link-card">
-                    <h2>EXTRA</h2>
-                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
-                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
-                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Access Denied</a>
-                    <a href="torchtable.html" target="_blank" rel="noopener noreferrer">Torch Table</a>
-                </div>
-            </section>
+<body class="theme-green">
+<div class="shell" id="shell">
+    <div class="frame" id="frame">
+        <div class="topbar">
+            <div class="status">
+                <span class="lamp"></span>
+                <span>Access Denied</span>
+            </div>
+            <div class="hint" id="hint">Enter Login</div>
         </div>
-    </main>
 
-    <aside id="status-box" aria-label="Connection status">
-        Status:<span id="statusText" class="status-online">ONLINE</span>
-    </aside>
+        <div class="terminal-wrap">
+            <div id="terminal"></div>
+        </div>
 
-    <script>
-        const status = true; // Set false to hide the bottom-right status box.
+        <div class="game-layer" id="gameLayer">
+            <canvas id="gameCanvas"></canvas>
+            <div class="game-help">
+                <span class="game-title" id="gameTitle">PONG NODE</span>
+                <span id="gameHelp">W/S or ↑/↓ Move · Space Serve · Esc Terminal</span>
+            </div>
+        </div>
 
-        const canvas = document.getElementById('rainCanvas');
-        const ctx = canvas.getContext('2d');
-        const terminalBox = document.getElementById('terminal-box');
-        const statusBox = document.getElementById('status-box');
-        const statusText = document.getElementById('statusText');
+        <div class="footer">
+            <span id="footerLeft">NODE: LOCALHOST</span>
+            <span id="footerRight">STATUS: NO CARRIER</span>
+        </div>
 
-        let width, height;
-        const pixel = 4;
-        const particles = [];
-        const particleCount = 340;
-        const splashes = [];
-        let fillProgress = 0;
-        const fillDuration = 60 * 240;
-        const drainDuration = fillDuration / 2;
-        let isOnline = true;
+        <div class="modal-backdrop" id="loginModal">
+            <div class="login" id="loginBox">
+                <div class="login-title">Secure Node Access</div>
+                <div class="login-line">Authentication required. Unauthorized credentials will be logged for dramatic purposes.</div>
+                <div class="password-row">
+                    <span>Password:</span>
+                    <input id="passwordInput" autocomplete="off" autocapitalize="none" spellcheck="false" />
+                </div>
+                <div class="login-actions">
+                    <span>Esc cancels · Enter submits</span>
+                    <button id="submitPassword" type="button">Submit</button>
+                </div>
+            </div>
+        </div>
 
-        const colors = [
-            { r: 255, g: 0, b: 0 },
-            { r: 0, g: 0, b: 255 },
-            { r: 0, g: 255, b: 0 },
-            { r: 255, g: 255, b: 0 },
-            { r: 255, g: 165, b: 0 },
-            { r: 128, g: 0, b: 128 }
-        ];
+        <div class="modal-backdrop" id="toastModal">
+            <div class="toast" id="toastText">LOL</div>
+        </div>
+    </div>
+</div>
 
-        const selectedColor = colors[Math.floor(Math.random() * colors.length)];
-        const selectedColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 1)`;
-        const selectedColorDim = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.45)`;
-        const selectedColorRain = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.58)`;
-        const fillOpaqueColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.92)`;
+<script>
+(() => {
+    const terminal = document.getElementById("terminal");
+    const shell = document.getElementById("shell");
+    const frame = document.getElementById("frame");
+    const lamp = document.querySelector(".lamp");
+    const hint = document.getElementById("hint");
+    const footerLeft = document.getElementById("footerLeft");
+    const footerRight = document.getElementById("footerRight");
+    const loginModal = document.getElementById("loginModal");
+    const passwordInput = document.getElementById("passwordInput");
+    const submitPassword = document.getElementById("submitPassword");
+    const toastModal = document.getElementById("toastModal");
+    const toastText = document.getElementById("toastText");
+    const gameLayer = document.getElementById("gameLayer");
+    const gameCanvas = document.getElementById("gameCanvas");
+    const gameTitle = document.getElementById("gameTitle");
+    const gameHelp = document.getElementById("gameHelp");
+    const ctx = gameCanvas.getContext("2d");
 
-        document.documentElement.style.setProperty('--frame-color', selectedColorRgba);
-        document.documentElement.style.setProperty('--frame-color-dim', selectedColorDim);
+    const characters =
+        "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;':\",./<>?\\`~" +
+        "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ" +
+        "░▒▓█▄▀▌▐■□▲▼▶◀◊○●◘◙◦";
 
-        function snap(value) {
-            return Math.round(value / pixel) * pixel;
+    const fragments = [
+        "TRACE ROUTE FAILURE",
+        "AUTH HASH ROTATION",
+        "PORT 23 LISTENING",
+        "GHOST PROCESS FOUND",
+        "MEMORY LEAK: THEATRICAL",
+        "REMOTE NODE SPOOFED",
+        "DECRYPTING NOTHING",
+        "BUFFER DREAM ACTIVE",
+        "SYSLOG: NICE TRY",
+        "MAINFRAME MAYBE",
+        "CARRIER LOST",
+        "PACKET CHARM ENABLED",
+        "ROOT ACCESS DENIED",
+        "HANDSHAKE REJECTED",
+        "TERMINAL PANIC SAFE MODE"
+    ];
+
+    const gameClues = ["pong", "breakout", "snake"];
+    const clueFormats = [
+        "pass:{game}",
+        "pw:{game}",
+        "type-{game}",
+        "key:{game}",
+        "try/{game}",
+        "cmd>{game}",
+        "load:{game}",
+        "run-{game}"
+    ];
+
+    let lineTimer = null;
+    let clueTimer = null;
+    let intervalMs = 135;
+    let loginOpen = false;
+    let gameMode = false;
+    let activeGame = "";
+    let currentTheme = "green";
+
+    const keys = {
+        up:false,
+        down:false,
+        left:false,
+        right:false
+    };
+
+    const pong = {
+        running:false,
+        served:false,
+        playerY:0,
+        cpuY:0,
+        ballX:0,
+        ballY:0,
+        ballVX:0,
+        ballVY:0,
+        playerScore:0,
+        cpuScore:0,
+        lastTime:0
+    };
+
+    const breakout = {
+        running:false,
+        launched:false,
+        paddleX:0,
+        ballX:0,
+        ballY:0,
+        ballVX:0,
+        ballVY:0,
+        bricks:[],
+        rows:5,
+        cols:10,
+        score:0,
+        lives:3,
+        lastTime:0
+    };
+
+    const snake = {
+        running:false,
+        paused:false,
+        grid:22,
+        body:[],
+        dir:{x:1,y:0},
+        nextDir:{x:1,y:0},
+        apple:{x:6,y:6},
+        score:0,
+        stepTimer:0,
+        stepMs:115,
+        lastTime:0
+    };
+
+    function getInk() {
+        return getComputedStyle(document.body).getPropertyValue("--ink").trim();
+    }
+
+    function setTheme(theme) {
+        currentTheme = theme;
+        document.body.className = "theme-" + theme;
+        footerLeft.textContent = "COLOR MODE: " + currentTheme.toUpperCase();
+    }
+
+    function randomCharacter() {
+        return characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    function randomHex(length) {
+        let out = "";
+        const chars = "0123456789ABCDEF";
+        for (let i = 0; i < length; i++) out += chars[Math.floor(Math.random() * chars.length)];
+        return out;
+    }
+
+    function generateLine() {
+        const roll = Math.random();
+
+        if (roll < .12) {
+            return "[" + randomHex(4) + ":" + randomHex(4) + "] " +
+                fragments[Math.floor(Math.random() * fragments.length)] +
+                " :: " + randomHex(16);
         }
 
-        function resizeCanvas() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            ctx.imageSmoothingEnabled = false;
-            initParticles();
+        if (roll < .2) {
+            return ">" + fragments[Math.floor(Math.random() * fragments.length)] +
+                " / " + randomHex(8) + " / " + Date.now().toString(16).toUpperCase();
         }
 
-        function initParticles() {
-            particles.length = 0;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({
-                    x: snap(Math.random() * width),
-                    y: snap(Math.random() * height),
-                    speed: (Math.floor(Math.random() * 3) + 2) * pixel,
-                    length: (Math.floor(Math.random() * 4) + 3) * pixel,
-                    width: Math.random() > 0.75 ? pixel * 2 : pixel
-                });
-            }
+        const lineLength = Math.floor(Math.random() * 74) + 18;
+        let line = "";
+        for (let i = 0; i < lineLength; i++) line += randomCharacter();
+        return line;
+    }
+
+    function generateGameClue() {
+        const game = gameClues[Math.floor(Math.random() * gameClues.length)];
+        const format = clueFormats[Math.floor(Math.random() * clueFormats.length)];
+        const clue = format.replace("{game}", game);
+        const left = randomHex(4) + randomCharacter() + randomCharacter();
+        const right = randomCharacter() + randomHex(6);
+        return left + " // " + clue + " // " + right;
+    }
+
+    function addGameClue() {
+        if (gameMode || loginOpen) return;
+        addLine(generateGameClue());
+    }
+
+    function addLine(customLine) {
+        const line = customLine || generateLine();
+        terminal.textContent += line + "\n";
+
+        const lines = terminal.textContent.split("\n");
+        if (lines.length > 72) {
+            terminal.textContent = lines.slice(lines.length - 72).join("\n");
         }
 
-        function getImpactRects() {
-            const rects = [];
-            const title = document.querySelector('.site-title');
-            if (title) rects.push(title.getBoundingClientRect());
-            document.querySelectorAll('.link-card').forEach(card => rects.push(card.getBoundingClientRect()));
-            if (status && statusBox.classList.contains('visible')) rects.push(statusBox.getBoundingClientRect());
-            return rects;
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function startTerminal() {
+        stopTerminal();
+        lineTimer = setInterval(() => addLine(), intervalMs);
+        startClues();
+    }
+
+    function stopTerminal() {
+        if (lineTimer) clearInterval(lineTimer);
+        lineTimer = null;
+        stopClues();
+    }
+
+    function startClues() {
+        stopClues();
+        clueTimer = setInterval(addGameClue, 30000);
+    }
+
+    function stopClues() {
+        if (clueTimer) clearInterval(clueTimer);
+        clueTimer = null;
+    }
+
+    function setSpeed(ms) {
+        intervalMs = Math.max(38, ms);
+        if (!gameMode) startTerminal();
+        footerRight.textContent = "SCROLL RATE: " + intervalMs + "MS";
+    }
+
+    function openLogin() {
+        if (gameMode || loginOpen) return;
+        loginOpen = true;
+        loginModal.classList.add("show");
+        passwordInput.value = "";
+        addLine("> LOGIN PROMPT OPENED");
+        setTimeout(() => passwordInput.focus(), 30);
+    }
+
+    function closeLogin() {
+        loginOpen = false;
+        loginModal.classList.remove("show");
+        passwordInput.blur();
+    }
+
+    function showToast(text, ms = 850) {
+        toastText.textContent = text;
+        toastModal.classList.add("show");
+        setTimeout(() => toastModal.classList.remove("show"), ms);
+    }
+
+    function flashDenied() {
+        lamp.classList.remove("denied");
+        frame.classList.remove("shake");
+        void lamp.offsetWidth;
+        lamp.classList.add("denied");
+        frame.classList.add("shake");
+        addLine("> ACCESS DENIED");
+        addLine("> PASSWORD REJECTED :: " + randomHex(12));
+        setTimeout(() => {
+            lamp.classList.remove("denied");
+            frame.classList.remove("shake");
+        }, 1300);
+    }
+
+    function submitLogin() {
+        const raw = passwordInput.value.trim();
+        const value = raw.toLowerCase();
+        if (!value) {
+            flashDenied();
+            passwordInput.value = "";
+            return;
         }
 
-        function createSplash(x, y, intensity = 1) {
-            const pieces = Math.floor(4 + Math.random() * 5) * intensity;
-            for (let i = 0; i < pieces; i++) {
-                const dir = Math.random() > 0.5 ? 1 : -1;
-                splashes.push({
-                    x: snap(x),
-                    y: snap(y),
-                    vx: dir * (Math.floor(Math.random() * 3) + 1) * pixel,
-                    vy: -(Math.floor(Math.random() * 3) + 1) * pixel,
-                    life: Math.floor(Math.random() * 10) + 8,
-                    size: Math.random() > 0.65 ? pixel * 2 : pixel
-                });
-            }
+        closeLogin();
+
+        if (value === "admin") {
+            showToast("LOL");
+            setTheme("red");
+            addLine("> ADMIN ACCESS REQUESTED");
+            addLine("> RESPONSE: LOL");
+            return;
         }
 
-        function resetParticle(p) {
-            p.x = snap(Math.random() * width);
-            p.y = -p.length - snap(Math.random() * height * 0.15);
-            p.speed = (Math.floor(Math.random() * 3) + 2) * pixel;
-            p.length = (Math.floor(Math.random() * 4) + 3) * pixel;
-            p.width = Math.random() > 0.75 ? pixel * 2 : pixel;
+        if (value === "password") {
+            showToast("Really?");
+            setSpeed(Math.floor(intervalMs * .55));
+            addLine("> PASSWORD ACCEPTABILITY: NO");
+            addLine("> PANIC SCROLL ENGAGED");
+            return;
         }
 
-        function particleHitBox(p, oldY, rects) {
-            for (const rect of rects) {
-                const left = rect.left - pixel * 2;
-                const right = rect.right + pixel * 2;
-                const top = rect.top - pixel * 2;
-                const bottom = rect.bottom + pixel * 2;
-
-                if (p.x >= left && p.x <= right && oldY < top && p.y + p.length >= top) {
-                    createSplash(p.x, top, 1);
-                    return true;
-                }
-
-                if (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom && Math.random() > 0.88) {
-                    const edgeX = p.x < rect.left + rect.width / 2 ? rect.left : rect.right;
-                    createSplash(edgeX, p.y, 1);
-                    return true;
-                }
-            }
-            return false;
+        if (value === "pong") {
+            launchPong();
+            return;
         }
 
-        function toggleStatus() {
-            isOnline = !isOnline;
-
-            if (isOnline) {
-                statusText.textContent = 'ONLINE';
-                statusText.classList.remove('status-offline');
-                statusText.classList.add('status-online');
-            } else {
-                statusText.textContent = 'OFFLINE';
-                statusText.classList.remove('status-online');
-                statusText.classList.add('status-offline');
-            }
+        if (value === "breakout" || value === "breakoput") {
+            launchBreakout();
+            return;
         }
 
-        function drawFill(currentFillHeight) {
-            if (currentFillHeight <= 0) return;
-            const startY = snap(height - currentFillHeight);
-            ctx.fillStyle = fillOpaqueColorRgba;
-            ctx.fillRect(0, startY, width, height - startY);
-
-            // Subtle blocky surface shimmer only on the top edge; the water body stays solid.
-            ctx.fillStyle = selectedColorRgba;
-            for (let x = 0; x < width; x += pixel * 6) {
-                if (((x / pixel) + Math.floor(fillProgress / 18)) % 4 === 0) {
-                    ctx.fillRect(x, startY, pixel * 2, pixel);
-                }
-            }
+        if (value === "snake") {
+            launchSnake();
+            return;
         }
 
-        function drawBubbles(currentFillHeight) {
-            if (currentFillHeight <= 0) return;
-            ctx.fillStyle = selectedColorDim;
-            const waterTop = height - currentFillHeight;
-            for (let i = 0; i < 24; i++) {
-                const x = snap((i * 97 + fillProgress * 0.35) % width);
-                const y = snap(height - ((i * 53 + fillProgress * 0.65) % Math.max(currentFillHeight, pixel * 2)));
-                if (y > waterTop) {
-                    ctx.fillRect(x, y, pixel, pixel);
-                    if (i % 3 === 0) ctx.fillRect(x + pixel, y - pixel, pixel, pixel);
-                }
-            }
-        }
+        flashDenied();
+    }
 
-        function drawRain(currentFillHeight) {
-            const waterSurfaceY = height - currentFillHeight;
-            const rects = getImpactRects();
-            ctx.fillStyle = selectedColorRain;
+    function resizeCanvas() {
+        const rect = gameCanvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        gameCanvas.width = Math.max(300, Math.floor(rect.width * dpr));
+        gameCanvas.height = Math.max(180, Math.floor(rect.height * dpr));
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
 
-            particles.forEach(p => {
-                const oldY = p.y;
-                p.y += isOnline ? p.speed : p.speed * 1.25;
-
-                if (isOnline && particleHitBox(p, oldY, rects)) {
-                    resetParticle(p);
-                    return;
-                }
-
-                if (isOnline && p.y >= waterSurfaceY && oldY < waterSurfaceY) {
-                    createSplash(p.x, waterSurfaceY, 1);
-                    resetParticle(p);
-                    return;
-                }
-
-                if (p.y > height + p.length) {
-                    if (isOnline) resetParticle(p);
-                    return;
-                }
-
-                const drawX = snap(p.x);
-                const drawY = snap(p.y);
-                for (let y = 0; y < p.length; y += pixel * 2) {
-                    ctx.fillRect(drawX, drawY + y, p.width, pixel);
-                }
-            });
-        }
-
-        function drawSplashes() {
-            ctx.fillStyle = selectedColorRgba;
-            for (let i = splashes.length - 1; i >= 0; i--) {
-                const s = splashes[i];
-                s.life--;
-                s.x += s.vx;
-                s.y += s.vy;
-                s.vy += pixel * 0.35;
-
-                if (s.life <= 0) {
-                    splashes.splice(i, 1);
-                    continue;
-                }
-
-                ctx.fillRect(snap(s.x), snap(s.y), s.size, s.size);
-                if (s.life % 4 === 0) ctx.fillRect(snap(s.x - s.vx), snap(s.y), pixel, pixel);
-            }
-        }
-
-        function draw() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
-            ctx.fillRect(0, 0, width, height);
-
-            if (isOnline) {
-                if (fillProgress < fillDuration) fillProgress++;
-            } else if (fillProgress > 0) {
-                fillProgress -= (fillDuration / drainDuration);
-                if (fillProgress < 0) fillProgress = 0;
-            }
-
-            const currentFillHeight = (fillProgress / fillDuration) * height;
-            drawFill(currentFillHeight);
-            drawBubbles(currentFillHeight);
-            drawRain(currentFillHeight);
-            drawSplashes();
-
-            requestAnimationFrame(draw);
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-
-        if (status) {
-            statusBox.classList.add('visible');
-        }
-
-        statusText.addEventListener('click', toggleStatus);
+    function enterGame(title, help) {
+        closeLogin();
+        gameMode = true;
+        stopTerminal();
+        gameLayer.classList.add("show");
+        gameTitle.textContent = title;
+        gameHelp.textContent = help;
+        hint.textContent = "Game Mode · Esc Terminal";
+        footerRight.textContent = "STATUS: ARCADE LEAK";
         resizeCanvas();
-        draw();
-    </script>
+    }
+
+    function exitGame() {
+        if (!gameMode) return;
+        gameMode = false;
+        activeGame = "";
+        pong.running = false;
+        breakout.running = false;
+        snake.running = false;
+        gameLayer.classList.remove("show");
+        hint.textContent = "Enter Login";
+        footerRight.textContent = "STATUS: NO CARRIER";
+        addLine("> ARCADE NODE CLOSED");
+        startTerminal();
+    }
+
+    function resetPongBall(direction = 1) {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        pong.ballX = w / 2;
+        pong.ballY = h / 2;
+        pong.ballVX = direction * (230 + Math.random() * 70);
+        pong.ballVY = (Math.random() > .5 ? 1 : -1) * (110 + Math.random() * 80);
+        pong.served = false;
+    }
+
+    function launchPong() {
+        activeGame = "pong";
+        enterGame("PONG NODE", "W/S or ↑/↓ Move · Space Serve · Esc Terminal");
+        const h = gameCanvas.clientHeight;
+        pong.running = true;
+        pong.served = false;
+        pong.playerY = h / 2;
+        pong.cpuY = h / 2;
+        pong.playerScore = 0;
+        pong.cpuScore = 0;
+        resetPongBall(Math.random() > .5 ? 1 : -1);
+        pong.lastTime = performance.now();
+        requestAnimationFrame(pongLoop);
+    }
+
+    function pongLoop(now) {
+        if (!pong.running) return;
+        const dt = Math.min(.035, (now - pong.lastTime) / 1000);
+        pong.lastTime = now;
+        updatePong(dt);
+        drawPong();
+        requestAnimationFrame(pongLoop);
+    }
+
+    function updatePong(dt) {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const paddleH = Math.max(54, h * .16);
+        const speed = 330;
+
+        if (keys.up) pong.playerY -= speed * dt;
+        if (keys.down) pong.playerY += speed * dt;
+        pong.playerY = Math.max(paddleH / 2 + 10, Math.min(h - paddleH / 2 - 10, pong.playerY));
+
+        const cpuTarget = pong.ballY;
+        pong.cpuY += Math.sign(cpuTarget - pong.cpuY) * Math.min(Math.abs(cpuTarget - pong.cpuY), 235 * dt);
+        pong.cpuY = Math.max(paddleH / 2 + 10, Math.min(h - paddleH / 2 - 10, pong.cpuY));
+
+        if (!pong.served) {
+            pong.ballX = w / 2;
+            pong.ballY = h / 2;
+            return;
+        }
+
+        pong.ballX += pong.ballVX * dt;
+        pong.ballY += pong.ballVY * dt;
+
+        if (pong.ballY < 18 || pong.ballY > h - 18) {
+            pong.ballVY *= -1;
+            pong.ballY = Math.max(18, Math.min(h - 18, pong.ballY));
+        }
+
+        const paddleW = 10;
+        const playerX = 28;
+        const cpuX = w - 38;
+        const ballR = 7;
+
+        if (pong.ballX - ballR < playerX + paddleW && pong.ballX + ballR > playerX && Math.abs(pong.ballY - pong.playerY) < paddleH / 2) {
+            pong.ballX = playerX + paddleW + ballR;
+            pong.ballVX = Math.abs(pong.ballVX) * 1.045;
+            pong.ballVY += (pong.ballY - pong.playerY) * 5;
+        }
+
+        if (pong.ballX + ballR > cpuX && pong.ballX - ballR < cpuX + paddleW && Math.abs(pong.ballY - pong.cpuY) < paddleH / 2) {
+            pong.ballX = cpuX - ballR;
+            pong.ballVX = -Math.abs(pong.ballVX) * 1.045;
+            pong.ballVY += (pong.ballY - pong.cpuY) * 5;
+        }
+
+        if (pong.ballX < -30) {
+            pong.cpuScore++;
+            resetPongBall(1);
+        }
+
+        if (pong.ballX > w + 30) {
+            pong.playerScore++;
+            resetPongBall(-1);
+        }
+    }
+
+    function drawPong() {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const ink = getInk();
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(0,0,0,.72)";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = ink;
+        ctx.globalAlpha = .28;
+        ctx.setLineDash([8, 9]);
+        ctx.beginPath();
+        ctx.moveTo(w / 2, 54);
+        ctx.lineTo(w / 2, h - 18);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+
+        ctx.fillStyle = ink;
+        ctx.shadowColor = ink;
+        ctx.shadowBlur = 10;
+
+        const paddleH = Math.max(54, h * .16);
+        ctx.fillRect(28, pong.playerY - paddleH / 2, 10, paddleH);
+        ctx.fillRect(w - 38, pong.cpuY - paddleH / 2, 10, paddleH);
+        ctx.fillRect(pong.ballX - 7, pong.ballY - 7, 14, 14);
+
+        ctx.font = "24px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(String(pong.playerScore).padStart(2, "0"), w / 2 - 54, 35);
+        ctx.fillText(String(pong.cpuScore).padStart(2, "0"), w / 2 + 54, 35);
+
+        if (!pong.served) {
+            ctx.font = "14px monospace";
+            ctx.fillText("PRESS SPACE", w / 2, h / 2 + 42);
+        }
+
+        ctx.shadowBlur = 0;
+    }
+
+    function buildBricks() {
+        breakout.bricks = [];
+        for (let r = 0; r < breakout.rows; r++) {
+            for (let c = 0; c < breakout.cols; c++) {
+                breakout.bricks.push({r, c, alive:true});
+            }
+        }
+    }
+
+    function resetBreakoutBall() {
+        const h = gameCanvas.clientHeight;
+        breakout.ballX = breakout.paddleX;
+        breakout.ballY = h - 50;
+        breakout.ballVX = 170 * (Math.random() > .5 ? 1 : -1);
+        breakout.ballVY = -230;
+        breakout.launched = false;
+    }
+
+    function launchBreakout() {
+        activeGame = "breakout";
+        enterGame("BREAKOUT NODE", "A/D or ←/→ Move · Space Launch · Esc Terminal");
+        breakout.running = true;
+        breakout.launched = false;
+        breakout.paddleX = gameCanvas.clientWidth / 2;
+        breakout.score = 0;
+        breakout.lives = 3;
+        buildBricks();
+        resetBreakoutBall();
+        breakout.lastTime = performance.now();
+        requestAnimationFrame(breakoutLoop);
+    }
+
+    function breakoutLoop(now) {
+        if (!breakout.running) return;
+        const dt = Math.min(.035, (now - breakout.lastTime) / 1000);
+        breakout.lastTime = now;
+        updateBreakout(dt);
+        drawBreakout();
+        requestAnimationFrame(breakoutLoop);
+    }
+
+    function updateBreakout(dt) {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const paddleW = Math.max(72, w * .12);
+        const paddleH = 10;
+        const speed = 390;
+        const ballR = 7;
+
+        if (keys.left) breakout.paddleX -= speed * dt;
+        if (keys.right) breakout.paddleX += speed * dt;
+        breakout.paddleX = Math.max(paddleW / 2 + 12, Math.min(w - paddleW / 2 - 12, breakout.paddleX));
+
+        if (!breakout.launched) {
+            breakout.ballX = breakout.paddleX;
+            breakout.ballY = h - 50;
+            return;
+        }
+
+        breakout.ballX += breakout.ballVX * dt;
+        breakout.ballY += breakout.ballVY * dt;
+
+        if (breakout.ballX < ballR || breakout.ballX > w - ballR) {
+            breakout.ballVX *= -1;
+            breakout.ballX = Math.max(ballR, Math.min(w - ballR, breakout.ballX));
+        }
+
+        if (breakout.ballY < 48) {
+            breakout.ballVY *= -1;
+            breakout.ballY = 48;
+        }
+
+        const paddleY = h - 34;
+        if (breakout.ballY + ballR > paddleY && breakout.ballY - ballR < paddleY + paddleH && Math.abs(breakout.ballX - breakout.paddleX) < paddleW / 2) {
+            breakout.ballY = paddleY - ballR;
+            breakout.ballVY = -Math.abs(breakout.ballVY) * 1.02;
+            breakout.ballVX += (breakout.ballX - breakout.paddleX) * 4.2;
+        }
+
+        const margin = 26;
+        const top = 66;
+        const gap = 5;
+        const brickW = (w - margin * 2 - gap * (breakout.cols - 1)) / breakout.cols;
+        const brickH = 16;
+
+        for (const brick of breakout.bricks) {
+            if (!brick.alive) continue;
+            const bx = margin + brick.c * (brickW + gap);
+            const by = top + brick.r * (brickH + gap);
+            if (breakout.ballX + ballR > bx && breakout.ballX - ballR < bx + brickW && breakout.ballY + ballR > by && breakout.ballY - ballR < by + brickH) {
+                brick.alive = false;
+                breakout.score += 10;
+                breakout.ballVY *= -1;
+                break;
+            }
+        }
+
+        if (!breakout.bricks.some(b => b.alive)) {
+            buildBricks();
+            resetBreakoutBall();
+        }
+
+        if (breakout.ballY > h + 30) {
+            breakout.lives--;
+            if (breakout.lives <= 0) {
+                breakout.score = 0;
+                breakout.lives = 3;
+                buildBricks();
+            }
+            resetBreakoutBall();
+        }
+    }
+
+    function drawBreakout() {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const ink = getInk();
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(0,0,0,.72)";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.fillStyle = ink;
+        ctx.strokeStyle = ink;
+        ctx.shadowColor = ink;
+        ctx.shadowBlur = 9;
+
+        const margin = 26;
+        const top = 66;
+        const gap = 5;
+        const brickW = (w - margin * 2 - gap * (breakout.cols - 1)) / breakout.cols;
+        const brickH = 16;
+
+        for (const brick of breakout.bricks) {
+            if (!brick.alive) continue;
+            const bx = margin + brick.c * (brickW + gap);
+            const by = top + brick.r * (brickH + gap);
+            ctx.globalAlpha = .38 + brick.r * .1;
+            ctx.fillRect(bx, by, brickW, brickH);
+        }
+
+        ctx.globalAlpha = 1;
+        const paddleW = Math.max(72, w * .12);
+        const paddleY = h - 34;
+        ctx.fillRect(breakout.paddleX - paddleW / 2, paddleY, paddleW, 10);
+        ctx.fillRect(breakout.ballX - 7, breakout.ballY - 7, 14, 14);
+
+        ctx.font = "16px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("SCORE " + String(breakout.score).padStart(4, "0"), 22, 36);
+        ctx.textAlign = "right";
+        ctx.fillText("LIVES " + breakout.lives, w - 22, 36);
+
+        if (!breakout.launched) {
+            ctx.textAlign = "center";
+            ctx.font = "14px monospace";
+            ctx.fillText("PRESS SPACE", w / 2, h - 62);
+        }
+
+        ctx.shadowBlur = 0;
+    }
+
+    function placeSnakeApple() {
+        let safe = false;
+        while (!safe) {
+            snake.apple = {
+                x:Math.floor(Math.random() * snake.grid),
+                y:Math.floor(Math.random() * snake.grid)
+            };
+            safe = !snake.body.some(p => p.x === snake.apple.x && p.y === snake.apple.y);
+        }
+    }
+
+    function launchSnake() {
+        activeGame = "snake";
+        enterGame("SNAKE NODE", "WASD or Arrows Move · Space Pause · Esc Terminal");
+        snake.running = true;
+        snake.paused = false;
+        snake.score = 0;
+        snake.dir = {x:1,y:0};
+        snake.nextDir = {x:1,y:0};
+        snake.body = [{x:8,y:11},{x:7,y:11},{x:6,y:11}];
+        snake.stepTimer = 0;
+        placeSnakeApple();
+        snake.lastTime = performance.now();
+        requestAnimationFrame(snakeLoop);
+    }
+
+    function snakeLoop(now) {
+        if (!snake.running) return;
+        const dt = Math.min(.05, (now - snake.lastTime) / 1000);
+        snake.lastTime = now;
+        updateSnake(dt);
+        drawSnake();
+        requestAnimationFrame(snakeLoop);
+    }
+
+    function updateSnake(dt) {
+        if (snake.paused) return;
+
+        snake.stepTimer += dt * 1000;
+        if (snake.stepTimer < snake.stepMs) return;
+        snake.stepTimer = 0;
+        snake.dir = snake.nextDir;
+
+        const head = snake.body[0];
+        const next = {x:head.x + snake.dir.x, y:head.y + snake.dir.y};
+
+        if (
+            next.x < 0 ||
+            next.x >= snake.grid ||
+            next.y < 0 ||
+            next.y >= snake.grid ||
+            snake.body.some(p => p.x === next.x && p.y === next.y)
+        ) {
+            snake.body = [{x:8,y:11},{x:7,y:11},{x:6,y:11}];
+            snake.dir = {x:1,y:0};
+            snake.nextDir = {x:1,y:0};
+            snake.score = 0;
+            placeSnakeApple();
+            return;
+        }
+
+        snake.body.unshift(next);
+
+        if (next.x === snake.apple.x && next.y === snake.apple.y) {
+            snake.score += 10;
+            placeSnakeApple();
+        } else {
+            snake.body.pop();
+        }
+    }
+
+    function drawSnake() {
+        const w = gameCanvas.clientWidth;
+        const h = gameCanvas.clientHeight;
+        const ink = getInk();
+        const size = Math.min(w, h - 58) * .82;
+        const cell = Math.floor(size / snake.grid);
+        const board = cell * snake.grid;
+        const ox = Math.floor((w - board) / 2);
+        const oy = Math.floor((h - board) / 2) + 18;
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(0,0,0,.72)";
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.strokeStyle = ink;
+        ctx.fillStyle = ink;
+        ctx.shadowColor = ink;
+        ctx.shadowBlur = 7;
+
+        ctx.globalAlpha = .28;
+        ctx.strokeRect(ox - 2, oy - 2, board + 4, board + 4);
+        ctx.globalAlpha = 1;
+
+        for (const part of snake.body) {
+            ctx.fillRect(ox + part.x * cell + 1, oy + part.y * cell + 1, cell - 2, cell - 2);
+        }
+
+        ctx.globalAlpha = .72;
+        ctx.fillRect(ox + snake.apple.x * cell + 2, oy + snake.apple.y * cell + 2, cell - 4, cell - 4);
+        ctx.globalAlpha = 1;
+
+        ctx.font = "16px monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("SCORE " + String(snake.score).padStart(4, "0"), 22, 36);
+
+        if (snake.paused) {
+            ctx.textAlign = "center";
+            ctx.font = "14px monospace";
+            ctx.fillText("PAUSED", w / 2, h - 22);
+        }
+
+        ctx.shadowBlur = 0;
+    }
+
+    document.addEventListener("keydown", (event) => {
+        const key = event.key.toLowerCase();
+
+        if (event.key === "ArrowUp" || key === "w") {
+            keys.up = true;
+            if (gameMode) event.preventDefault();
+        }
+
+        if (event.key === "ArrowDown" || key === "s") {
+            keys.down = true;
+            if (gameMode) event.preventDefault();
+        }
+
+        if (event.key === "ArrowLeft" || key === "a") {
+            keys.left = true;
+            if (gameMode) event.preventDefault();
+        }
+
+        if (event.key === "ArrowRight" || key === "d") {
+            keys.right = true;
+            if (gameMode) event.preventDefault();
+        }
+
+        if (gameMode) {
+            if (activeGame === "snake") {
+                if ((event.key === "ArrowUp" || key === "w") && snake.dir.y !== 1) snake.nextDir = {x:0,y:-1};
+                if ((event.key === "ArrowDown" || key === "s") && snake.dir.y !== -1) snake.nextDir = {x:0,y:1};
+                if ((event.key === "ArrowLeft" || key === "a") && snake.dir.x !== 1) snake.nextDir = {x:-1,y:0};
+                if ((event.key === "ArrowRight" || key === "d") && snake.dir.x !== -1) snake.nextDir = {x:1,y:0};
+
+                if (event.key === " ") {
+                    snake.paused = !snake.paused;
+                    event.preventDefault();
+                }
+            }
+
+            if (activeGame === "pong" && event.key === " ") {
+                pong.served = true;
+                event.preventDefault();
+            }
+
+            if (activeGame === "breakout" && event.key === " ") {
+                breakout.launched = true;
+                event.preventDefault();
+            }
+
+            if (event.key === "Escape") {
+                exitGame();
+                event.preventDefault();
+            }
+
+            return;
+        }
+
+        if (loginOpen) {
+            if (event.key === "Escape") {
+                closeLogin();
+                event.preventDefault();
+            }
+            return;
+        }
+
+        if (event.key === "1") setTheme("green");
+        if (event.key === "2") setTheme("amber");
+        if (event.key === "3") setTheme("gray");
+        if (event.key === "4") setTheme("red");
+
+        if (event.key === "Enter") {
+            openLogin();
+            event.preventDefault();
+        }
+    });
+
+    document.addEventListener("keyup", (event) => {
+        const key = event.key.toLowerCase();
+        if (event.key === "ArrowUp" || key === "w") keys.up = false;
+        if (event.key === "ArrowDown" || key === "s") keys.down = false;
+        if (event.key === "ArrowLeft" || key === "a") keys.left = false;
+        if (event.key === "ArrowRight" || key === "d") keys.right = false;
+    });
+
+    submitPassword.addEventListener("click", submitLogin);
+
+    passwordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            submitLogin();
+            event.preventDefault();
+        }
+    });
+
+    loginModal.addEventListener("click", (event) => {
+        if (event.target === loginModal) closeLogin();
+    });
+
+    window.addEventListener("resize", () => {
+        if (!gameMode) return;
+        resizeCanvas();
+        if (activeGame === "pong") resetPongBall();
+        if (activeGame === "breakout") resetBreakoutBall();
+    });
+
+    for (let i = 0; i < 20; i++) addLine();
+    startTerminal();
+})();
+</script>
 </body>
 </html>
