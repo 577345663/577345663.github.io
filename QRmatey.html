@@ -222,17 +222,17 @@
     </div>
 
     <div class="row tight">
-      <label class="check"><input id="memoOn" type="checkbox"> MEMO</label>
       <div class="row">
-        <label for="fontPick">FONT</label>
-        <select id="fontPick" class="mini-select">
-          <option value="system">Default</option>
-          <option value="mono">Mono</option>
-          <option value="serif">Serif</option>
-          <option value="wide">Wide</option>
-          <option value="clean">Clean</option>
-        </select>
+        <label class="check"><input id="memoOn" type="checkbox"> MEMO</label>
+        <label class="check"><input id="memoBold" type="checkbox"> BOLD</label>
       </div>
+      <select id="fontPick" class="mini-select">
+        <option value="system">Default</option>
+        <option value="mono">Mono</option>
+        <option value="serif">Serif</option>
+        <option value="wide">Wide</option>
+        <option value="clean">Clean</option>
+      </select>
     </div>
 
     <div>
@@ -253,6 +253,9 @@
         <button class="choice" data-palette="amber">RETRO AMBER</button>
         <button class="choice" data-palette="vivid">VIVID</button>
         <button class="choice" data-palette="muted">MUTED</button>
+        <button class="choice" data-palette="neon">NEON</button>
+        <button class="choice" data-palette="blues">BLUES</button>
+        <button class="choice" data-palette="pastel">PASTEL</button>
       </div>
     </div>
 
@@ -266,6 +269,14 @@
       </div>
     </div>
 
+    <div class="box">
+      <div class="box-title">SIZE</div>
+      <div class="button-grid" id="sizeBtns">
+        <button class="choice active" data-size="512">SMALL 512</button>
+        <button class="choice" data-size="1024">LARGE 1024</button>
+      </div>
+    </div>
+
     <div class="actions">
       <button class="action" id="downloadBtn">DOWNLOAD PNG</button>
       <button class="action warn" id="clearBtn">CLEAR</button>
@@ -273,7 +284,7 @@
   </section>
 
   <main class="preview-wrap">
-    <canvas id="qrCanvas" width="640" height="720"></canvas>
+    <canvas id="qrCanvas" width="720" height="720"></canvas>
     <div class="status" id="status">Preview updates live. Download saves exactly what you see.</div>
   </main>
 </div>
@@ -287,6 +298,7 @@ const ctx = canvas.getContext("2d");
 
 const qrData = document.getElementById("qrData");
 const memoOn = document.getElementById("memoOn");
+const memoBold = document.getElementById("memoBold");
 const memoText = document.getElementById("memoText");
 const fontPick = document.getElementById("fontPick");
 const invertOn = document.getElementById("invertOn");
@@ -297,6 +309,7 @@ const statusEl = document.getElementById("status");
 
 let currentPalette = "standard";
 let currentShape = "square";
+let outputSize = 512;
 let audioCtx = null;
 
 const PALETTES = {
@@ -304,7 +317,10 @@ const PALETTES = {
   green:{ bg:"#000000", fg:"#00ff88" },
   amber:{ bg:"#000000", fg:"#ffb000" },
   vivid:{ bg:"#1a0033", fg:"#ff2e63" },
-  muted:{ bg:"#e8dcc7", fg:"#5a4a3f" }
+  muted:{ bg:"#e8dcc7", fg:"#5a4a3f" },
+  neon:{ bg:"#ff2e63", fg:"#00ff88" },
+  blues:{ bg:"#071a2f", fg:"#7fd6ff" },
+  pastel:{ bg:"#bfe7ff", fg:"#ff8cc8" }
 };
 
 const MEMO_FONTS = {
@@ -372,7 +388,16 @@ document.getElementById("shapeBtns").addEventListener("click", e=>{
   render();
 });
 
-[memoOn, fontPick, invertOn].forEach(el=>{
+document.getElementById("sizeBtns").addEventListener("click", e=>{
+  const btn = e.target.closest("button[data-size]");
+  if(!btn) return;
+  outputSize = Number(btn.dataset.size);
+  selectButton("sizeBtns", "size", String(outputSize));
+  playTone("tick");
+  render();
+});
+
+[memoOn, memoBold, fontPick, invertOn].forEach(el=>{
   el.addEventListener("change", ()=>{
     memoText.disabled = !memoOn.checked;
     playTone("tick");
@@ -391,6 +416,7 @@ clearBtn.addEventListener("click", ()=>{
   qrData.value = "";
   memoText.value = "";
   memoOn.checked = false;
+  memoBold.checked = false;
   memoText.disabled = true;
   playTone("clear");
   render();
@@ -404,7 +430,7 @@ downloadBtn.addEventListener("click", ()=>{
     return;
   }
   const a = document.createElement("a");
-  const name = "QR-Matey_" + currentPalette + (invertOn.checked ? "_invert" : "") + "_" + currentShape + ".png";
+  const name = "QR-Matey_" + outputSize + "_" + currentPalette + (invertOn.checked ? "_invert" : "") + "_" + currentShape + ".png";
   a.download = name;
   a.href = canvas.toDataURL("image/png");
   a.click();
@@ -776,7 +802,8 @@ function wrapText(ctx,text,maxWidth){
 }
 
 function drawPlaceholder(){
-  canvas.height = 720;
+  canvas.width = outputSize;
+  canvas.height = outputSize;
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle = "#000000";
@@ -831,7 +858,8 @@ function render(){
   try{
     matrix = makeMatrix(data);
   }catch(err){
-    canvas.height = 720;
+    canvas.width = outputSize;
+    canvas.height = outputSize;
     ctx.fillStyle = "#000";
     ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = "#ff4d4d";
@@ -845,18 +873,25 @@ function render(){
   }
 
   const hasMemo = memoOn.checked && memo;
-  canvas.height = hasMemo ? 760 : 660;
+  canvas.width = outputSize;
+  canvas.height = outputSize;
 
   ctx.fillStyle = bg;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   const n = matrix.length;
   const quiet = 4;
-  const usable = 500;
-  const cell = Math.floor(usable / (n + quiet*2));
+  const scale = canvas.width / 720;
+  const topPad = Math.round((hasMemo ? 42 : 50) * scale);
+  const bottomPad = Math.round((hasMemo ? 132 : 54) * scale);
+  const sidePad = Math.round(48 * scale);
+  const maxQRBoxW = canvas.width - sidePad * 2;
+  const maxQRBoxH = canvas.height - topPad - bottomPad;
+  const usable = Math.min(maxQRBoxW, maxQRBoxH);
+  const cell = Math.max(4, Math.floor(usable / (n + quiet*2)));
   const qrPix = cell * n;
   const startX = Math.floor((canvas.width - qrPix) / 2);
-  const startY = 58;
+  const startY = topPad + Math.floor((maxQRBoxH - qrPix) / 2);
 
   ctx.fillStyle = bg;
   ctx.fillRect(startX - quiet*cell, startY - quiet*cell, qrPix + quiet*cell*2, qrPix + quiet*cell*2);
@@ -875,17 +910,21 @@ function render(){
     ctx.fillStyle = fg;
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.font = fontPick.value === "wide" ? `32px ${font}` : `26px ${font}`;
+    const memoPx = Math.round((fontPick.value === "wide" ? 28 : 24) * scale);
+    const weight = memoBold.checked ? "bold " : "";
+    ctx.font = `${weight}${memoPx}px ${font}`;
 
-    const lines = wrapText(ctx, memo, canvas.width - 80);
-    let y = startY + qrPix + 60;
+    const lines = wrapText(ctx, memo, canvas.width - Math.round(90 * scale));
+    const lineHeight = Math.round((fontPick.value === "wide" ? 30 : 28) * scale);
+    const blockHeight = lines.length * lineHeight;
+    let y = canvas.height - bottomPad + Math.max(0, Math.floor((bottomPad - blockHeight) / 2)) + 4;
     lines.forEach(line=>{
       ctx.fillText(line, canvas.width/2, y);
-      y += 34;
+      y += lineHeight;
     });
   }
 
-  statusEl.textContent = `Palette: ${currentPalette.toUpperCase()} | Shape: ${currentShape.toUpperCase()}${invertOn.checked ? " | INVERTED" : ""}`;
+  statusEl.textContent = `Size: ${outputSize}x${outputSize} | Palette: ${currentPalette.toUpperCase()} | Shape: ${currentShape.toUpperCase()}${invertOn.checked ? " | INVERTED" : ""}`;
 }
 
 render();
