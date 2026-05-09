@@ -353,6 +353,17 @@
             min-height: calc((158px * 2) + 42px);
         }
 
+
+        body.boxes-flag-2 #terminal-content {
+            padding-bottom: 200px;
+        }
+
+        @media (max-width: 620px), (max-height: 600px) {
+            body.boxes-flag-2 #terminal-content {
+                padding-bottom: 0;
+            }
+        }
+
         @media (max-width: 620px), (max-height: 600px) {
             body {
                 overflow: auto;
@@ -473,7 +484,7 @@
         // and remains OFFLINE for SECRET_UNLOCK_DELAY ms, the title becomes clickable.
         const SECRET_UNLOCK = true;
         const SECRET_UNLOCK_DELAY = 10000;
-        const SECRET_TITLE_URL = 'QRmatey.html'; // Temporary mock target for hidden title unlock.
+        const SECRET_TITLE_URL = 'itsasecrettoeverybody.html'; 
 
         const activeRain = RAIN === 4 ? Math.floor(Math.random() * 3) + 1 : RAIN;
         const embellishLevel = activeRain === 3 ? 2 : activeRain;
