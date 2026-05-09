@@ -222,6 +222,80 @@
             mix-blend-mode: screen;
         }
 
+
+        /* BOX1-BOX4 display flags and flexible 2x2 column behavior.
+           In BOXES=1, columns can rebalance: the top card can grow into space
+           left unused by a shorter/hidden lower card. */
+        .link-column {
+            min-width: 0;
+        }
+
+        body.boxes-flag-1 .link-grid {
+            display: grid;
+            grid-template-columns: repeat(2, var(--panel-width));
+            gap: 42px;
+            align-items: stretch;
+        }
+
+        body.boxes-flag-1 .link-column {
+            display: flex;
+            flex-direction: column;
+            gap: 42px;
+            min-width: 0;
+        }
+
+        body.boxes-flag-1 .link-column .link-card:first-child {
+            flex: 1 1 auto;
+        }
+
+        body.boxes-flag-1 .link-column .link-card:nth-child(2) {
+            flex: 0 0 auto;
+        }
+
+        body.boxes-flag-2 .link-grid {
+            display: grid;
+            grid-template-columns: repeat(4, var(--panel-width));
+            gap: 34px;
+            align-items: start;
+            justify-content: center;
+        }
+
+        body.boxes-flag-2 .link-column {
+            display: contents;
+        }
+
+        body.boxes-flag-2 .link-card[data-box="1"] {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        body.boxes-flag-2 .link-card[data-box="2"] {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        body.boxes-flag-2 .link-card[data-box="3"] {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        body.boxes-flag-2 .link-card[data-box="4"] {
+            grid-column: 4;
+            grid-row: 1;
+        }
+
+        body.box1-off .link-card[data-box="1"],
+        body.box2-off .link-card[data-box="2"],
+        body.box3-off .link-card[data-box="3"],
+        body.box4-off .link-card[data-box="4"] {
+            display: none;
+        }
+
+        body.box3-off.boxes-flag-1 .link-card[data-box="1"],
+        body.box4-off.boxes-flag-1 .link-card[data-box="2"] {
+            min-height: calc((158px * 2) + 42px);
+        }
+
         @media (max-width: 620px), (max-height: 600px) {
             body {
                 overflow: auto;
@@ -238,9 +312,25 @@
             }
 
             .link-grid,
+            body.boxes-flag-1 .link-grid,
             body.boxes-flag-2 .link-grid {
                 grid-template-columns: var(--panel-width);
                 gap: 22px;
+            }
+
+            body.boxes-flag-1 .link-column {
+                gap: 22px;
+            }
+
+            body.boxes-flag-2 .link-column {
+                display: flex;
+                flex-direction: column;
+                gap: 22px;
+            }
+
+            body.box3-off.boxes-flag-1 .link-card[data-box="1"],
+            body.box4-off.boxes-flag-1 .link-card[data-box="2"] {
+                min-height: 158px;
             }
 
             body.title-flag-3 .site-title,
@@ -278,15 +368,15 @@
 
                 <div class="link-card">
                     <h2>MEDIA</h2>
-                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">XXXXX XXXXX</a>
-                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">XXXXX XXXXX</a>
-                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">XXXXX XXXXX</a>
-                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">XXXXX XXXXX</a>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
                 </div>
 
                 <div class="link-card">
                     <h2>EXTRA</h2>
-                    <a href="http://566335006.xyz/" target="_blank" rel="noopener noreferrer">566335006</a>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
                     <a href="vibelabs.html" target="_blank" rel="noopener noreferrer">Vibe Labs</a>
                     <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Access Denied</a>
                     <a href="torchtable.html" target="_blank" rel="noopener noreferrer">Torch Table</a>
@@ -305,14 +395,53 @@
         // Layout flags:
         // TITLE: 1 = original/default, 2 = top center, 3 = top left, 4 = top right.
         // BOXES: 1 = original/default 2x2, 2 = one 4x1 row using the same four boxes.
+        // BOX1-BOX4: true = show, false = hide that panel.
         // STATUS: 1 = original/default bottom right, 2 = bottom middle, 3 = bottom left.
         // RAIN: 1 = original/default, 2 = heavier, 3 = heavier + lightning, 4 = random 1-3 on load.
         const TITLE = 1;
         const BOXES = 1;
-        const STATUS = 2;
-        const RAIN = 4;
+        const BOX1 = true;
+        const BOX2 = true;
+        const BOX3 = true;
+        const BOX4 = true;
+        const STATUS = 1;
+        const RAIN = 1;
 
         const activeRain = RAIN === 4 ? Math.floor(Math.random() * 3) + 1 : RAIN;
+
+        function setupBoxColumns() {
+            const grid = document.querySelector('.link-grid');
+            if (!grid || grid.dataset.columnized === 'true') return;
+
+            const cards = Array.from(grid.querySelectorAll('.link-card'));
+            if (cards.length !== 4) return;
+
+            cards.forEach((card, index) => {
+                card.dataset.box = String(index + 1);
+            });
+
+            const leftColumn = document.createElement('div');
+            const rightColumn = document.createElement('div');
+            leftColumn.className = 'link-column link-column-left';
+            rightColumn.className = 'link-column link-column-right';
+
+            leftColumn.appendChild(cards[0]);
+            leftColumn.appendChild(cards[2]);
+            rightColumn.appendChild(cards[1]);
+            rightColumn.appendChild(cards[3]);
+
+            grid.innerHTML = '';
+            grid.appendChild(leftColumn);
+            grid.appendChild(rightColumn);
+            grid.dataset.columnized = 'true';
+        }
+
+        function applyBoxVisibilityFlags() {
+            document.body.classList.toggle('box1-off', !BOX1);
+            document.body.classList.toggle('box2-off', !BOX2);
+            document.body.classList.toggle('box3-off', !BOX3);
+            document.body.classList.toggle('box4-off', !BOX4);
+        }
 
         function applyLayoutFlags() {
             for (let i = 1; i <= 4; i++) document.body.classList.remove(`title-flag-${i}`);
@@ -324,6 +453,8 @@
             document.body.classList.add(`status-flag-${STATUS}`);
         }
 
+        setupBoxColumns();
+        applyBoxVisibilityFlags();
         applyLayoutFlags();
 
         const canvas = document.getElementById('rainCanvas');
