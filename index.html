@@ -234,7 +234,7 @@
             display: grid;
             grid-template-columns: repeat(2, var(--panel-width));
             gap: 42px;
-            align-items: stretch;
+            align-items: start;
         }
 
         body.boxes-flag-1 .link-column {
@@ -242,6 +242,15 @@
             flex-direction: column;
             gap: 42px;
             min-width: 0;
+        }
+
+
+        body.boxes-flag-1 .link-column .link-card {
+            min-height: auto;
+        }
+
+        body.boxes-flag-1 .link-column .link-card:first-child {
+            min-height: 158px;
         }
 
         body.boxes-flag-1 .link-column .link-card:first-child {
@@ -402,7 +411,7 @@
         const BOXES = 1;
         const BOX1 = true;
         const BOX2 = true;
-        const BOX3 = false;
+        const BOX3 = true;
         const BOX4 = true;
         const STATUS = 1;
         const RAIN = 1;
