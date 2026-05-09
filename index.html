@@ -260,6 +260,25 @@
             text-shadow: none;
         }
 
+
+        body.boxspace-flag-2 .site-title {
+            margin-bottom: 48px;
+        }
+
+        body.boxspace-flag-2.boxes-flag-1 .link-grid {
+            gap: 50px;
+        }
+
+        body.boxspace-flag-2.boxes-flag-1 .link-column {
+            gap: 50px;
+        }
+
+        body.boxspace-flag-2.boxes-flag-2.visible-box-count-2 .link-grid,
+        body.boxspace-flag-2.boxes-flag-2.visible-box-count-3 .link-grid,
+        body.boxspace-flag-2.boxes-flag-2.visible-box-count-4 .link-grid {
+            gap: 42px;
+        }
+
         body.lightning-flash::after {
             content: "";
             position: fixed;
@@ -463,6 +482,7 @@
         // Layout flags:
         // TITLE: 1 = original/default, 2 = top center, 3 = top left, 4 = top right.
         // BOXES: 1 = original/default 2x2, 2 = one 4x1 row using the same four boxes.
+        // BOXSPACE: 1 = original/default spacing, 2 = slightly wider gaps between title/boxes and boxes themselves.
         // BOX1-BOX4: true = show, false = hide that panel.
         // STATUS: 1 = original/default bottom right, 2 = bottom middle, 3 = bottom left.
         // RAIN: 1 = original/default, 2 = heavier, 3 = RAIN 2-level embellishment + lightning.
@@ -471,6 +491,7 @@
         // EMBELISH: false = keep rain/fill/drain simpler, with no extra flourish.
         const TITLE = 1;
         const BOXES = 2;
+        const BOXSPACE = 1;
         const BOX1 = true;
         const BOX2 = true;
         const BOX3 = false;
@@ -533,10 +554,12 @@
         function applyLayoutFlags() {
             for (let i = 1; i <= 4; i++) document.body.classList.remove(`title-flag-${i}`);
             for (let i = 1; i <= 2; i++) document.body.classList.remove(`boxes-flag-${i}`);
+            for (let i = 1; i <= 2; i++) document.body.classList.remove(`boxspace-flag-${i}`);
             for (let i = 1; i <= 3; i++) document.body.classList.remove(`status-flag-${i}`);
 
             document.body.classList.add(`title-flag-${TITLE}`);
             document.body.classList.add(`boxes-flag-${BOXES}`);
+            document.body.classList.add(`boxspace-flag-${BOXSPACE}`);
             document.body.classList.add(`status-flag-${STATUS}`);
         }
 
@@ -671,11 +694,13 @@
                 document.body.classList.remove('offline-mode');
                 document.body.classList.remove('secret-title-unlocked');
                 titleUnlocked = false;
+                scheduleLightning();
             } else {
                 statusText.textContent = 'OFFLINE';
                 statusText.classList.remove('status-online');
                 statusText.classList.add('status-offline');
                 document.body.classList.add('offline-mode');
+                stopLightning();
             }
         }
 
@@ -777,8 +802,16 @@
         }
 
 
+        function stopLightning() {
+            if (lightningTimer) {
+                clearTimeout(lightningTimer);
+                lightningTimer = null;
+            }
+            document.body.classList.remove('lightning-flash');
+        }
+
         function triggerLightning() {
-            if (!EMBELISH || activeRain !== 3) return;
+            if (!isOnline || !EMBELISH || activeRain !== 3) return;
             document.body.classList.add('lightning-flash');
             setTimeout(() => document.body.classList.remove('lightning-flash'), 90);
             setTimeout(() => {
@@ -788,9 +821,10 @@
         }
 
         function scheduleLightning() {
-            if (!EMBELISH || activeRain !== 3) return;
+            if (!isOnline || !EMBELISH || activeRain !== 3 || lightningTimer) return;
             const delay = (Math.floor(Math.random() * 15) + 7) * 1000;
             lightningTimer = setTimeout(() => {
+                lightningTimer = null;
                 triggerLightning();
                 scheduleLightning();
             }, delay);
