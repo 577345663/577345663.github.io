@@ -3,7 +3,585 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>https://577345663.xyz/</title><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>https://577345663.xyz/</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+
+        :root {
+            --frame-color: #00ff00;
+            --frame-color-dim: rgba(0, 255, 0, 0.45);
+            --bg-color: #000;
+            --panel-width: 260px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            width: 100vw;
+            position: relative;
+            image-rendering: pixelated;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            image-rendering: pixelated;
+        }
+
+        #terminal-box {
+            z-index: 3;
+            background: transparent;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        #terminal-content {
+            font-family: "Powerup", "Powerup NES", "Press Start 2P", "Pixel NES", "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.9;
+            letter-spacing: 1px;
+            color: var(--frame-color);
+            text-align: center;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0 #001400;
+        }
+
+        .site-title {
+            display: inline-block;
+            min-width: 260px;
+            margin: 0 0 34px;
+            padding: 16px 22px 14px;
+            background: #000;
+            border: 2px solid var(--frame-color);
+            outline: 1px solid var(--frame-color);
+            outline-offset: -7px;
+            box-shadow: 0 0 0 4px #000, 0 0 12px var(--frame-color-dim);
+            font-size: 18px;
+            line-height: 1.45;
+        }
+
+        .link-grid {
+            display: grid;
+            grid-template-columns: repeat(2, var(--panel-width));
+            gap: 42px;
+            align-items: start;
+            justify-content: center;
+        }
+
+        .link-card {
+            width: var(--panel-width);
+            min-height: 158px;
+            padding: 24px 20px 22px;
+            background: #000;
+            border: 2px solid var(--frame-color);
+            outline: 1px solid var(--frame-color);
+            outline-offset: -7px;
+            box-shadow:
+                inset 0 0 0 4px #000,
+                0 0 0 3px #000,
+                0 0 10px var(--frame-color-dim);
+        }
+
+        .link-card h2 {
+            margin: 0 0 18px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .link-card a {
+            display: block;
+            color: var(--frame-color);
+            text-decoration: none;
+            margin: 11px 0;
+            padding: 3px 0;
+        }
+
+        .link-card a:hover,
+        .link-card a:focus {
+            color: #000;
+            background: var(--frame-color);
+            text-decoration: none;
+            outline: none;
+            text-shadow: none;
+        }
+
+        #status-box {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 4;
+            display: none;
+            min-width: 160px;
+            padding: 12px 13px 10px;
+            background: #000;
+            border: 2px solid var(--frame-color);
+            outline: 1px solid var(--frame-color);
+            outline-offset: -6px;
+            color: var(--frame-color);
+            font-family: "Powerup", "Powerup NES", "Press Start 2P", "Pixel NES", "Courier New", monospace;
+            font-size: 10px;
+            line-height: 1.55;
+            letter-spacing: 1px;
+            text-align: center;
+            text-transform: uppercase;
+            box-shadow: 0 0 0 3px #000, 0 0 12px var(--frame-color-dim);
+        }
+
+        #status-box.visible {
+            display: block;
+        }
+
+        #statusText {
+            cursor: pointer;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        #statusText.status-online {
+            color: #00ff00;
+        }
+
+        #statusText.status-offline {
+            color: #ff0000;
+        }
+
+
+        /* Layout flag variants. Defaults preserve the current live layout:
+           TITLE=1, BOXES=1, STATUS=1, RAIN=1. */
+
+        body.title-flag-2 #terminal-box,
+        body.title-flag-3 #terminal-box,
+        body.title-flag-4 #terminal-box {
+            padding-top: 0;
+        }
+
+        body.title-flag-2 .site-title,
+        body.title-flag-3 .site-title,
+        body.title-flag-4 .site-title {
+            position: fixed;
+            top: 34px;
+            z-index: 4;
+            margin-bottom: 0;
+        }
+
+        body.title-flag-2 .site-title {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        body.title-flag-3 .site-title {
+            left: 34px;
+            transform: none;
+        }
+
+        body.title-flag-4 .site-title {
+            right: 34px;
+            transform: none;
+        }
+
+        body.boxes-flag-2 .link-grid {
+            grid-template-columns: repeat(4, var(--panel-width));
+            gap: 34px;
+        }
+
+        body.status-flag-2 #status-box {
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
+        }
+
+        body.status-flag-3 #status-box {
+            left: 18px;
+            right: auto;
+            transform: none;
+        }
+
+        body.lightning-flash::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.32);
+            mix-blend-mode: screen;
+        }
+
+        @media (max-width: 620px), (max-height: 600px) {
+            body {
+                overflow: auto;
+                align-items: flex-start;
+                padding: 28px 0 92px;
+            }
+
+            canvas {
+                position: fixed;
+            }
+
+            #terminal-box {
+                max-width: calc(100vw - 34px);
+            }
+
+            .link-grid,
+            body.boxes-flag-2 .link-grid {
+                grid-template-columns: var(--panel-width);
+                gap: 22px;
+            }
+
+            body.title-flag-3 .site-title,
+            body.title-flag-4 .site-title {
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="rainCanvas"></canvas>
+
+    <main id="terminal-box">
+        <div id="terminal-content">
+            <h1 class="site-title">577345663.xyz</h1>
+
+            <section class="link-grid" aria-label="Site links">
+                <div class="link-card">
+                    <h2>GAMES</h2>
+                    <a href="https://playfoursuit.com" target="_blank" rel="noopener noreferrer">Foursuit!</a>
+                    <a href="OSrunefate.html" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="canepolecole.html" target="_blank" rel="noopener noreferrer">Cane Pole Cole</a>
+                    <a href="BLbaseball.html" target="_blank" rel="noopener noreferrer">Browser League Baseball</a>
+                </div>
+
+                <div class="link-card">
+                    <h2>TOOLS</h2>
+                    <a href="Pixel2Prompt.html" target="_blank" rel="noopener noreferrer">Pixel 2 Prompt</a>
+                    <a href="Soundsplainer.html" target="_blank" rel="noopener noreferrer">Soundsplainer</a>
+                    <a href="PleaseRespond.html" target="_blank" rel="noopener noreferrer">Please Respond</a>
+                    <a href="QRmatey.html" target="_blank" rel="noopener noreferrer">QR Matey</a>
+                </div>
+
+                <div class="link-card">
+                    <h2>MEDIA</h2>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
+                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
+                    <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
+                </div>
+
+                <div class="link-card">
+                    <h2>EXTRA</h2>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
+                    <a href="vibelabs.html" target="_blank" rel="noopener noreferrer">Vibe Labs</a>
+                    <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Access Denied</a>
+                    <a href="torchtable.html" target="_blank" rel="noopener noreferrer">Torch Table</a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <aside id="status-box" aria-label="Connection status">
+        Status:<span id="statusText" class="status-online">ONLINE</span>
+    </aside>
+
+    <script>
+        const status = true; // Set false to hide the status box.
+
+        // Layout flags:
+        // TITLE: 1 = current, 2 = top center, 3 = top left, 4 = top right.
+        // BOXES: 1 = current 2x2, 2 = 4x1 row starting where the current top row begins.
+        // STATUS: 1 = current bottom right, 2 = bottom middle, 3 = bottom left.
+        // RAIN: 1 = current, 2 = heavier, 3 = heavier + lightning, 4 = random 1-3 on load.
+        const TITLE = 2;
+        const BOXES = 2;
+        const STATUS = 2;
+        const RAIN = 3;
+
+        const activeRain = RAIN === 4 ? Math.floor(Math.random() * 3) + 1 : RAIN;
+
+        document.body.classList.add(`title-flag-${TITLE}`);
+        document.body.classList.add(`boxes-flag-${BOXES}`);
+        document.body.classList.add(`status-flag-${STATUS}`);
+
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+        const terminalBox = document.getElementById('terminal-box');
+        const statusBox = document.getElementById('status-box');
+        const statusText = document.getElementById('statusText');
+
+        let width, height;
+        const pixel = 4;
+        const particles = [];
+        const particleCount = activeRain === 1 ? 340 : 520;
+        const splashes = [];
+        let lightningTimer = null;
+        let fillProgress = 0;
+        const fillDuration = 60 * 240;
+        const drainDuration = fillDuration / 2;
+        let isOnline = true;
+
+        const colors = [
+            { r: 255, g: 0, b: 0 },
+            { r: 0, g: 0, b: 255 },
+            { r: 0, g: 255, b: 0 },
+            { r: 255, g: 255, b: 0 },
+            { r: 255, g: 165, b: 0 },
+            { r: 128, g: 0, b: 128 }
+        ];
+
+        const selectedColor = colors[Math.floor(Math.random() * colors.length)];
+        const selectedColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 1)`;
+        const selectedColorDim = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.45)`;
+        const selectedColorRain = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.58)`;
+        const fillOpaqueColorRgba = `rgba(${selectedColor.r}, ${selectedColor.g}, ${selectedColor.b}, 0.92)`;
+
+        document.documentElement.style.setProperty('--frame-color', selectedColorRgba);
+        document.documentElement.style.setProperty('--frame-color-dim', selectedColorDim);
+
+        function snap(value) {
+            return Math.round(value / pixel) * pixel;
+        }
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            ctx.imageSmoothingEnabled = false;
+            initParticles();
+        }
+
+        function initParticles() {
+            particles.length = 0;
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: snap(Math.random() * width),
+                    y: snap(Math.random() * height),
+                    speed: (Math.floor(Math.random() * (activeRain === 1 ? 3 : 4)) + (activeRain === 1 ? 2 : 3)) * pixel,
+                    length: (Math.floor(Math.random() * (activeRain === 1 ? 4 : 5)) + (activeRain === 1 ? 3 : 4)) * pixel,
+                    width: Math.random() > (activeRain === 1 ? 0.75 : 0.62) ? pixel * 2 : pixel
+                });
+            }
+        }
+
+        function getImpactRects() {
+            const rects = [];
+            const title = document.querySelector('.site-title');
+            if (title) rects.push(title.getBoundingClientRect());
+            document.querySelectorAll('.link-card').forEach(card => rects.push(card.getBoundingClientRect()));
+            if (status && statusBox.classList.contains('visible')) rects.push(statusBox.getBoundingClientRect());
+            return rects;
+        }
+
+        function createSplash(x, y, intensity = 1) {
+            const pieces = Math.floor(4 + Math.random() * 5) * intensity;
+            for (let i = 0; i < pieces; i++) {
+                const dir = Math.random() > 0.5 ? 1 : -1;
+                splashes.push({
+                    x: snap(x),
+                    y: snap(y),
+                    vx: dir * (Math.floor(Math.random() * 3) + 1) * pixel,
+                    vy: -(Math.floor(Math.random() * 3) + 1) * pixel,
+                    life: Math.floor(Math.random() * 10) + 8,
+                    size: Math.random() > 0.65 ? pixel * 2 : pixel
+                });
+            }
+        }
+
+        function resetParticle(p) {
+            p.x = snap(Math.random() * width);
+            p.y = -p.length - snap(Math.random() * height * 0.15);
+            p.speed = (Math.floor(Math.random() * (activeRain === 1 ? 3 : 4)) + (activeRain === 1 ? 2 : 3)) * pixel;
+            p.length = (Math.floor(Math.random() * (activeRain === 1 ? 4 : 5)) + (activeRain === 1 ? 3 : 4)) * pixel;
+            p.width = Math.random() > (activeRain === 1 ? 0.75 : 0.62) ? pixel * 2 : pixel;
+        }
+
+        function particleHitBox(p, oldY, rects) {
+            for (const rect of rects) {
+                const left = rect.left - pixel * 2;
+                const right = rect.right + pixel * 2;
+                const top = rect.top - pixel * 2;
+                const bottom = rect.bottom + pixel * 2;
+
+                if (p.x >= left && p.x <= right && oldY < top && p.y + p.length >= top) {
+                    createSplash(p.x, top, 1);
+                    return true;
+                }
+
+                if (p.x >= left && p.x <= right && p.y >= top && p.y <= bottom && Math.random() > 0.88) {
+                    const edgeX = p.x < rect.left + rect.width / 2 ? rect.left : rect.right;
+                    createSplash(edgeX, p.y, 1);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function toggleStatus() {
+            isOnline = !isOnline;
+
+            if (isOnline) {
+                statusText.textContent = 'ONLINE';
+                statusText.classList.remove('status-offline');
+                statusText.classList.add('status-online');
+            } else {
+                statusText.textContent = 'OFFLINE';
+                statusText.classList.remove('status-online');
+                statusText.classList.add('status-offline');
+            }
+        }
+
+        function drawFill(currentFillHeight) {
+            if (currentFillHeight <= 0) return;
+            const startY = snap(height - currentFillHeight);
+            ctx.fillStyle = fillOpaqueColorRgba;
+            ctx.fillRect(0, startY, width, height - startY);
+
+            // Subtle blocky surface shimmer only on the top edge; the water body stays solid.
+            ctx.fillStyle = selectedColorRgba;
+            for (let x = 0; x < width; x += pixel * 6) {
+                if (((x / pixel) + Math.floor(fillProgress / 18)) % 4 === 0) {
+                    ctx.fillRect(x, startY, pixel * 2, pixel);
+                }
+            }
+        }
+
+        function drawBubbles(currentFillHeight) {
+            if (currentFillHeight <= 0) return;
+            ctx.fillStyle = selectedColorDim;
+            const waterTop = height - currentFillHeight;
+            for (let i = 0; i < 24; i++) {
+                const x = snap((i * 97 + fillProgress * 0.35) % width);
+                const y = snap(height - ((i * 53 + fillProgress * 0.65) % Math.max(currentFillHeight, pixel * 2)));
+                if (y > waterTop) {
+                    ctx.fillRect(x, y, pixel, pixel);
+                    if (i % 3 === 0) ctx.fillRect(x + pixel, y - pixel, pixel, pixel);
+                }
+            }
+        }
+
+        function drawRain(currentFillHeight) {
+            const waterSurfaceY = height - currentFillHeight;
+            const rects = getImpactRects();
+            ctx.fillStyle = selectedColorRain;
+
+            particles.forEach(p => {
+                const oldY = p.y;
+                p.y += isOnline ? p.speed : p.speed * 1.25;
+
+                if (isOnline && particleHitBox(p, oldY, rects)) {
+                    resetParticle(p);
+                    return;
+                }
+
+                if (isOnline && p.y >= waterSurfaceY && oldY < waterSurfaceY) {
+                    createSplash(p.x, waterSurfaceY, 1);
+                    resetParticle(p);
+                    return;
+                }
+
+                if (p.y > height + p.length) {
+                    if (isOnline) resetParticle(p);
+                    return;
+                }
+
+                const drawX = snap(p.x);
+                const drawY = snap(p.y);
+                for (let y = 0; y < p.length; y += pixel * 2) {
+                    ctx.fillRect(drawX, drawY + y, p.width, pixel);
+                }
+            });
+        }
+
+        function drawSplashes() {
+            ctx.fillStyle = selectedColorRgba;
+            for (let i = splashes.length - 1; i >= 0; i--) {
+                const s = splashes[i];
+                s.life--;
+                s.x += s.vx;
+                s.y += s.vy;
+                s.vy += pixel * 0.35;
+
+                if (s.life <= 0) {
+                    splashes.splice(i, 1);
+                    continue;
+                }
+
+                ctx.fillRect(snap(s.x), snap(s.y), s.size, s.size);
+                if (s.life % 4 === 0) ctx.fillRect(snap(s.x - s.vx), snap(s.y), pixel, pixel);
+            }
+        }
+
+
+        function triggerLightning() {
+            if (activeRain !== 3) return;
+            document.body.classList.add('lightning-flash');
+            setTimeout(() => document.body.classList.remove('lightning-flash'), 90);
+            setTimeout(() => {
+                document.body.classList.add('lightning-flash');
+                setTimeout(() => document.body.classList.remove('lightning-flash'), 55);
+            }, 145);
+        }
+
+        function scheduleLightning() {
+            if (activeRain !== 3) return;
+            const delay = (Math.floor(Math.random() * 7) + 27) * 1000;
+            lightningTimer = setTimeout(() => {
+                triggerLightning();
+                scheduleLightning();
+            }, delay);
+        }
+
+        function draw() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+            ctx.fillRect(0, 0, width, height);
+
+            if (isOnline) {
+                if (fillProgress < fillDuration) fillProgress++;
+            } else if (fillProgress > 0) {
+                fillProgress -= (fillDuration / drainDuration);
+                if (fillProgress < 0) fillProgress = 0;
+            }
+
+            const currentFillHeight = (fillProgress / fillDuration) * height;
+            drawFill(currentFillHeight);
+            drawBubbles(currentFillHeight);
+            drawRain(currentFillHeight);
+            drawSplashes();
+
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        if (status) {
+            statusBox.classList.add('visible');
+        }
+
+        statusText.addEventListener('click', toggleStatus);
+        scheduleLightning();
+        resizeCanvas();
+        draw();
+    </script>
+</body>
+</html>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
