@@ -81,14 +81,14 @@ button:hover,button:focus{background:var(--ink-faint);outline:none}
     <div class="modal-backdrop" id="loginModal">
       <div class="login">
         <div class="login-title">Secure Node Access</div>
-        <div class="login-line">Authentication required. Unauthorized credentials will be logged for dramatic purposes.</div>
+        <div class="login-line">Authentication required, please login.</div>
         <div class="password-row">
           <span id="passwordLabel">Password:</span>
           <input id="passwordInput" autocomplete="off" autocapitalize="none" spellcheck="false" />
           <div id="accessMessage" class="access-message" hidden></div>
         </div>
         <div class="login-actions">
-          <span>Esc cancels · Enter submits</span>
+          <span>Esc to cancel</span>
           <button id="submitPassword" type="button">Submit</button>
         </div>
       </div>
@@ -130,7 +130,7 @@ button:hover,button:focus{background:var(--ink-faint);outline:none}
   const ctx = gameCanvas.getContext("2d");
 
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;':\",./<>?\\`~αβγδεζηθικλμνξοπρστυφχψω░▒▓█▄▀▌▐■□▲▼▶◀◊○●";
-  const fragments = ["TRACE ROUTE FAILURE","AUTH HASH ROTATION","PORT 23 LISTENING","GHOST PROCESS FOUND","MEMORY LEAK: THEATRICAL","REMOTE NODE SPOOFED","DECRYPTING NOTHING","BUFFER DREAM ACTIVE","SYSLOG: NICE TRY","MAINFRAME MAYBE","CARRIER LOST","PACKET CHARM ENABLED","ROOT ACCESS DENIED","HANDSHAKE REJECTED","TERMINAL PANIC SAFE MODE"];
+  const fragments = ["TRACE ROUTE FAILURE....RETRY","AUTH HASH ROTATION","PORT: 23 LISTENING","42 GHOST PROCESS FOUND...","MEMORY LEAK: er878e7r9","REMOTE NODE ENABLED","DECRYPTING NULL...","BUFFER STATE ACTIVE","SYSLOG: GAME_NAME","MAINFRAME UNPATCHED","CARRIER LOST......","PACKET REVERSE: ENABLED","ROOT ACCESS PENDING","HANDSHAKE ... REJECTED","TERMINAL PANIC MODE"];
   const gameClues = ["pong","breakout","snake"];
   const clueFormats = ["pass:{game}","pw:{game}","type-{game}","key:{game}","try/{game}","cmd>{game}","load:{game}","run-{game}"];
 
