@@ -308,13 +308,13 @@
 
         // Layout flags:
         // TITLE: 1 = current, 2 = top center, 3 = top left, 4 = top right.
-        // BOXES: 1 = current 2x2, 2 = 4x1 row starting where the current top row begins.
+        // BOXES: 1 = current 2x2, 1 = 4x1 row starting where the current top row begins.
         // STATUS: 1 = current bottom right, 2 = bottom middle, 3 = bottom left.
         // RAIN: 1 = current, 2 = heavier, 3 = heavier + lightning, 4 = random 1-3 on load.
         const TITLE = 2;
         const BOXES = 2;
         const STATUS = 2;
-        const RAIN = 3;
+        const RAIN = 1;
 
         const activeRain = RAIN === 4 ? Math.floor(Math.random() * 3) + 1 : RAIN;
 
