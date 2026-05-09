@@ -212,6 +212,45 @@
             transform: none;
         }
 
+
+        body.link-clicked a:focus,
+        body.link-clicked button:focus {
+            outline: none;
+        }
+
+        body.offline-mode .link-card a {
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        body.secret-title-unlocked .site-title {
+            cursor: pointer;
+        }
+
+        body.boxes-flag-2.visible-box-count-1 .link-grid {
+            grid-template-columns: var(--panel-width);
+        }
+
+        body.boxes-flag-2.visible-box-count-2 .link-grid {
+            grid-template-columns: repeat(2, var(--panel-width));
+            gap: 42px;
+        }
+
+        body.boxes-flag-2.visible-box-count-3 .link-grid {
+            grid-template-columns: repeat(3, var(--panel-width));
+            gap: 34px;
+        }
+
+        body.boxes-flag-2.visible-box-count-4 .link-grid {
+            grid-template-columns: repeat(4, var(--panel-width));
+            gap: 34px;
+        }
+
+        body.boxes-flag-2 .link-card[data-box] {
+            grid-column: auto;
+            grid-row: auto;
+        }
+
         body.lightning-flash::after {
             content: "";
             position: fixed;
@@ -274,23 +313,23 @@
         }
 
         body.boxes-flag-2 .link-card[data-box="1"] {
-            grid-column: 1;
-            grid-row: 1;
+            grid-column: auto;
+            grid-row: auto;
         }
 
         body.boxes-flag-2 .link-card[data-box="2"] {
-            grid-column: 2;
-            grid-row: 1;
+            grid-column: auto;
+            grid-row: auto;
         }
 
         body.boxes-flag-2 .link-card[data-box="3"] {
-            grid-column: 3;
-            grid-row: 1;
+            grid-column: auto;
+            grid-row: auto;
         }
 
         body.boxes-flag-2 .link-card[data-box="4"] {
-            grid-column: 4;
-            grid-row: 1;
+            grid-column: auto;
+            grid-row: auto;
         }
 
         body.box1-off .link-card[data-box="1"],
@@ -416,9 +455,16 @@
         const BOX2 = true;
         const BOX3 = false;
         const BOX4 = true;
-        const STATUS = 1;
+        const STATUS = 2;
         const RAIN = 4;
         const EMBELISH = true;
+
+        // Hidden OFFLINE unlock:
+        // When true, going OFFLINE disables the main boxes. If the screen drains fully
+        // and remains OFFLINE for SECRET_UNLOCK_DELAY ms, the title becomes clickable.
+        const SECRET_UNLOCK = true;
+        const SECRET_UNLOCK_DELAY = 10000;
+        const SECRET_TITLE_URL = '#'; // TBD: replace with the hidden destination when ready.
 
         const activeRain = RAIN === 4 ? Math.floor(Math.random() * 3) + 1 : RAIN;
 
@@ -454,6 +500,13 @@
             document.body.classList.toggle('box2-off', !BOX2);
             document.body.classList.toggle('box3-off', !BOX3);
             document.body.classList.toggle('box4-off', !BOX4);
+
+            for (let i = 1; i <= 4; i++) {
+                document.body.classList.remove(`visible-box-count-${i}`);
+            }
+
+            const visibleCount = [BOX1, BOX2, BOX3, BOX4].filter(Boolean).length || 1;
+            document.body.classList.add(`visible-box-count-${visibleCount}`);
         }
 
         function applyLayoutFlags() {
@@ -486,6 +539,8 @@
         const fillDuration = 60 * 240;
         const drainDuration = fillDuration / 2;
         let isOnline = true;
+        let fullyDrainedAt = null;
+        let titleUnlocked = false;
 
         const colors = [
             { r: 255, g: 0, b: 0 },
@@ -586,15 +641,20 @@
 
         function toggleStatus() {
             isOnline = !isOnline;
+            fullyDrainedAt = null;
 
             if (isOnline) {
                 statusText.textContent = 'ONLINE';
                 statusText.classList.remove('status-offline');
                 statusText.classList.add('status-online');
+                document.body.classList.remove('offline-mode');
+                document.body.classList.remove('secret-title-unlocked');
+                titleUnlocked = false;
             } else {
                 statusText.textContent = 'OFFLINE';
                 statusText.classList.remove('status-online');
                 statusText.classList.add('status-offline');
+                document.body.classList.add('offline-mode');
             }
         }
 
@@ -723,6 +783,46 @@
             }, delay);
         }
 
+
+        function checkSecretTitleUnlock() {
+            if (!SECRET_UNLOCK || isOnline || titleUnlocked) return;
+
+            if (fillProgress <= 0) {
+                if (fullyDrainedAt === null) fullyDrainedAt = performance.now();
+
+                if (performance.now() - fullyDrainedAt >= SECRET_UNLOCK_DELAY) {
+                    titleUnlocked = true;
+                    document.body.classList.add('secret-title-unlocked');
+                }
+            } else {
+                fullyDrainedAt = null;
+            }
+        }
+
+        function setupClickFocusClear() {
+            document.querySelectorAll('.link-card a, #statusText').forEach(el => {
+                el.addEventListener('click', () => {
+                    document.body.classList.add('link-clicked');
+                    setTimeout(() => {
+                        if (document.activeElement === el) el.blur();
+                        document.body.classList.remove('link-clicked');
+                    }, 1400);
+                });
+            });
+        }
+
+        function setupSecretTitleClick() {
+            const title = document.querySelector('.site-title');
+            if (!title) return;
+
+            title.addEventListener('click', () => {
+                if (!titleUnlocked) return;
+                if (SECRET_TITLE_URL && SECRET_TITLE_URL !== '#') {
+                    window.location.href = SECRET_TITLE_URL;
+                }
+            });
+        }
+
         function draw() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
             ctx.fillRect(0, 0, width, height);
@@ -733,6 +833,8 @@
                 fillProgress -= (fillDuration / drainDuration);
                 if (fillProgress < 0) fillProgress = 0;
             }
+
+            checkSecretTitleUnlock();
 
             const currentFillHeight = (fillProgress / fillDuration) * height;
             drawFill(currentFillHeight);
@@ -750,6 +852,8 @@
         }
 
         statusText.addEventListener('click', toggleStatus);
+        setupClickFocusClear();
+        setupSecretTitleClick();
         scheduleLightning();
         resizeCanvas();
         draw();
