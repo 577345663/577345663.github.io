@@ -373,6 +373,28 @@
         }
 
 
+
+        body.boxes-flag-3 .link-grid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 34px;
+        }
+
+        body.boxes-flag-3 .link-column {
+            display: contents;
+        }
+
+        body.boxes-flag-3 .link-card[data-box] {
+            grid-column: auto;
+            grid-row: auto;
+        }
+
+        body.boxspace-flag-2.boxes-flag-3 .link-grid {
+            gap: 42px;
+        }
+
         body.boxes-flag-2 #terminal-content {
             padding-bottom: 200px;
         }
@@ -409,9 +431,14 @@
                 gap: 22px;
             }
 
-            body.boxes-flag-2 .link-column {
+            body.boxes-flag-2 .link-column,
+            body.boxes-flag-3 .link-column {
                 display: flex;
                 flex-direction: column;
+                gap: 22px;
+            }
+
+            body.boxes-flag-3 .link-grid {
                 gap: 22px;
             }
 
@@ -442,7 +469,7 @@
                     <a href="https://playfoursuit.com" target="_blank" rel="noopener noreferrer">Foursuit!</a>
                     <a href="OSrunefate.html" target="_blank" rel="noopener noreferrer">Rune Fate</a>
                     <a href="canepolecole.html" target="_blank" rel="noopener noreferrer">Cane Pole Cole</a>
-                    <a href="BLbaseball.html" target="_blank" rel="noopener noreferrer">Browser League</a>
+                    <a href="BLbaseball.html" target="_blank" rel="noopener noreferrer">Browser League Baseball</a>
                 </div>
 
                 <div class="link-card">
@@ -455,7 +482,7 @@
 
                 <div class="link-card">
                     <h2>MEDIA</h2>
-                    <a href="http://566335006.xyz/" target="_blank" rel="noopener noreferrer">566335006</a>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
                     <a href="esptrainer.html" target="_blank" rel="noopener noreferrer">ESP Trainer</a>
                     <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Hacked Terminal</a>
                     <a href="artboard64.html" target="_blank" rel="noopener noreferrer">Pixel Art Board</a>
@@ -463,7 +490,7 @@
 
                 <div class="link-card">
                     <h2>EXTRA</h2>
-                    <a href="http://566335006.xyz/" target="_blank" rel="noopener noreferrer">566335006</a>
+                    <a href="https://www.example.com/project3" target="_blank" rel="noopener noreferrer">Rune Fate</a>
                     <a href="vibelabs.html" target="_blank" rel="noopener noreferrer">Vibe Labs</a>
                     <a href="greenterm.html" target="_blank" rel="noopener noreferrer">Access Denied</a>
                     <a href="torchtable.html" target="_blank" rel="noopener noreferrer">Torch Table</a>
@@ -481,7 +508,7 @@
 
         // Layout flags:
         // TITLE: 1 = original/default, 2 = top center, 3 = top left, 4 = top right.
-        // BOXES: 1 = original/default 2x2, 2 = one 4x1 row using the same four boxes.
+        // BOXES: 1 = original/default 2x2, 2 = one 4x1 row, 3 = one vertical centered column.
         // BOXSPACE: 1 = original/default spacing, 2 = slightly wider gaps between title/boxes and boxes themselves.
         // BOX1-BOX4: true = show, false = hide that panel.
         // STATUS: 1 = original/default bottom right, 2 = bottom middle, 3 = bottom left.
@@ -491,7 +518,7 @@
         // EMBELISH: false = keep rain/fill/drain simpler, with no extra flourish.
         const TITLE = 1;
         const BOXES = 2;
-        const BOXSPACE = 2;
+        const BOXSPACE = 1;
         const BOX1 = true;
         const BOX2 = true;
         const BOX3 = false;
@@ -553,7 +580,7 @@
 
         function applyLayoutFlags() {
             for (let i = 1; i <= 4; i++) document.body.classList.remove(`title-flag-${i}`);
-            for (let i = 1; i <= 2; i++) document.body.classList.remove(`boxes-flag-${i}`);
+            for (let i = 1; i <= 3; i++) document.body.classList.remove(`boxes-flag-${i}`);
             for (let i = 1; i <= 2; i++) document.body.classList.remove(`boxspace-flag-${i}`);
             for (let i = 1; i <= 3; i++) document.body.classList.remove(`status-flag-${i}`);
 
@@ -644,11 +671,11 @@
             for (let i = 0; i < pieces; i++) {
                 const dir = Math.random() > 0.5 ? 1 : -1;
                 splashes.push({
-                    x: snap(x),
-                    y: snap(y),
-                    vx: dir * (Math.floor(Math.random() * 3) + 1) * pixel,
-                    vy: -(Math.floor(Math.random() * 3) + 1) * pixel,
-                    life: Math.floor(Math.random() * 10) + 8,
+                    x: x,
+                    y: y,
+                    vx: dir * (Math.random() * 2.4 + 0.8) * pixel,
+                    vy: -(Math.random() * 5.2 + 1.4) * pixel,
+                    life: Math.floor(Math.random() * 16) + 10,
                     size: Math.random() > 0.65 ? pixel * 2 : pixel
                 });
             }
@@ -670,7 +697,7 @@
                 const bottom = rect.bottom + pixel * 2;
 
                 if (p.x >= left && p.x <= right && oldY < top && p.y + p.length >= top) {
-                    createSplash(p.x, top, 1);
+                    createSplash(p.x, top + pixel, 1);
                     return true;
                 }
 
@@ -789,9 +816,9 @@
                 s.life--;
                 s.x += s.vx;
                 s.y += s.vy;
-                s.vy += pixel * (0.35);
+                s.vy += pixel * 0.22;
 
-                if (s.life <= 0) {
+                if (s.life <= 0 || s.y > height + pixel * 8 || s.x < -pixel * 8 || s.x > width + pixel * 8) {
                     splashes.splice(i, 1);
                     continue;
                 }
