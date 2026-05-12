@@ -30,7 +30,7 @@
   .app{
     height:100vh;
     display:grid;
-    grid-template-columns:330px 1fr;
+    grid-template-columns:minmax(300px, 330px) minmax(0, 1fr);
     gap:10px;
     padding:10px;
   }
@@ -46,6 +46,7 @@
     flex-direction:column;
     padding:10px;
     gap:10px;
+    overflow:auto;
   }
 
   .title{
@@ -116,7 +117,7 @@
   }
 
   .mini-select{
-    width:140px;
+    width:108px;
     padding:4px;
     font-size:11px;
   }
@@ -208,6 +209,16 @@
     text-align:center;
     pointer-events:none;
   }
+
+  @media (max-width: 900px){
+    .app{
+      grid-template-columns:1fr;
+      grid-template-rows:auto 1fr;
+    }
+    .panel{
+      max-height:45vh;
+    }
+  }
 </style>
 </head>
 <body>
@@ -225,6 +236,7 @@
       <div class="row">
         <label class="check"><input id="memoOn" type="checkbox"> MEMO</label>
         <label class="check"><input id="memoBold" type="checkbox"> BOLD</label>
+        <label class="check"><input id="memoTop" type="checkbox"> TOP</label>
       </div>
       <select id="fontPick" class="mini-select">
         <option value="system">Default</option>
@@ -242,7 +254,8 @@
 
     <div class="row tight">
       <label class="check"><input id="invertOn" type="checkbox"> INVERT</label>
-      <label class="check"><input id="soundOn" type="checkbox" checked> SOUND</label>
+      <label class="check"><input id="remixOn" type="checkbox"> REMIX</label>
+      <label class="check"><input id="borderOn" type="checkbox"> BORDER</label>
     </div>
 
     <div class="box">
@@ -260,7 +273,7 @@
     </div>
 
     <div class="box">
-      <div class="box-title">SHAPE</div>
+      <div class="box-title">MODULES</div>
       <div class="button-grid" id="shapeBtns">
         <button class="choice active" data-shape="square">SQUARE</button>
         <button class="choice" data-shape="rounded">ROUNDED</button>
@@ -299,10 +312,12 @@ const ctx = canvas.getContext("2d");
 const qrData = document.getElementById("qrData");
 const memoOn = document.getElementById("memoOn");
 const memoBold = document.getElementById("memoBold");
+const memoTop = document.getElementById("memoTop");
 const memoText = document.getElementById("memoText");
 const fontPick = document.getElementById("fontPick");
 const invertOn = document.getElementById("invertOn");
-const soundOn = document.getElementById("soundOn");
+const remixOn = document.getElementById("remixOn");
+const borderOn = document.getElementById("borderOn");
 const downloadBtn = document.getElementById("downloadBtn");
 const clearBtn = document.getElementById("clearBtn");
 const statusEl = document.getElementById("status");
@@ -310,7 +325,6 @@ const statusEl = document.getElementById("status");
 let currentPalette = "standard";
 let currentShape = "square";
 let outputSize = 512;
-let audioCtx = null;
 
 const PALETTES = {
   standard:{ bg:"#ffffff", fg:"#000000" },
@@ -323,6 +337,17 @@ const PALETTES = {
   pastel:{ bg:"#bfe7ff", fg:"#ff8cc8" }
 };
 
+const PALETTE_REMIXES = {
+  standard:{ bg:"#f2efe7", fg:"#1e2328" },
+  green:{ bg:"#020b06", fg:"#39d353" },
+  amber:{ bg:"#120800", fg:"#ff7a18" },
+  vivid:{ bg:"#001b44", fg:"#ff4fd8" },
+  muted:{ bg:"#26332b", fg:"#d8b778" },
+  neon:{ bg:"#00ff88", fg:"#7a00ff" },
+  blues:{ bg:"#d7f3ff", fg:"#123c73" },
+  pastel:{ bg:"#ffd7e8", fg:"#5bbcff" }
+};
+
 const MEMO_FONTS = {
   system:"system-ui, sans-serif",
   mono:"ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
@@ -331,33 +356,10 @@ const MEMO_FONTS = {
   clean:"Arial, Helvetica, sans-serif"
 };
 
-function playTone(type="tick"){
-  if(!soundOn.checked) return;
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = audioCtx.createOscillator();
-    const g = audioCtx.createGain();
-    o.connect(g);
-    g.connect(audioCtx.destination);
-
-    let freq = 360, dur = 0.04, wave = "square";
-
-    if(type === "download"){ freq = 720; dur = 0.08; wave = "sine"; }
-    if(type === "error"){ freq = 120; dur = 0.12; wave = "sawtooth"; }
-    if(type === "clear"){ freq = 220; dur = 0.06; wave = "triangle"; }
-
-    o.type = wave;
-    o.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.08, audioCtx.currentTime + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-    o.start();
-    o.stop(audioCtx.currentTime + dur + 0.02);
-  }catch(e){}
-}
+function playTone(type="tick"){}
 
 function getColors(){
-  const p = PALETTES[currentPalette];
+  const p = remixOn.checked ? PALETTE_REMIXES[currentPalette] : PALETTES[currentPalette];
   let bg = p.bg;
   let fg = p.fg;
   if(invertOn.checked) [bg, fg] = [fg, bg];
@@ -397,7 +399,7 @@ document.getElementById("sizeBtns").addEventListener("click", e=>{
   render();
 });
 
-[memoOn, memoBold, fontPick, invertOn].forEach(el=>{
+[memoOn, memoBold, memoTop, fontPick, invertOn, remixOn, borderOn].forEach(el=>{
   el.addEventListener("change", ()=>{
     memoText.disabled = !memoOn.checked;
     playTone("tick");
@@ -408,15 +410,15 @@ document.getElementById("sizeBtns").addEventListener("click", e=>{
 qrData.addEventListener("input", render);
 memoText.addEventListener("input", render);
 
-soundOn.addEventListener("change", ()=>{
-  if(soundOn.checked) playTone("tick");
-});
 
 clearBtn.addEventListener("click", ()=>{
   qrData.value = "";
   memoText.value = "";
   memoOn.checked = false;
   memoBold.checked = false;
+  memoTop.checked = false;
+  remixOn.checked = false;
+  borderOn.checked = false;
   memoText.disabled = true;
   playTone("clear");
   render();
@@ -430,7 +432,7 @@ downloadBtn.addEventListener("click", ()=>{
     return;
   }
   const a = document.createElement("a");
-  const name = "QR-Matey_" + outputSize + "_" + currentPalette + (invertOn.checked ? "_invert" : "") + "_" + currentShape + ".png";
+  const name = "QR-Matey_" + outputSize + "_" + currentPalette + (remixOn.checked ? "_remix" : "") + (invertOn.checked ? "_invert" : "") + "_" + currentShape + (borderOn.checked ? "_border" : "") + (memoOn.checked && memoTop.checked ? "_memo-top" : "") + ".png";
   a.download = name;
   a.href = canvas.toDataURL("image/png");
   a.click();
@@ -873,6 +875,7 @@ function render(){
   }
 
   const hasMemo = memoOn.checked && memo;
+  const memoIsTop = hasMemo && memoTop.checked;
   canvas.width = outputSize;
   canvas.height = outputSize;
 
@@ -882,8 +885,8 @@ function render(){
   const n = matrix.length;
   const quiet = 4;
   const scale = canvas.width / 720;
-  const topPad = Math.round((hasMemo ? 42 : 50) * scale);
-  const bottomPad = Math.round((hasMemo ? 132 : 54) * scale);
+  const topPad = Math.round((hasMemo && memoIsTop ? 132 : 50) * scale);
+  const bottomPad = Math.round((hasMemo && !memoIsTop ? 132 : 54) * scale);
   const sidePad = Math.round(48 * scale);
   const maxQRBoxW = canvas.width - sidePad * 2;
   const maxQRBoxH = canvas.height - topPad - bottomPad;
@@ -893,8 +896,20 @@ function render(){
   const startX = Math.floor((canvas.width - qrPix) / 2);
   const startY = topPad + Math.floor((maxQRBoxH - qrPix) / 2);
 
+  const quietX = startX - quiet*cell;
+  const quietY = startY - quiet*cell;
+  const quietSize = qrPix + quiet*cell*2;
+
   ctx.fillStyle = bg;
-  ctx.fillRect(startX - quiet*cell, startY - quiet*cell, qrPix + quiet*cell*2, qrPix + quiet*cell*2);
+  ctx.fillRect(quietX, quietY, quietSize, quietSize);
+
+  if(borderOn.checked){
+    const borderGap = Math.max(3, Math.round(8 * scale));
+    const borderWidth = Math.max(2, Math.round(4 * scale));
+    ctx.strokeStyle = fg;
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(quietX - borderGap, quietY - borderGap, quietSize + borderGap*2, quietSize + borderGap*2);
+  }
 
   ctx.fillStyle = fg;
   for(let y=0;y<n;y++){
@@ -917,14 +932,16 @@ function render(){
     const lines = wrapText(ctx, memo, canvas.width - Math.round(90 * scale));
     const lineHeight = Math.round((fontPick.value === "wide" ? 30 : 28) * scale);
     const blockHeight = lines.length * lineHeight;
-    let y = canvas.height - bottomPad + Math.max(0, Math.floor((bottomPad - blockHeight) / 2)) + 4;
+    let y = memoIsTop
+      ? Math.max(0, Math.floor((topPad - blockHeight) / 2)) + Math.round(4 * scale)
+      : canvas.height - bottomPad + Math.max(0, Math.floor((bottomPad - blockHeight) / 2)) + Math.round(4 * scale);
     lines.forEach(line=>{
       ctx.fillText(line, canvas.width/2, y);
       y += lineHeight;
     });
   }
 
-  statusEl.textContent = `Size: ${outputSize}x${outputSize} | Palette: ${currentPalette.toUpperCase()} | Shape: ${currentShape.toUpperCase()}${invertOn.checked ? " | INVERTED" : ""}`;
+  statusEl.textContent = `Size: ${outputSize}x${outputSize} | Palette: ${currentPalette.toUpperCase()}${remixOn.checked ? " REMIX" : ""} | Modules: ${currentShape.toUpperCase()}${borderOn.checked ? " | BORDER" : ""}${memoIsTop ? " | MEMO TOP" : ""}${invertOn.checked ? " | INVERTED" : ""}`;
 }
 
 render();
