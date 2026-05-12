@@ -300,7 +300,7 @@
 
     <div>
       <label for="qrData">QR DATA</label>
-      <textarea id="qrData" spellcheck="false" placeholder="Type a URL, message, config string, or payload..."></textarea>
+      <textarea id="qrData" spellcheck="false" placeholder="Type URL, message, string, payload, etc..."></textarea>
     </div>
 
     <div class="row tight">
@@ -925,7 +925,7 @@ function drawPlaceholder(){
   ctx.textAlign = "center";
   ctx.fillText("QR-MATEY", canvas.width/2, canvas.height/2 - 25);
   ctx.font = "18px ui-monospace, monospace";
-  ctx.fillText("Awaiting input...", canvas.width/2, canvas.height/2 + 20);
+  ctx.fillText("Awaiting data...", canvas.width/2, canvas.height/2 + 20);
 }
 
 function drawModule(x,y,s,shape){
