@@ -3,21 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>QR-Matey | Free Customizable QR Code Generator</title>
-<meta name="description" content="QR-Matey is a free, private, browser-based QR code generator with text, color & style options. Export as .PNG">
-<meta name="robots" content="index, follow">
-  
-<link rel="canonical" href="https://qrmatey.com/">
-
-<meta property="og:title" content="QR-Matey">
-<meta property="og:description" content="QR-Matey is a free, private, browser-based QR code generator with text, color & style options. Export as .PNG">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://qrmatey.com/">
-
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="QR-Matey">
-<meta name="twitter:description" content="QR-Matey is a free, private, browser-based QR code generator with text, color & style options. Export as .PNG">
-
+<title>QR-Matey</title>
 <style>
   :root{
     --bg:#111;
@@ -291,50 +277,16 @@
   }
 
   @media (max-width: 820px){
-    html, body{
-      height:auto;
-      min-height:100%;
+    .app{
+      grid-template-columns:1fr;
+      grid-template-rows:auto 1fr;
       overflow:auto;
     }
-
     body{
-      min-height:100svh;
+      overflow:auto;
     }
-
-    .app{
-      height:auto;
-      min-height:100svh;
-      display:flex;
-      flex-direction:column;
-      overflow:visible;
-    }
-
     .panel{
       overflow:visible;
-    }
-
-    .preview-wrap{
-      min-height:280px;
-      padding:12px;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-
-    canvas{
-      width:min(100%, 512px);
-      height:auto;
-      max-height:none;
-    }
-
-    .status{
-      position:static;
-      left:auto;
-      right:auto;
-      bottom:auto;
-      width:100%;
-      margin-top:2px;
-      padding:0 4px;
     }
   }
 
@@ -344,7 +296,7 @@
 <div class="app">
   <section class="panel">
     <div class="title" id="aboutBtn" role="button" tabindex="0" aria-label="About QR-Matey">🦜 QR-MATEY 🦜</div>
-    <div class="sub">FREE CUSTOMIZABLE QR CODE GENERATOR</div>
+    <div class="sub">YARR, DYNAMIC QR PNG FORGE!</div>
 
     <div>
       <label for="qrData">QR DATA</label>
@@ -981,22 +933,22 @@ function drawPlaceholder(){
 function drawModule(x,y,s,shape){
   if(shape === "dots"){
     ctx.beginPath();
-    ctx.arc(x+s/2,y+s/2,s*0.39,0,Math.PI*2);
+    ctx.arc(x+s/2,y+s/2,s*0.47,0,Math.PI*2);
     ctx.fill();
     return;
   }
 
   if(shape === "rounded"){
-    roundRect(ctx,x+s*0.08,y+s*0.08,s*0.84,s*0.84,s*0.22);
+    roundRect(ctx,x+s*0.02,y+s*0.02,s*0.96,s*0.96,s*0.18);
     return;
   }
 
   if(shape === "diamond"){
     ctx.beginPath();
-    ctx.moveTo(x+s/2,y+s*0.04);
-    ctx.lineTo(x+s*0.96,y+s/2);
-    ctx.lineTo(x+s/2,y+s*0.96);
-    ctx.lineTo(x+s*0.04,y+s/2);
+    ctx.moveTo(x+s/2,y-s*0.02);
+    ctx.lineTo(x+s*1.02,y+s/2);
+    ctx.lineTo(x+s/2,y+s*1.02);
+    ctx.lineTo(x-s*0.02,y+s/2);
     ctx.closePath();
     ctx.fill();
     return;
