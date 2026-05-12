@@ -30,7 +30,7 @@
   .app{
     height:100vh;
     display:grid;
-    grid-template-columns:minmax(300px, 330px) minmax(0, 1fr);
+    grid-template-columns:minmax(300px,330px) 1fr;
     gap:10px;
     padding:10px;
   }
@@ -57,6 +57,13 @@
     font-size:22px;
     letter-spacing:2px;
     color:var(--accent);
+    cursor:pointer;
+    user-select:none;
+  }
+
+  .title:hover{
+    border-color:var(--accent);
+    color:#fff;
   }
 
   .sub{
@@ -97,6 +104,7 @@
     display:flex;
     align-items:center;
     gap:8px;
+    flex-wrap:wrap;
   }
 
   .row.tight{
@@ -210,21 +218,84 @@
     pointer-events:none;
   }
 
-  @media (max-width: 900px){
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.72);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+    padding:18px;
+  }
+
+  .modal-backdrop.open{
+    display:flex;
+  }
+
+  .modal{
+    width:min(460px, 94vw);
+    border:2px solid var(--line);
+    background:#101010;
+    color:var(--text);
+    padding:16px;
+    box-shadow:0 0 0 2px #000;
+  }
+
+  .modal-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    color:var(--accent);
+    font-size:18px;
+    margin-bottom:10px;
+  }
+
+  .modal-close{
+    border:2px solid var(--line);
+    background:#050505;
+    color:#eee;
+    cursor:pointer;
+    padding:4px 8px;
+  }
+
+  .modal-close:hover{
+    border-color:var(--accent);
+    color:var(--accent);
+  }
+
+  .modal p{
+    margin:10px 0;
+    line-height:1.45;
+    font-size:13px;
+  }
+
+  .modal .small{
+    color:var(--muted);
+    font-size:12px;
+  }
+
+  @media (max-width: 820px){
     .app{
       grid-template-columns:1fr;
       grid-template-rows:auto 1fr;
+      overflow:auto;
+    }
+    body{
+      overflow:auto;
     }
     .panel{
-      max-height:45vh;
+      overflow:visible;
     }
   }
+
 </style>
 </head>
 <body>
 <div class="app">
   <section class="panel">
-    <div class="title">QR-MATEY</div>
+    <div class="title" id="aboutBtn" role="button" tabindex="0" aria-label="About QR-Matey">QR-MATEY 🦜</div>
     <div class="sub">LIVE QR PNG FORGE</div>
 
     <div>
@@ -249,13 +320,14 @@
 
     <div>
       <label for="memoText">MEMO TEXT</label>
-      <input id="memoText" type="text" placeholder="Optional visible label..." disabled />
+      <input id="memoText" type="text" maxlength="30" placeholder="Optional visible label..." disabled />
     </div>
 
     <div class="row tight">
       <label class="check"><input id="invertOn" type="checkbox"> INVERT</label>
       <label class="check"><input id="remixOn" type="checkbox"> REMIX</label>
       <label class="check"><input id="borderOn" type="checkbox"> BORDER</label>
+      <label class="check"><input id="thickOn" type="checkbox"> THICK</label>
     </div>
 
     <div class="box">
@@ -302,6 +374,18 @@
   </main>
 </div>
 
+<div class="modal-backdrop" id="aboutModal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="modal-head">
+      <strong id="aboutTitle">QR-MATEY 🦜</strong>
+      <button class="modal-close" id="aboutClose" type="button">CLOSE</button>
+    </div>
+    <p>Thanks for using QR-Matey. This is a free, lightweight QR PNG generator built for quick QR assets with simple style controls.</p>
+    <p>Use at your own warranty. Test important QR codes before printing or publishing them.</p>
+    <p class="small">Contact info can go here before publishing.</p>
+  </div>
+</div>
+
 <script>
 /* QR-Matey: single-file QR generator + renderer.
    Generates byte-mode QR codes, ECC-L, versions 1-6. */
@@ -318,14 +402,17 @@ const fontPick = document.getElementById("fontPick");
 const invertOn = document.getElementById("invertOn");
 const remixOn = document.getElementById("remixOn");
 const borderOn = document.getElementById("borderOn");
+const thickOn = document.getElementById("thickOn");
 const downloadBtn = document.getElementById("downloadBtn");
 const clearBtn = document.getElementById("clearBtn");
 const statusEl = document.getElementById("status");
+const aboutBtn = document.getElementById("aboutBtn");
+const aboutModal = document.getElementById("aboutModal");
+const aboutClose = document.getElementById("aboutClose");
 
 let currentPalette = "standard";
 let currentShape = "square";
 let outputSize = 512;
-
 const PALETTES = {
   standard:{ bg:"#ffffff", fg:"#000000" },
   green:{ bg:"#000000", fg:"#00ff88" },
@@ -357,7 +444,6 @@ const MEMO_FONTS = {
 };
 
 function playTone(type="tick"){}
-
 function getColors(){
   const p = remixOn.checked ? PALETTE_REMIXES[currentPalette] : PALETTES[currentPalette];
   let bg = p.bg;
@@ -399,7 +485,7 @@ document.getElementById("sizeBtns").addEventListener("click", e=>{
   render();
 });
 
-[memoOn, memoBold, memoTop, fontPick, invertOn, remixOn, borderOn].forEach(el=>{
+[memoOn, memoBold, memoTop, fontPick, invertOn, remixOn, borderOn, thickOn].forEach(el=>{
   el.addEventListener("change", ()=>{
     memoText.disabled = !memoOn.checked;
     playTone("tick");
@@ -410,7 +496,6 @@ document.getElementById("sizeBtns").addEventListener("click", e=>{
 qrData.addEventListener("input", render);
 memoText.addEventListener("input", render);
 
-
 clearBtn.addEventListener("click", ()=>{
   qrData.value = "";
   memoText.value = "";
@@ -419,6 +504,7 @@ clearBtn.addEventListener("click", ()=>{
   memoTop.checked = false;
   remixOn.checked = false;
   borderOn.checked = false;
+  thickOn.checked = false;
   memoText.disabled = true;
   playTone("clear");
   render();
@@ -432,11 +518,37 @@ downloadBtn.addEventListener("click", ()=>{
     return;
   }
   const a = document.createElement("a");
-  const name = "QR-Matey_" + outputSize + "_" + currentPalette + (remixOn.checked ? "_remix" : "") + (invertOn.checked ? "_invert" : "") + "_" + currentShape + (borderOn.checked ? "_border" : "") + (memoOn.checked && memoTop.checked ? "_memo-top" : "") + ".png";
+  const name = "QR-Matey_" + outputSize + "_" + currentPalette + (remixOn.checked ? "_remix" : "") + (invertOn.checked ? "_invert" : "") + "_" + currentShape + (borderOn.checked ? (thickOn.checked ? "_thick-border" : "_border") : "") + ".png";
   a.download = name;
   a.href = canvas.toDataURL("image/png");
   a.click();
   playTone("download");
+});
+
+
+function openAbout(){
+  aboutModal.classList.add("open");
+  aboutModal.setAttribute("aria-hidden", "false");
+}
+
+function closeAbout(){
+  aboutModal.classList.remove("open");
+  aboutModal.setAttribute("aria-hidden", "true");
+}
+
+aboutBtn.addEventListener("click", openAbout);
+aboutBtn.addEventListener("keydown", e=>{
+  if(e.key === "Enter" || e.key === " "){
+    e.preventDefault();
+    openAbout();
+  }
+});
+aboutClose.addEventListener("click", closeAbout);
+aboutModal.addEventListener("click", e=>{
+  if(e.target === aboutModal) closeAbout();
+});
+document.addEventListener("keydown", e=>{
+  if(e.key === "Escape") closeAbout();
 });
 
 /* ---------- QR GENERATOR ---------- */
@@ -885,7 +997,7 @@ function render(){
   const n = matrix.length;
   const quiet = 4;
   const scale = canvas.width / 720;
-  const topPad = Math.round((hasMemo && memoIsTop ? 132 : 50) * scale);
+  const topPad = Math.round((memoIsTop ? 132 : 50) * scale);
   const bottomPad = Math.round((hasMemo && !memoIsTop ? 132 : 54) * scale);
   const sidePad = Math.round(48 * scale);
   const maxQRBoxW = canvas.width - sidePad * 2;
@@ -905,10 +1017,15 @@ function render(){
 
   if(borderOn.checked){
     const borderGap = Math.max(3, Math.round(8 * scale));
-    const borderWidth = Math.max(2, Math.round(4 * scale));
+    const borderWidth = thickOn.checked ? Math.max(2, cell) : Math.max(2, Math.round(4 * scale));
     ctx.strokeStyle = fg;
     ctx.lineWidth = borderWidth;
-    ctx.strokeRect(quietX - borderGap, quietY - borderGap, quietSize + borderGap*2, quietSize + borderGap*2);
+    ctx.strokeRect(
+      quietX - borderGap - borderWidth / 2,
+      quietY - borderGap - borderWidth / 2,
+      quietSize + borderGap*2 + borderWidth,
+      quietSize + borderGap*2 + borderWidth
+    );
   }
 
   ctx.fillStyle = fg;
@@ -941,7 +1058,7 @@ function render(){
     });
   }
 
-  statusEl.textContent = `Size: ${outputSize}x${outputSize} | Palette: ${currentPalette.toUpperCase()}${remixOn.checked ? " REMIX" : ""} | Modules: ${currentShape.toUpperCase()}${borderOn.checked ? " | BORDER" : ""}${memoIsTop ? " | MEMO TOP" : ""}${invertOn.checked ? " | INVERTED" : ""}`;
+  statusEl.textContent = `Size: ${outputSize}x${outputSize} | Palette: ${currentPalette.toUpperCase()}${remixOn.checked ? " REMIX" : ""} | Modules: ${currentShape.toUpperCase()}${borderOn.checked ? (thickOn.checked ? " | THICK BORDER" : " | BORDER") : ""}${memoIsTop ? " | MEMO TOP" : ""}${invertOn.checked ? " | INVERTED" : ""}`;
 }
 
 render();
