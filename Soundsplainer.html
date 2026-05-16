@@ -7,464 +7,720 @@
 <style>
   :root{
     --bg:#070707;
+    --bg2:#000;
     --panel:#111;
     --panel2:#181818;
+    --panel3:#0b0b0b;
     --line:#444;
     --line2:#777;
     --text:#eee;
     --muted:#999;
     --hot:#fff;
-    --warn:#bdbdbd;
+    --accent:#eaeaea;
+    --accent2:#bdbdbd;
+    --danger:#d8d8d8;
+    --ok:#eaeaea;
+    --input:#050505;
+    --shadow:rgba(255,255,255,.08);
     --cell:42px;
     --gap:6px;
     --font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   }
 
+  body.skin-light{
+    --bg:#f2f2f2; --bg2:#d8d8d8; --panel:#f8f8f8; --panel2:#ececec; --panel3:#fff;
+    --line:#b8b8b8; --line2:#777; --text:#111; --muted:#555; --hot:#000;
+    --accent:#111; --accent2:#333; --danger:#333; --ok:#111; --input:#fff; --shadow:rgba(0,0,0,.12);
+  }
+  body.skin-retro{
+    --bg:#001006; --bg2:#000; --panel:#03180c; --panel2:#062814; --panel3:#020d06;
+    --line:#185c2c; --line2:#4dcc6d; --text:#b8ffbd; --muted:#6fb57b; --hot:#e6ffe8;
+    --accent:#4dff76; --accent2:#b2ffc0; --danger:#b2ffc0; --ok:#4dff76; --input:#000b04; --shadow:rgba(77,255,118,.18);
+  }
+  body.skin-vibes{
+    --bg:#060712; --bg2:#02030a; --panel:#101225; --panel2:#171b37; --panel3:#090b18;
+    --line:#343a67; --line2:#8f93ff; --text:#f0f1ff; --muted:#9da3d6; --hot:#fff;
+    --accent:#b7bbff; --accent2:#d8d9ff; --danger:#ffb8d9; --ok:#c4ffec; --input:#050614; --shadow:rgba(143,147,255,.18);
+  }
+  body.skin-baked{
+    --bg:#191108; --bg2:#080402; --panel:#28180e; --panel2:#3d2412; --panel3:#1d0f08;
+    --line:#835a2e; --line2:#ffd36e; --text:#fff2cf; --muted:#f0b977; --hot:#fff;
+    --accent:#ffcf5a; --accent2:#ff8e5a; --danger:#ff7e87; --ok:#a7ff8a; --input:#120804; --shadow:rgba(255,180,90,.18);
+  }
+  body.skin-moody{
+    --bg:#100b17; --bg2:#050308; --panel:#191020; --panel2:#24172e; --panel3:#120b18;
+    --line:#4b365d; --line2:#9a77ba; --text:#f1e9f8; --muted:#b99ccd; --hot:#fff;
+    --accent:#c79bff; --accent2:#e0c8ff; --danger:#e7a5d7; --ok:#d4c7ff; --input:#09050d; --shadow:rgba(199,155,255,.18);
+  }
+
   *{box-sizing:border-box;}
-
-  html,body{
-    margin:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:
-      radial-gradient(circle at 50% 15%, #191919 0%, #080808 45%, #000 100%);
-    color:var(--text);
-    font-family:var(--font);
-  }
-
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;color:var(--text);font-family:var(--font);}
   body{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:10px;
+    display:flex;align-items:center;justify-content:center;padding:10px;
+    background:radial-gradient(circle at 50% 12%, var(--panel2) 0%, var(--bg) 48%, var(--bg2) 100%);
   }
+  body.skin-retro::before,
+  body.skin-vibes::before{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.12;
+    background:linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px);background-size:100% 4px;
+  }
+  button, select, input, textarea{font-family:var(--font);}
+  button{touch-action:manipulation;}
 
   .app{
-    width:min(1220px, 100vw - 20px);
-    height:min(740px, 100vh - 20px);
-    border:2px solid var(--line2);
-    background:linear-gradient(180deg,#101010,#060606);
-    box-shadow:0 0 0 2px #000, 0 0 30px rgba(255,255,255,.08);
-    padding:10px;
-    display:grid;
-    grid-template-rows:auto auto 1fr auto;
-    gap:8px;
+    width:min(1220px, 100vw - 20px);height:min(740px, 100vh - 20px);
+    border:2px solid var(--line2);background:linear-gradient(180deg,var(--panel),var(--bg));
+    box-shadow:0 0 0 2px #000, 0 0 30px var(--shadow);padding:10px;
+    display:grid;grid-template-rows:auto 1fr auto;gap:8px;position:relative;overflow:hidden;
   }
+  .app::after{content:"";position:absolute;inset:0;pointer-events:none;border:1px solid rgba(255,255,255,.04);}
 
-  header{
-    display:grid;
-    grid-template-columns:1fr auto;
-    align-items:center;
-    gap:10px;
-    border:1px solid var(--line);
-    background:#0b0b0b;
-    padding:8px 10px;
-  }
+  header{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;border:1px solid var(--line);background:var(--panel3);padding:8px 10px;position:relative;z-index:1;}
+  h1{margin:0;font-size:20px;letter-spacing:2px;text-transform:uppercase;line-height:1;}
+  .subtitle{color:var(--muted);font-size:11px;margin-top:4px;letter-spacing:1px;}
+  .topControls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;}
+  .miniCheck{display:flex;align-items:center;gap:5px;border:1px solid var(--line);background:var(--input);padding:5px 7px;font-size:11px;color:var(--muted);text-transform:uppercase;min-height:29px;}
+  .miniCheck input{accent-color:var(--accent);}
+  body:not(.tab-swatches-active) #swatchDurControl{display:none;}
+  .accentWord{color:var(--accent);font-weight:bold;}
 
-  h1{
-    margin:0;
-    font-size:20px;
-    letter-spacing:2px;
-    text-transform:uppercase;
-    line-height:1;
-  }
-
-  .subtitle{
-    color:var(--muted);
-    font-size:11px;
-    margin-top:4px;
-    letter-spacing:1px;
-  }
-
-  .topControls{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    flex-wrap:wrap;
-    justify-content:flex-end;
-  }
-
-  button, select, input[type="range"]{
-    font-family:var(--font);
-  }
-
-  .ctlBtn{
-    border:1px solid var(--line2);
-    color:var(--text);
-    background:#191919;
-    padding:6px 10px;
-    cursor:pointer;
-    font-size:12px;
-    text-transform:uppercase;
-  }
-
-  .ctlBtn:hover{background:#2a2a2a;}
+  .ctlBtn{border:1px solid var(--line2);color:var(--text);background:var(--panel2);padding:6px 10px;cursor:pointer;font-size:12px;text-transform:uppercase;min-height:29px;}
+  .ctlBtn:hover{background:var(--line);}
   .ctlBtn:active{transform:translateY(1px);}
-  .ctlBtn.on{
-    background:#eaeaea;
-    color:#000;
-    border-color:#fff;
-  }
+  .ctlBtn.on,.ctlBtn.active{background:var(--accent);color:var(--bg2);border-color:var(--hot);}
+  .ctlBtn.danger:hover{background:#3a2020;}
+  body.skin-light .ctlBtn:hover{background:#ddd;}
+  body.skin-light .ctlBtn.on, body.skin-light .ctlBtn.active{background:#111;color:#fff;}
 
-  .readout{
-    border:1px solid var(--line);
-    background:#050505;
-    min-width:190px;
-    padding:6px 10px;
-    font-size:12px;
-    color:#fff;
-    text-align:center;
-  }
+  .readout{border:1px solid var(--line);background:var(--input);min-width:190px;padding:6px 10px;font-size:12px;color:var(--hot);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-  .sliders{
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:8px;
-    border:1px solid var(--line);
-    padding:7px 8px;
-    background:#0b0b0b;
-  }
+  label,.miniLabel{display:grid;grid-template-columns:auto 1fr auto;gap:6px;align-items:center;font-size:11px;color:var(--muted);white-space:nowrap;}
+  input[type="range"]{width:100%;accent-color:var(--accent);}
+  select,input[type="text"],textarea{border:1px solid var(--line);background:var(--input);color:var(--text);padding:5px;font-size:11px;min-width:0;}
+  textarea{resize:none;}
 
-  label{
-    display:grid;
-    grid-template-columns:auto 1fr auto;
-    gap:6px;
-    align-items:center;
-    font-size:11px;
-    color:var(--muted);
-    white-space:nowrap;
-  }
+  .content{min-height:0;position:relative;z-index:1;}
+  .tabPanel{display:none;height:100%;min-height:0;}
+  .tabPanel.active{display:block;}
 
-  input[type="range"]{width:100%;}
+  .board{height:100%;min-height:0;display:grid;grid-template-columns:repeat(4, 1fr);gap:8px;}
+  .cat{min-width:0;min-height:0;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel3));padding:7px;display:grid;grid-template-rows:auto 1fr;gap:6px;}
+  .catHead{display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:5px;border-bottom:1px solid var(--line);}
+  .catName{font-size:15px;font-weight:bold;letter-spacing:2px;}
+  .catHint{color:var(--muted);font-size:10px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .pads{display:grid;grid-template-columns:repeat(5, 1fr);gap:var(--gap);align-content:stretch;}
+  .pad{min-width:0;min-height:0;height:var(--cell);border:1px solid var(--line2);background:var(--panel2);color:var(--text);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;position:relative;overflow:hidden;}
+  .pad::after{content:"";position:absolute;inset:auto 6px 5px 6px;height:2px;background:var(--line2);opacity:.35;}
+  .pad:hover{background:var(--line);border-color:var(--hot);}
+  .pad:active,.pad.playing{background:var(--accent);color:var(--bg2);border-color:var(--hot);}
 
-  .board{
-    min-height:0;
-    display:grid;
-    grid-template-columns:repeat(4, 1fr);
-    gap:8px;
-  }
+  .customWrap{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:8px;}
+  .customGrid{height:100%;display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));grid-auto-rows:minmax(0, 1fr);gap:8px;min-height:0;overflow:auto;align-content:stretch;padding-right:2px;}
+  .module{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel3));padding:9px;min-width:0;min-height:0;display:grid;grid-template-rows:auto 1fr;gap:7px;overflow:hidden;position:relative;}
+  .module::after{content:"";position:absolute;inset:auto 0 0 0;height:18px;pointer-events:none;opacity:.10;background:repeating-linear-gradient(90deg,var(--accent) 0 1px,transparent 1px 5px);}
+  .module h3{margin:0;padding-bottom:5px;border-bottom:1px solid var(--line);font-size:13px;letter-spacing:1px;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px;}
+  .module h3 span{color:var(--muted);font-weight:normal;font-size:10px;align-self:end;}
+  .moduleBody{display:grid;gap:7px;align-content:space-between;overflow:auto;min-height:0;padding-right:2px;}
+  .customGrid::-webkit-scrollbar,.moduleBody::-webkit-scrollbar,.readmeInner::-webkit-scrollbar,.bankList::-webkit-scrollbar{width:8px;height:8px;}
+  .customGrid::-webkit-scrollbar-thumb,.moduleBody::-webkit-scrollbar-thumb,.readmeInner::-webkit-scrollbar-thumb,.bankList::-webkit-scrollbar-thumb{background:var(--line);}
+  .selectRow{display:grid;grid-template-columns:76px 1fr;gap:6px;align-items:center;font-size:11px;color:var(--muted);}
+  .valuePill{border:1px solid var(--line);background:var(--input);color:var(--hot);padding:4px 6px;font-size:10px;text-align:right;}
+  .helpText{margin:0;color:var(--muted);font-size:10px;line-height:1.4;}
+  .customDock{display:grid;grid-template-columns:minmax(220px,1fr) auto auto auto;gap:8px;align-items:center;min-height:0;padding-top:6px;border-top:1px solid var(--line);background:linear-gradient(90deg,rgba(255,255,255,.025),transparent 45%,rgba(255,255,255,.025));}
+  .codePreview{border:1px solid var(--line);background:var(--input);color:var(--muted);font-size:10px;padding:7px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;max-width:100%;min-height:31px;}
 
-  .cat{
-    min-width:0;
-    min-height:0;
-    border:1px solid var(--line);
-    background:linear-gradient(180deg,#151515,#090909);
-    padding:7px;
-    display:grid;
-    grid-template-rows:auto 1fr;
-    gap:6px;
-  }
+  .bankWrap{height:100%;display:grid;grid-template-rows:auto 1fr;gap:8px;}
+  .bankTop{border:1px solid var(--line);background:var(--panel3);padding:8px;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+  .bankHint{color:var(--muted);font-size:11px;}
+  .bankList{min-height:0;overflow:auto;display:grid;gap:6px;align-content:start;}
+  .bankRow{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel3));padding:7px;display:grid;grid-template-columns:110px 1fr auto auto auto;gap:8px;align-items:center;}
+  .bankName{font-weight:bold;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .bankCode{color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--line);background:var(--input);padding:5px;}
+  .emptyBank{border:1px dashed var(--line2);color:var(--muted);text-align:center;padding:30px;font-size:12px;}
 
-  .catHead{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:6px;
-    padding-bottom:5px;
-    border-bottom:1px solid #333;
-  }
+  .readme{height:100%;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel3));padding:0;overflow:hidden;}
+  .readmeInner{height:100%;overflow:auto;padding:14px 16px;color:var(--text);}
+  .readme h2{margin:0 0 8px 0;font-size:18px;text-transform:uppercase;letter-spacing:2px;}
+  .readme h3{margin:16px 0 6px 0;font-size:13px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);padding-bottom:4px;}
+  .readme p,.readme li{font-size:12px;line-height:1.55;color:var(--text);}
+  .readme ul{padding-left:19px;margin-top:6px;}
+  .readme code{background:var(--input);border:1px solid var(--line);padding:1px 4px;color:var(--hot);}
 
-  .catName{
-    font-size:15px;
-    font-weight:bold;
-    letter-spacing:2px;
-  }
+  footer{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--line);padding:7px 9px;background:var(--panel3);font-size:11px;color:var(--muted);position:relative;z-index:1;}
+  .tabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+  .tabBtn{border:1px solid var(--line);background:var(--panel2);color:var(--muted);padding:6px 10px;font-size:12px;cursor:pointer;text-transform:uppercase;}
+  .tabBtn:hover{color:var(--text);border-color:var(--line2);}
+  .tabBtn.active{background:var(--accent);color:var(--bg2);border-color:var(--hot);}
+  .bottomTools{display:flex;gap:8px;align-items:center;justify-content:flex-end;min-width:420px;}
+  .bottomMini{display:grid;grid-template-columns:auto 92px auto;gap:5px;align-items:center;font-size:10px;color:var(--muted);text-transform:uppercase;}
+  .bottomMini input[type="range"]{width:92px;}
+  .topControls .bottomMini{grid-template-columns:auto 76px auto;}
+  .topControls .bottomMini input[type="range"]{width:76px;}
 
-  .catHint{
-    color:var(--muted);
-    font-size:10px;
-    text-align:right;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
-
-  .pads{
-    display:grid;
-    grid-template-columns:repeat(5, 1fr);
-    gap:var(--gap);
-    align-content:stretch;
-  }
-
-  .pad{
-    min-width:0;
-    min-height:0;
-    height:var(--cell);
-    border:1px solid #555;
-    background:#161616;
-    color:#eee;
-    font-size:12px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    user-select:none;
-  }
-
-  .pad:hover{
-    background:#262626;
-    border-color:#aaa;
-  }
-
-  .pad:active, .pad.playing{
-    background:#eaeaea;
-    color:#000;
-    border-color:#fff;
-  }
-
-  footer{
-    display:grid;
-    grid-template-columns:1fr auto;
-    gap:8px;
-    align-items:center;
-    border:1px solid var(--line);
-    padding:7px 9px;
-    background:#0b0b0b;
-    font-size:11px;
-    color:var(--muted);
-  }
-
-  .legend{
-    overflow:hidden;
-    white-space:nowrap;
-    text-overflow:ellipsis;
-  }
-
-  .copybox{
-    border:1px solid var(--line);
-    background:#050505;
-    color:#fff;
-    padding:5px 8px;
-    min-width:210px;
-    text-align:center;
-  }
-
-
-  .modalBackdrop{
-    position:fixed;
-    inset:0;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    padding:18px;
-    background:rgba(0,0,0,.74);
-    z-index:20;
-  }
-
+  .modalBackdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.74);z-index:20;}
   .modalBackdrop.show{display:flex;}
+  .modal{width:min(560px,96vw);max-height:86vh;overflow:auto;border:2px solid var(--line2);background:var(--panel3);color:var(--text);padding:14px;box-shadow:0 0 30px var(--shadow);}
+  .modalTop{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:10px;}
+  .modal h2{margin:0;font-size:18px;letter-spacing:2px;text-transform:uppercase;}
+  .modal p,.modal li{color:var(--text);font-size:12px;line-height:1.55;}
+  .overviewModal{width:min(700px,96vw);}
+  .overviewHide{display:flex;align-items:center;gap:6px;justify-content:flex-end;color:var(--muted);font-size:11px;text-transform:uppercase;}
+  .overviewLead{border:1px solid var(--line);background:var(--input);padding:9px;color:var(--hot);font-size:12px;line-height:1.5;}
+  .modalGrid{display:grid;gap:8px;}
+  .nameInput{width:100%;text-transform:uppercase;}
+  .skinGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px;}
+  .skinBtn{text-align:left;display:grid;gap:3px;}
+  .skinBtn small{color:inherit;opacity:.75;font-size:10px;}
+  .importBox{width:100%;height:160px;}
 
-  .modal{
-    width:min(760px, 96vw);
-    max-height:86vh;
-    overflow:auto;
-    border:2px solid var(--line2);
-    background:#0b0b0b;
-    color:var(--text);
-    padding:14px;
+  @media (max-width: 1000px){
+    .customGrid{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));grid-auto-rows:minmax(0,1fr);}
   }
-
-  .modalTop{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    border-bottom:1px solid var(--line);
-    padding-bottom:9px;
-    margin-bottom:10px;
-  }
-
-  .modal h2{
-    margin:0;
-    font-size:18px;
-    letter-spacing:2px;
-    text-transform:uppercase;
-  }
-
-  .modal p,
-  .modal li{
-    color:var(--text);
-    font-size:12px;
-    line-height:1.55;
-  }
-
-  .modal ul{padding-left:20px;}
-
-  .modal code{
-    color:#fff;
-    background:#050505;
-    border:1px solid var(--line);
-    padding:1px 4px;
-    font-family:var(--font);
-  }
-
   @media (max-width: 900px){
-    .app{height:calc(100vh - 12px); width:calc(100vw - 12px); padding:6px; gap:6px;}
-    h1{font-size:16px;}
-    .subtitle{display:none;}
-    .sliders{grid-template-columns:repeat(2, 1fr);}
-    .board{grid-template-columns:repeat(3, 1fr);}
-    :root{--cell:34px;--gap:4px;}
-    .catName{font-size:13px;}
-    .catHint{display:none;}
-    footer{grid-template-columns:1fr;}
-    .copybox{min-width:0;}
+    .app{height:calc(100vh - 12px);width:calc(100vw - 12px);padding:6px;gap:6px;}
+    h1{font-size:16px;}.subtitle{display:none;} .board{grid-template-columns:repeat(3,1fr);} :root{--cell:34px;--gap:4px;}
+    .catName{font-size:13px;}.catHint{display:none;} footer{grid-template-columns:1fr;} .bottomTools{min-width:0;justify-content:flex-start;flex-wrap:wrap;}
+    .customGrid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));grid-auto-rows:minmax(150px,auto);}.customDock{grid-template-columns:1fr auto auto;}.customDock .codePreview{grid-column:1/-1;white-space:normal;word-break:break-all;max-height:54px;overflow:auto;}
+    .bankRow{grid-template-columns:1fr auto auto auto;}.bankCode{grid-column:1/-1;order:5;}
   }
-
   @media (max-height: 670px){
-    :root{--cell:32px;--gap:4px;}
-    .app{gap:5px;padding:6px;}
-    header{padding:5px 7px;}
-    .sliders{padding:5px 7px;}
-    .cat{padding:5px;gap:4px;}
-    .catHead{padding-bottom:3px;}
-    footer{padding:5px 7px;}
+    :root{--cell:32px;--gap:4px;} .app{gap:5px;padding:6px;} header{padding:5px 7px;}
+    .cat{padding:5px;gap:4px;} .catHead{padding-bottom:3px;} footer{padding:5px 7px;} .module{padding:6px;}
   }
 </style>
 </head>
 <body>
-  <main class="app">
-    <header>
-      <div>
-        <h1>Soundsplainer</h1>
-        <div class="subtitle">Use the KEY so your LLM can interpret Soundsplainer codes. Use COPY to copy the current sound code.</div>
-      </div>
-      <div class="topControls">
-        <button class="ctlBtn" id="loopBtn">LOOP:OFF</button>
-        <button class="ctlBtn" id="stopBtn">STOP</button>
-        <button class="ctlBtn" id="copyBtn">COPY</button>
-        <button class="ctlBtn" id="keyBtn">KEY</button>
-        <button class="ctlBtn" id="readmeBtn">README</button>
-        <div class="readout" id="readout">READY</div>
-      </div>
-    </header>
+<main class="app">
+  <header>
+    <div>
+      <h1>Soundsplainer</h1>
+      <div class="subtitle">Sound-to-LLM translator studio.</div>
+      <div class="subtitle">Hear it, shape it, encode it, paste it.</div>
+    </div>
+    <div class="topControls">
+      <label class="bottomMini" id="swatchDurControl" title="Swatches only: sets how long quick swatch sounds last. Custom patches use Custom DUR inside the Custom tab.">SWATCH DUR <input id="swatchLen" type="range" min="40" max="1200" value="180"><span id="swatchLenVal">180</span></label>
+      <button class="ctlBtn" id="loopBtn">LOOP:OFF</button>
+      <label class="miniCheck" title="Preview only: adds a fixed 500ms pause between loop repeats."><input id="loopGap" type="checkbox" checked>GAP</label>
+      <button class="ctlBtn" id="stopBtn">STOP</button>
+      <button class="ctlBtn" id="playBtn">PLAY</button>
+      <button class="ctlBtn" id="copyBtn">COPY</button>
+      <button class="ctlBtn" id="saveBtn">SAVE</button>
+      <div class="readout" id="readout">PATCH READY</div>
+    </div>
+  </header>
 
-    <section class="sliders">
-      <label>VOL <input id="vol" type="range" min="0" max="100" value="28"><span id="volVal">28</span></label>
-      <label>LEN <input id="len" type="range" min="40" max="700" value="180"><span id="lenVal">180</span></label>
-      <label>GAP <input id="gap" type="range" min="40" max="400" value="105"><span id="gapVal">105</span></label>
-      <label>FX <input id="fx" type="range" min="0" max="100" value="35"><span id="fxVal">35</span></label>
-    </section>
 
-    <section class="board" id="board"></section>
+  <section class="content">
+    <div class="tabPanel active" id="tab-swatches"><section class="board" id="board"></section></div>
 
-    <footer>
-      <div class="legend">
-        Codes include sliders: V volume, L length, G gap, F effect. Use KEY to copy the decoder for a fresh LLM chat. Keys: L loop, Enter copy, Esc stop.
+    <div class="tabPanel" id="tab-custom">
+      <div class="customWrap">
+      <section class="customGrid">
+        <div class="module">
+          <h3>SOURCE <span>sound maker</span></h3>
+          <div class="moduleBody">
+            <div class="selectRow"><span>TYPE</span><select id="cSource"><option value="oscillator">oscillator</option><option value="noise">noise</option></select></div>
+            <div class="selectRow"><span>WAVE</span><select id="cWave"><option>sine</option><option>triangle</option><option>square</option><option>sawtooth</option></select></div>
+            <div class="selectRow"><span>NOISE</span><select id="cNoise"><option value="white">white</option><option value="pinkish">pink-ish</option><option value="brownish">brown-ish</option></select></div>
+            <p class="helpText">Pick oscillator for clean tones, noise for clicks, static, taps, and rough effects.</p>
+          </div>
+        </div>
+        <div class="module">
+          <h3>PITCH <span>height/move</span></h3>
+          <div class="moduleBody">
+            <label>START <input id="cFreqStart" type="range" min="40" max="2400" value="440"><span id="cFreqStartVal">440</span></label>
+            <label>END <input id="cFreqEnd" type="range" min="40" max="3600" value="440"><span id="cFreqEndVal">440</span></label>
+            <div class="selectRow"><span>CURVE</span><select id="cCurve"><option value="linear">linear</option><option value="exponential">exponential</option><option value="flat">flat</option></select></div>
+            <p class="helpText">Same start/end makes a steady note. Different values make zips, drops, chirps, and arcade sweeps.</p>
+          </div>
+        </div>
+        <div class="module">
+          <h3>TIMING <span>custom length</span></h3>
+          <div class="moduleBody">
+            <label>DUR <input id="cDur" type="range" min="40" max="1200" value="180"><span id="cDurVal">180</span></label>
+            <label>ATK <input id="cAtk" type="range" min="1" max="250" value="3"><span id="cAtkVal">3</span></label>
+            <label>DEC <input id="cDec" type="range" min="1" max="600" value="60"><span id="cDecVal">60</span></label>
+            <label>SUS <input id="cSus" type="range" min="0" max="100" value="0"><span id="cSusVal">0</span></label>
+            <label>REL <input id="cRel" type="range" min="1" max="700" value="80"><span id="cRelVal">80</span></label>
+            <p class="helpText">DUR is the patch length. Attack/decay/release are fitted into that length so the export matches the preview.</p>
+          </div>
+        </div>
+        <div class="module">
+          <h3>FILTER <span>tone cut</span></h3>
+          <div class="moduleBody">
+            <div class="selectRow"><span>TYPE</span><select id="cFilter"><option value="none">none</option><option value="lowpass">lowpass</option><option value="highpass">highpass</option><option value="bandpass">bandpass</option><option value="notch">notch</option></select></div>
+            <label>FREQ <input id="cFilterFreq" type="range" min="80" max="8000" value="2400"><span id="cFilterFreqVal">2400</span></label>
+            <label>Q <input id="cQ" type="range" min="1" max="200" value="70"><span id="cQVal">0.7</span></label>
+            <p class="helpText">Lowpass softens, highpass thins, bandpass makes radio/toy tones. Q adds bite.</p>
+          </div>
+        </div>
+        <div class="module">
+          <h3>OUTPUT <span>level/side</span></h3>
+          <div class="moduleBody">
+            <label>GAIN <input id="cGain" type="range" min="1" max="70" value="28"><span id="cGainVal">0.28</span></label>
+            <label>PAN <input id="cPan" type="range" min="-100" max="100" value="0"><span id="cPanVal">0</span></label>
+            <p class="helpText">Gain is the patch loudness before global VOL. Pan moves it left/right for stereo flavor.</p>
+          </div>
+        </div>
+        <div class="module">
+          <h3>SPACE <span>echo/room</span></h3>
+          <div class="moduleBody">
+            <label>DLY <input id="cDelayMix" type="range" min="0" max="70" value="0"><span id="cDelayMixVal">0</span></label>
+            <label>TIME <input id="cDelayTime" type="range" min="20" max="500" value="100"><span id="cDelayTimeVal">100</span></label>
+            <label>VERB <input id="cVerb" type="range" min="0" max="70" value="0"><span id="cVerbVal">0</span></label>
+            <p class="helpText">Delay is echo. Verb is room. Small amounts keep UI sounds crisp.</p>
+          </div>
+        </div>
+        <div class="module">
+          <h3>MOD <span>wobble</span></h3>
+          <div class="moduleBody">
+            <div class="selectRow"><span>TARGET</span><select id="cLfoTarget"><option value="off">off</option><option value="pitch">pitch</option><option value="gain">gain</option><option value="filter">filter</option></select></div>
+            <label>RATE <input id="cLfoRate" type="range" min="1" max="300" value="80"><span id="cLfoRateVal">8.0</span></label>
+            <label>DEPTH <input id="cLfoDepth" type="range" min="0" max="100" value="20"><span id="cLfoDepthVal">20</span></label>
+            <p class="helpText">Mod adds motion: pitch wobble, pulsing volume, or filter shimmer. Off is safest.</p>
+          </div>
+        </div>
+        <div class="module">
+          <h3>ROUTE <span>simple path</span></h3>
+          <div class="moduleBody">
+            <div class="selectRow"><span>MODE</span><select id="cRoute"><option value="clean">clean</option><option value="filtered">filtered</option><option value="echo">echo</option><option value="spacey">spacey</option><option value="tight">tight</option></select></div>
+            <div class="valuePill" id="routeHint">source → gain → out</div>
+            <p class="helpText">Clean is direct. Filtered shapes tone. Echo adds delay. Spacey adds room. Tight uses soft compression.</p>
+          </div>
+        </div>
+      </section>
+      <div class="customDock">
+        <div class="codePreview" id="customCodePreview">DECODE_BASE64_JSON:</div>
+        <button class="ctlBtn" id="customPlayBtn">PLAY PATCH</button>
+        <button class="ctlBtn" id="customCopyBtn">COPY CODE</button>
+        <button class="ctlBtn" id="customSaveBtn">SAVE SOUND</button>
       </div>
-      <div class="copybox" id="copybox">LAST: NONE</div>
-    </footer>
-  </main>
-
-  <div class="modalBackdrop" id="readmeModal" role="dialog" aria-modal="true">
-    <div class="modal">
-      <div class="modalTop">
-        <h2>Soundsplainer README</h2>
-        <button class="ctlBtn" id="closeReadmeBtn">CLOSE</button>
       </div>
-      <p><strong>What this is:</strong> Soundsplainer is a browser-native Web Audio palette board built for <strong>user-to-LLM communication</strong>. It lets you audition simple generated sounds, tune them with sliders, and copy reusable sound codes.</p>
-      <p><strong>Why it exists:</strong> describing a sound with words is vague. A copied code like <code>POPP-08 V28:L180:G105:F35</code> gives a future dev session an exact reference for the selected sound family, pad number, and slider settings. The <strong>KEY</strong> button copies the decoder block you should paste into a new LLM chat so the model knows what categories like <code>POPP</code>, <code>CHIR</code>, or <code>TICK</code> mean.</p>
+    </div>
+
+    <div class="tabPanel" id="tab-bank">
+      <section class="bankWrap">
+        <div class="bankTop">
+          <div class="bankHint">Saved sounds live in this browser's localStorage. Export JSON to move them somewhere else.</div>
+          <div>
+            <button class="ctlBtn" id="exportBankBtn">EXPORT JSON</button>
+            <button class="ctlBtn" id="importBankBtn">IMPORT JSON</button>
+          </div>
+        </div>
+        <div class="bankList" id="bankList"></div>
+      </section>
+    </div>
+
+    <div class="tabPanel" id="tab-readme">
+      <section class="readme"><div class="readmeInner">
+        <h2>README</h2>
+        <p><strong>Soundsplainer is a sound-to-LLM translator.</strong> It is for people who can recognize the sound they want when they hear it, but do not want to manually explain oscillators, envelopes, filters, timing, and browser audio nodes.</p>
+        <p>Pick a swatch or build a custom patch, then copy the encoded recipe. Paste it into a coding chat and ask the LLM to decode it and implement the sound with the browser-native Web Audio API.</p>
+
+        <h3>The Big Idea</h3>
+        <p>Soundsplainer does not export an audio file. It exports a <code>DECODE_BASE64_JSON:</code> string. Inside that encoded JSON is a Web Audio API recipe: source, frequency, envelope, gain, filters, effects, simple route mode, safety notes, and direct instructions for the LLM.</p>
+        <p>The visible swatch names are just flavor labels for humans. The LLM does not need names like POPP, TICK, CHIR, or BUZZ. It gets the encoded Web Audio parameters.</p>
+
+        <h3>Basic Workflow</h3>
+        <ul>
+          <li><strong>Swatches:</strong> click pads until you hear something useful.</li>
+          <li><strong>Custom:</strong> adjust the patch controls if you want to shape your own sound.</li>
+          <li><strong>Copy:</strong> copies the current <code>DECODE_BASE64_JSON:</code> recipe.</li>
+          <li><strong>Loop Gap:</strong> the small GAP checkbox beside LOOP adds a fixed half-second pause while preview looping. It is only for auditioning and is not part of the exported sound recipe.</li>
+          <li><strong>Swatch LEN:</strong> the LEN control beside LOOP only affects swatches. Custom patches use the Custom DUR control.</li>
+          <li><strong>Save:</strong> opens a name box. Names are limited to 12 characters and are only for your Bank list.</li>
+          <li><strong>Bank:</strong> replay, copy, delete, export, or import saved sounds.</li>
+        </ul>
+
+        <h3>Using It With An LLM</h3>
+        <p>Paste the copied code into your coding chat and say something simple like: <em>Decode this base64 JSON Web Audio API recipe and add this sound to my app when the menu button is clicked.</em></p>
+        <p>The encoded payload already tells the LLM that the recipe is meant for browser-native procedural sound and that values should be treated as implementation parameters, not poetic description.</p>
+
+        <h3>Custom Glossary</h3>
+        <ul>
+          <li><strong>Source:</strong> the thing that makes sound. Oscillator is a tone. Noise is static-like texture.</li>
+          <li><strong>Wave:</strong> oscillator shape. Sine is smooth, triangle is soft, square is buzzy, sawtooth is sharper.</li>
+          <li><strong>Frequency / Hz:</strong> pitch. Lower numbers are deeper. Higher numbers are brighter.</li>
+          <li><strong>Envelope:</strong> the life of the sound. Attack starts it, decay drops it, sustain holds it, release fades it out.</li>
+          <li><strong>Gain / VOL:</strong> volume level. The friendly VOL control becomes real Web Audio gain values inside the recipe.</li>
+          <li><strong>Swatch LEN:</strong> the small length control near LOOP only stretches or shrinks swatch previews and their exported event layers.</li>
+          <li><strong>Custom DUR:</strong> the Custom tab has its own duration control inside the Timing node. Custom exports include fitted timing so envelope values cannot accidentally make a short patch much longer.</li>
+          <li><strong>Swatch shaping:</strong> swatches use fixed internal Web Audio values so the exported recipe matches the preview instead of exporting vague macro labels.</li>
+          <li><strong>Filter:</strong> tone shaping. Lowpass softens highs. Highpass removes lows. Bandpass focuses a range. Q/resonance makes the filter peak sharper.</li>
+          <li><strong>Pan:</strong> left/right stereo position.</li>
+          <li><strong>Delay:</strong> echo. Time controls echo spacing, mix controls how much echo is heard.</li>
+          <li><strong>Reverb:</strong> fake room/space around the sound.</li>
+          <li><strong>LFO / Mod:</strong> slow movement. It can wobble pitch, volume, or filter tone.</li>
+          <li><strong>Route:</strong> a beginner-friendly path choice. Clean is direct, Filtered shapes tone, Echo adds delay, Spacey adds room, Tight adds soft compression.</li>
+          <li><strong>Base64:</strong> a way to pack text data into a compact string.</li>
+          <li><strong>JSON:</strong> structured data inside the encoded string.</li>
+          <li><strong>localStorage:</strong> browser storage on your own device/profile.</li>
+        </ul>
+
+        <h3>Bank, Export, Import</h3>
+        <p>Bank saves sounds in localStorage. Export creates a JSON bank backup containing your saved names and encoded recipes. Import reads that JSON and merges valid sounds back into the Bank. Export is how you move a bank between browsers or devices.</p>
+
+        <h3>Privacy & Local Storage</h3>
+        <p>Soundsplainer is intended to run entirely in your browser. It does not require a server, account, analytics, microphone access, upload, or internet connection to generate sounds.</p>
+        <ul>
+          <li>Saved Bank sounds and skin choices are stored locally in your browser.</li>
+          <li>Soundsplainer does not send saved sounds anywhere by itself.</li>
+          <li>Copied codes only leave your device if you paste them into ChatGPT, another LLM, GitHub, email, or somewhere else.</li>
+          <li>Exported bank JSON may include your custom sound names, so avoid private info in names if you plan to share the file/text.</li>
+          <li>Clearing browser site data can erase your Bank and skin choice.</li>
+        </ul>
+
+        <h3>Skins</h3>
+        <p>The code has a simple default flag: <code>SETSKIN = 1</code>. Options lets you test skins while using the app. If you choose a skin in Options, that saved choice overrides the default until browser storage is cleared.</p>
+        <ul><li>1 Basic</li><li>2 Light</li><li>3 Retro</li><li>4 Vibes</li><li>5 Baked</li><li>6 Moody</li></ul>
+
+        <h3>Reality Check</h3>
+        <p>Procedural Web Audio should be close and reusable, but different browsers, devices, speakers, and volume settings can make tiny sounds feel slightly different. Soundsplainer is meant to explain the sound to an LLM clearly enough to rebuild it in code, not to create studio-perfect sampled audio.</p>
+      </div></section>
+    </div>
+  </section>
+
+  <footer>
+    <div class="tabs">
+      <button class="tabBtn active" data-tab="swatches">SWATCHES</button>
+      <button class="tabBtn" data-tab="custom">CUSTOM</button>
+      <button class="tabBtn" data-tab="bank">BANK</button>
+      <button class="tabBtn" data-tab="readme">README</button>
+    </div>
+    <div class="bottomTools">
+      <label class="bottomMini">VOL <input id="vol" type="range" min="0" max="100" value="28"><span id="volVal">28</span></label>
+      <button class="ctlBtn" id="optionsBtn">OPTIONS</button>
+    </div>
+  </footer>
+</main>
+
+<div class="modalBackdrop" id="overviewModal" role="dialog" aria-modal="true">
+  <div class="modal overviewModal">
+    <div class="modalTop"><h2>Soundsplainer Overview</h2></div>
+    <div class="modalGrid">
+      <div class="overviewLead"><strong>Soundsplainer is a sound-to-LLM translator.</strong> Pick a sound by ear, shape it a little, save it if you want to, then copy an encoded Web Audio API recipe your coding chat can decode and rebuild.</div>
+      <p>This does not export an audio file. It exports a <code>DECODE_BASE64_JSON:</code> payload containing Web Audio nodes, timing, gain, envelope, filter/effect settings, routing notes, and instructions for the LLM.</p>
       <ul>
-        <li><strong>VOL / V:</strong> playback volume.</li>
-        <li><strong>LEN / L:</strong> sound length in milliseconds.</li>
-        <li><strong>GAP / G:</strong> repeat gap used when loop is on.</li>
-        <li><strong>FX / F:</strong> effect intensity, interpreted differently by sound type.</li>
+        <li><span class="accentWord">SWATCHES</span> are quick presets. Their names are for humans; the copied recipe is the actual data.</li>
+        <li><span class="accentWord">CUSTOM</span> is the lab for source, pitch, envelope, filter, space, motion, and simple route modes.</li>
+        <li><span class="accentWord">BANK</span> saved named custom recipes, with copy/play/delete and JSON export/import for easy recall.</li>
+        <li><span class="accentWord">README</span> explains workflows, glossary, privacy/localStorage, and how to use the codes with an LLM.</li>
       </ul>
-      <p><strong>Workflow:</strong> click pads until you hear a useful sound, adjust sliders, use LOOP if needed, then COPY the final code. If you are in a fresh LLM session, click <strong>KEY</strong> and paste that decoder first, then paste your copied sound code. This gives the model both the code and the meaning behind the sound families.</p>
-      <p><strong>Controls:</strong> LOOP repeats the last/next selected pad, STOP kills current audio and loop, COPY copies the last full sound code, KEY copies the Soundsplainer decoder/key, README explains the tool, ESC stops, L toggles loop, Enter copies.</p>
+      <p>Note: Soundsplainer is 100% free, no login needed. All saved sounds and skin choices stay in browser localStorage unless you export them or paste copied codes somewhere else.</p>
+      <label class="overviewHide"><input id="hideOverviewCheck" type="checkbox"> hide on future load</label>
+      <div style="display:flex;gap:8px;justify-content:flex-end;"><button class="ctlBtn" id="startOverviewBtn">START PATCHING</button></div>
     </div>
   </div>
+</div>
+
+<div class="modalBackdrop" id="saveModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalTop"><h2>Save Sound</h2><button class="ctlBtn" id="closeSaveBtn">CLOSE</button></div>
+    <div class="modalGrid">
+      <p>Name this sound for your Bank. The name is only for your memory. The encoded recipe is what gets copied to the LLM.</p>
+      <input class="nameInput" id="saveNameInput" type="text" maxlength="12" placeholder="12 CHAR MAX" />
+      <div style="display:flex;gap:8px;justify-content:flex-end;"><button class="ctlBtn" id="confirmSaveBtn">SAVE</button><button class="ctlBtn" id="cancelSaveBtn">CANCEL</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modalBackdrop" id="optionsModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalTop"><h2>Options</h2><button class="ctlBtn" id="closeOptionsBtn">CLOSE</button></div>
+    <p><strong>Skin</strong> — SETSKIN default is Basic. Your option choice saves locally.</p>
+    <div class="skinGrid" id="skinGrid"></div>
+    <p style="margin-top:12px;color:var(--muted);">Skin map: 1 Basic, 2 Light, 3 Retro, 4 Vibes, 5 Baked, 6 Moody.</p>
+  </div>
+</div>
+
+<div class="modalBackdrop" id="importModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalTop"><h2>Import Bank JSON</h2><button class="ctlBtn" id="closeImportBtn">CLOSE</button></div>
+    <p>Paste a Soundsplainer bank JSON export. Valid <code>DECODE_BASE64_JSON:</code> sounds will be merged into your Bank.</p>
+    <textarea class="importBox" id="importText"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;"><button class="ctlBtn" id="confirmImportBtn">IMPORT</button><button class="ctlBtn" id="cancelImportBtn">CANCEL</button></div>
+  </div>
+</div>
 
 <script>
 (() => {
-  let ctx;
-  let master;
+  const SETSKIN = 1; // 1 Basic, 2 Light, 3 Retro, 4 Vibes, 5 Baked, 6 Moody
+  const BANK_KEY = "soundsplainerBankV1";
+  const SKIN_KEY = "soundsplainerSkinV1";
+  const OVERVIEW_KEY = "soundsplainerHideOverviewV1";
+  const LOOP_GAP_MS = 500; // Preview-only pause between loop repeats when GAP is checked. Not exported.
+
+  let ctx, master;
   let active = [];
   let loopOn = false;
   let loopTimer = null;
-  let loopCode = null;
-  let loopBtn = null;
-  let lastCode = "NONE";
-  let lastFullCode = "NONE";
+  let currentRecipe = null;
+  let currentCode = "";
+  let currentPadCode = "";
+  let currentMode = "swatch";
+  let bank = [];
+
+  const skinNames = {1:"Basic",2:"Light",3:"Retro",4:"Vibes",5:"Baked",6:"Moody"};
+  const skinClasses = {1:"skin-basic",2:"skin-light",3:"skin-retro",4:"skin-vibes",5:"skin-baked",6:"skin-moody"};
 
   const categories = [
-    ["BEEP","clean sine beeps"],
-    ["BOOP","round low boops"],
-    ["BLIP","short square blips"],
-    ["BUZZ","saw buzz tones"],
-    ["FUZZ","noisy static fuzz"],
-    ["WAVE","soft pulse waves"],
-    ["UPLO","low upward sweeps"],
-    ["UPHI","high upward sweeps"],
-    ["DNLO","low downward sweeps"],
-    ["DNHI","high downward sweeps"],
-    ["BEAT","drum/percussion hits"],
-    ["PING","tiny bell pings"],
-    ["ZAPP","arcade zap hits"],
-    ["TICK","menu ticks/clicks"],
-    ["POPP","bubble pop sounds"],
-    ["CHIR","chip chirps"]
+    ["BEEP","clean sine beeps"],["BOOP","round low boops"],["BLIP","short square blips"],["BUZZ","saw buzz tones"],
+    ["FUZZ","noisy static fuzz"],["WAVE","soft pulse waves"],["UPLO","low upward sweeps"],["UPHI","high upward sweeps"],
+    ["DNLO","low downward sweeps"],["DNHI","high downward sweeps"],["BEAT","drum/percussion hits"],["PING","tiny bell pings"],
+    ["ZAPP","arcade zap hits"],["TICK","menu ticks/clicks"],["POPP","bubble pop sounds"],["CHIR","chip chirps"]
   ];
 
-  const board = document.getElementById("board");
-  const readout = document.getElementById("readout");
-  const copybox = document.getElementById("copybox");
+  const $ = id => document.getElementById(id);
+  const board = $("board"), readout = $("readout"), bankList = $("bankList"), customCodePreview = $("customCodePreview");
+  const vol = $("vol"), swatchLen = $("swatchLen"), loopGap = $("loopGap");
+  const volVal = $("volVal"), swatchLenVal = $("swatchLenVal");
 
-  const vol = document.getElementById("vol");
-  const len = document.getElementById("len");
-  const gap = document.getElementById("gap");
-  const fx = document.getElementById("fx");
+  const customIds = ["cFreqStart","cFreqEnd","cDur","cAtk","cDec","cSus","cRel","cFilterFreq","cQ","cGain","cPan","cDelayMix","cDelayTime","cVerb","cLfoRate","cLfoDepth"];
+  const customSelectIds = ["cSource","cWave","cNoise","cCurve","cFilter","cLfoTarget","cRoute"];
 
-  const volVal = document.getElementById("volVal");
-  const lenVal = document.getElementById("lenVal");
-  const gapVal = document.getElementById("gapVal");
-  const fxVal = document.getElementById("fxVal");
+  function clamp(n,min,max){ return Math.max(min, Math.min(max, n)); }
+  function nowIso(){ return new Date().toISOString(); }
+  function safeName(name){ return (name || "SOUND").toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,12) || "SOUND"; }
 
-  [vol,len,gap,fx].forEach(el => {
-    el.addEventListener("input", () => {
-      volVal.textContent = vol.value;
-      lenVal.textContent = len.value;
-      gapVal.textContent = gap.value;
-      fxVal.textContent = fx.value;
-    });
-  });
+  function b64EncodeUnicode(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function b64DecodeUnicode(str){
+    return decodeURIComponent(escape(atob(str)));
+  }
+  function encodeRecipe(recipe){
+    return "DECODE_BASE64_JSON:" + b64EncodeUnicode(JSON.stringify(recipe));
+  }
+  function decodeRecipeCode(code){
+    if(!code || !code.startsWith("DECODE_BASE64_JSON:")) return null;
+    const payload = code.slice("DECODE_BASE64_JSON:".length);
+    return JSON.parse(b64DecodeUnicode(payload));
+  }
 
-  function fullSoundCode(code){
-    return `${code} V${vol.value}:L${len.value}:G${gap.value}:F${fx.value}`;
+  function commonRecipeShell(kind, label){
+    return {
+      messageToLLM:"This is a Web Audio API sound recipe. Decode this JSON and recreate the described procedural sound using browser-native Web Audio nodes. Treat values as implementation parameters, not vague description. Do not treat this as an audio file or external asset.",
+      api:"Web Audio API",
+      recipeVersion:1,
+      type:"procedural sound effect",
+      sourceUI:{tool:"Soundsplainer", mode:kind, label:label || "custom"},
+      safety:{requiresUserGesture:true, noAutoplay:true, maxRecommendedGain:0.7, addShortFadeOut:true, stopAndDisconnectNodes:true},
+      createdAt:nowIso()
+    };
+  }
+
+  function getGlobal(){
+    return {volume:Number(vol.value)/100, lengthMs:Number(swatchLen.value)};
+  }
+
+  function swatchRecipe(code){
+    const [cat, numText] = code.split("-");
+    const n = Number(numText);
+    const step = n - 1;
+    const g = getGlobal();
+    const r = commonRecipeShell("swatch", code);
+    const dur = g.lengthMs;
+    const volume = clamp(g.volume, 0, 0.7);
+    const fixedFx = 0.35;
+    const events = [];
+    const ms = v => Math.max(1, Math.round(v));
+    const gain = peak => clamp(peak * volume, 0.0001, 0.7);
+    const addOsc = (waveform, freq, durationMs, peak, drift=0, offsetMs=0) => {
+      events.push({
+        node:"OscillatorNode",
+        type:"oscillator",
+        waveform,
+        offsetMs:ms(offsetMs),
+        durationMs:ms(durationMs),
+        frequency:{startHz:Math.round(freq), endHz:Math.round(Math.max(20, freq + drift)), curve:drift?"exponential":"flat"},
+        envelope:{type:"legacyPop", attackMaxMs:25, attackRatio:0.18, endGain:0.0001},
+        gain:{peak:gain(peak)}
+      });
+    };
+    const addNoise = (durationMs, peak, filterType="bandpass", filterFreq=700, q=2, offsetMs=0) => {
+      events.push({
+        node:"AudioBufferSourceNode",
+        type:"noise",
+        color:"white",
+        offsetMs:ms(offsetMs),
+        durationMs:ms(durationMs),
+        filter:{node:"BiquadFilterNode", enabled:true, type:filterType, frequencyHz:Math.round(filterFreq), q:Number(q.toFixed ? q.toFixed(3) : q)},
+        envelope:{type:"legacyPop", attackMaxMs:25, attackRatio:0.18, endGain:0.0001},
+        gain:{peak:gain(peak)}
+      });
+    };
+
+    const pitchA = 180 + step * 45;
+    const high = 520 + step * 105;
+    const low = 75 + step * 22;
+    let notes = "";
+
+    switch(cat){
+      case "BEEP": addOsc("sine", 420 + step * 70, dur * 0.78, 0.75); notes="clean sine beep"; break;
+      case "BOOP": addOsc("triangle", 180 + step * 24, dur * 1.05, 0.82, -22 - step * 3); notes="round low boop"; break;
+      case "BLIP": addOsc("square", 500 + step * 90, Math.max(45, dur * 0.42), 0.66); notes="short square UI blip"; break;
+      case "BUZZ": addOsc("sawtooth", 95 + step * 28, dur * 1.05, 0.50); notes="saw buzz tone"; break;
+      case "FUZZ": addNoise(dur * 1.05, 0.75, "bandpass", 220 + step * 120, 1 + fixedFx * 9); notes="filtered static fuzz"; break;
+      case "WAVE":
+        events.push({node:"OscillatorNode", type:"oscillator", waveform:"sine", offsetMs:0, durationMs:ms(dur*1.15), frequency:{startHz:Math.round(220+step*36), endHz:Math.round(220+step*36), curve:"flat"}, envelope:{type:"legacyPop", attackMaxMs:25, attackRatio:0.18, endGain:0.0001}, gain:{peak:gain(0.50)}, modulation:{node:"OscillatorNode", target:"frequency", waveform:"sine", rateHz:Number((4+step*.8).toFixed(3)), depth:Number((10+fixedFx*45).toFixed(3))}});
+        notes="soft wobbling pulse"; break;
+      case "UPLO": addOsc("sine", low, dur, 0.58, 260 + step * 24); notes="low upward sweep"; break;
+      case "UPHI": addOsc("triangle", high, dur, 0.52, 420 + step * 60); notes="high upward sweep"; break;
+      case "DNLO": addOsc("sine", low + 330 + step * 20, dur, 0.60, -(250 + step * 24)); notes="low downward sweep"; break;
+      case "DNHI": addOsc("sawtooth", high + 520 + step * 80, dur, 0.52, -(460 + step * 62)); notes="high downward zap sweep"; break;
+      case "BEAT": {
+        const d = Math.max(55, dur * 0.55);
+        if(n <= 3){ addOsc("sine", 95 - step * 14, d * 1.45, 0.92, -55); addNoise(d * 0.35, 0.13 + fixedFx * 0.18, "highpass", 1800, 1); }
+        else if(n <= 6){ addNoise(d * 0.85, 0.70, "bandpass", 900 + step * 130, 3 + fixedFx * 8); addOsc("square", 190 + step * 35, d * 0.12, 0.42); }
+        else if(n <= 8){ addNoise(d * 1.2, 0.55, "highpass", 3600 + step * 240, 0.5 + fixedFx * 2); }
+        else { addOsc("triangle", 180 + step * 35, d * 1.6, 0.72, -80); addNoise(d * 0.7, 0.35, "bandpass", 1300 + step * 220, 5, d * 0.2); }
+        notes="percussion hit"; break;
+      }
+      case "PING": addOsc("sine", 720 + step * 95, dur * 1.4, 0.45); addOsc("sine", 1440 + step * 190, dur * 0.75, 0.25); notes="tiny bell ping"; break;
+      case "ZAPP": addOsc("square", 1200 + step * 90, dur * 0.9, 0.56, -(650 + step * 55)); addNoise(dur * 0.45, 0.16, "highpass", 3600, 1); notes="arcade zap"; break;
+      case "TICK": addNoise(Math.max(25, dur * 0.18), 0.50, "highpass", 700 + step * 180, 3); notes="menu tick click"; break;
+      case "POPP": addOsc("sine", 110 + step * 16, dur * 0.35, 0.68, 160 + step * 12); notes="bubble pop"; break;
+      case "CHIR": addOsc("square", 820 + step * 100, dur * 0.24, 0.50, 250 + step * 35); addOsc("square", 900 + step * 110, dur * 0.24, 0.42, 220 + step * 28, dur * 0.28); notes="two-part chip chirp"; break;
+    }
+
+    r.description = notes;
+    r.durationMs = Math.max(...events.map(e => (e.offsetMs || 0) + (e.durationMs || 0)), dur);
+    r.previewMatched = true;
+    r.output = {globalGain:volume};
+    r.renderPlan = {
+      mode:"eventLayers",
+      note:"These event layers are the same Web Audio operations Soundsplainer used for preview. Recreate the events rather than interpreting the swatch label."
+    };
+    r.events = events;
+    r.simpleRouteMode = "event layers";
+    r.routing = ["event layers", "per-event envelope/filter/modulation", "destination"];
+    return r;
+  }
+
+  function fittedEnvelope(raw, durationMs){
+    const dur = Math.max(1, Number(durationMs) || 180);
+    let attack = Math.max(1, Number(raw.attackMs) || 1);
+    let decay = Math.max(1, Number(raw.decayMs) || 1);
+    let release = Math.max(1, Number(raw.releaseMs) || 1);
+    const total = attack + decay + release;
+    if(total > dur){
+      const scale = dur / total;
+      attack = Math.max(1, Math.round(attack * scale));
+      decay = Math.max(1, Math.round(decay * scale));
+      release = Math.max(1, Math.round(release * scale));
+      while(attack + decay + release > dur && release > 1) release--;
+      while(attack + decay + release > dur && decay > 1) decay--;
+      while(attack + decay + release > dur && attack > 1) attack--;
+    }
+    const sustainHoldMs = Math.max(0, Math.round(dur - attack - decay - release));
+    return {
+      timingMode:"fittedToDuration",
+      totalDurationMs:Math.round(dur),
+      attackMs:Math.round(attack),
+      decayMs:Math.round(decay),
+      sustain:clamp(Number(raw.sustain) || 0, 0, 1),
+      sustainHoldMs,
+      releaseMs:Math.round(release),
+      rawSliderMs:{attackMs:Number(raw.attackMs)||1, decayMs:Number(raw.decayMs)||1, releaseMs:Number(raw.releaseMs)||1},
+      note:"Envelope stages are fitted inside totalDurationMs. Do not add attack+decay+release on top of duration."
+    };
+  }
+
+  function gainAutomationForEnvelope(env, peak){
+    const peakGain = clamp(Number(peak) || 0.3, 0.0001, 0.7);
+    const sustainGain = Math.max(0.0001, peakGain * clamp(env.sustain || 0, 0, 1));
+    const tAttack = env.attackMs;
+    const tDecay = env.attackMs + env.decayMs;
+    const tReleaseStart = env.totalDurationMs - env.releaseMs;
+    return [
+      {method:"setValueAtTime", value:0.0001, timeMs:0},
+      {method:"linearRampToValueAtTime", value:Number(peakGain.toFixed(4)), timeMs:tAttack},
+      {method:"linearRampToValueAtTime", value:Number(sustainGain.toFixed(4)), timeMs:tDecay},
+      {method:"setValueAtTime", value:Number(sustainGain.toFixed(4)), timeMs:Math.max(tDecay, tReleaseStart)},
+      {method:"exponentialRampToValueAtTime", value:0.0001, timeMs:env.totalDurationMs}
+    ];
+  }
+
+  function routeNodes(mode, filterOn, delayOn, reverbOn, compOn){
+    if(mode === "clean") return ["source","gain","pan","destination"];
+    const route = ["source"];
+    if(filterOn || mode === "filtered") route.push("filter");
+    route.push("gain","pan");
+    if(compOn || mode === "tight") route.push("compressor");
+    if(delayOn || mode === "echo") route.push("delay");
+    if(reverbOn || mode === "spacey") route.push("reverb");
+    route.push("destination");
+    return route;
+  }
+
+  function customRecipe(){
+    const r = commonRecipeShell("custom", "custom patch");
+    const sourceType = $("cSource").value;
+    const filterType = $("cFilter").value;
+    const delayMix = Number($("cDelayMix").value)/100;
+    const verbMix = Number($("cVerb").value)/100;
+    const route = $("cRoute").value;
+    const lfoTarget = $("cLfoTarget").value;
+    const durationMs = Number($("cDur").value);
+    const rawEnvelope = {attackMs:Number($("cAtk").value), decayMs:Number($("cDec").value), sustain:Number($("cSus").value)/100, releaseMs:Number($("cRel").value)};
+    const peakGain = Number($("cGain").value)/100;
+    const fittedEnv = fittedEnvelope(rawEnvelope, durationMs);
+    r.description = "custom user-built patch";
+    r.durationMs = durationMs;
+    r.previewMatched = true;
+    r.timingNote = "Custom duration is controlled by Custom DUR, not the swatch LEN control. Envelope values are fitted into durationMs and gainAutomation is the source-of-truth timeline.";
+    r.output = {globalGain:Number(vol.value)/100};
+    r.nodes = {
+      source: sourceType === "noise" ? {type:"noise", color:$("cNoise").value} : {type:"oscillator", waveform:$("cWave").value},
+      frequency:{startHz:Number($("cFreqStart").value), endHz:$("cCurve").value==="flat"?Number($("cFreqStart").value):Number($("cFreqEnd").value), curve:$("cCurve").value},
+      envelope:fittedEnv,
+      gain:{peak:peakGain, automation:gainAutomationForEnvelope(fittedEnv, peakGain)},
+      filter:{enabled:filterType!=="none" || route === "filtered", type:filterType==="none"?"lowpass":filterType, frequencyHz:Number($("cFilterFreq").value), q:Number($("cQ").value)/100},
+      pan:{value:Number($("cPan").value)/100},
+      delay:{enabled:delayMix>0 || route === "echo", timeMs:Number($("cDelayTime").value), feedback:.22, mix:delayMix},
+      reverb:{enabled:verbMix>0 || route === "spacey", size:"small", mix:verbMix},
+      compressor:{enabled:route === "tight", mode:"soft"},
+      modulation:{enabled:lfoTarget!=="off", target:lfoTarget, waveform:"sine", rateHz:Number($("cLfoRate").value)/10, depth:Number($("cLfoDepth").value)}
+    };
+    r.simpleRouteMode = route;
+    r.routing = routeNodes(route, r.nodes.filter.enabled, r.nodes.delay.enabled, r.nodes.reverb.enabled, r.nodes.compressor.enabled);
+    return r;
   }
 
   function ensureAudio(){
     if(!ctx){
       ctx = new (window.AudioContext || window.webkitAudioContext)();
       master = ctx.createGain();
-      master.gain.value = Number(vol.value) / 100;
+      master.gain.value = 1;
       master.connect(ctx.destination);
     }
     if(ctx.state === "suspended") ctx.resume();
-    master.gain.setTargetAtTime(Number(vol.value) / 100, ctx.currentTime, 0.015);
+    master.gain.setTargetAtTime(1, ctx.currentTime, .015);
   }
 
   function stopAll(){
-    if(loopTimer){
-      clearTimeout(loopTimer);
-      loopTimer = null;
-    }
-    loopCode = null;
-
-    if(ctx){
-      active.forEach(n => {
-        try{ n.stop && n.stop(); }catch(e){}
-        try{ n.disconnect && n.disconnect(); }catch(e){}
-      });
-    }
-
+    if(loopTimer){ clearTimeout(loopTimer); loopTimer = null; }
+    active.forEach(n => { try{ n.stop && n.stop(); }catch(e){} try{ n.disconnect && n.disconnect(); }catch(e){} });
     active = [];
+    document.querySelectorAll(".pad.playing").forEach(p=>p.classList.remove("playing"));
     readout.textContent = "STOPPED";
-    copybox.textContent = "LAST: " + lastFullCode;
-    document.querySelectorAll(".pad.playing").forEach(p => p.classList.remove("playing"));
   }
 
-  function envGain(start, dur, peak=1, end=0.0001){
+  function envGain(start, dur, env, peak){
+    const g = ctx.createGain();
+    const durationMs = Math.max(1, Math.round(dur * 1000));
+    const fitted = env && env.timingMode === "fittedToDuration" ? env : fittedEnvelope(env || {attackMs:3,decayMs:60,sustain:0,releaseMs:80}, durationMs);
+    const automation = gainAutomationForEnvelope(fitted, peak);
+    automation.forEach(ev => {
+      const at = start + (ev.timeMs / 1000);
+      if(ev.method === "setValueAtTime") g.gain.setValueAtTime(ev.value, at);
+      else if(ev.method === "linearRampToValueAtTime") g.gain.linearRampToValueAtTime(Math.max(ev.value, 0.0001), at);
+      else if(ev.method === "exponentialRampToValueAtTime") g.gain.exponentialRampToValueAtTime(Math.max(ev.value, 0.0001), at);
+    });
+    return g;
+  }
+
+  function envGainLegacy(start, dur, peak, end=0.0001){
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, start);
     g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0001), start + Math.min(0.025, dur * 0.18));
@@ -472,321 +728,351 @@
     return g;
   }
 
-  function osc(type, freq, start, dur, gainNode, drift=0){
-    const o = ctx.createOscillator();
-    o.type = type;
-    o.frequency.setValueAtTime(freq, start);
-    if(drift) o.frequency.exponentialRampToValueAtTime(Math.max(20, freq + drift), start + dur);
-    o.connect(gainNode);
-    gainNode.connect(master);
-    o.start(start);
-    o.stop(start + dur + 0.03);
-    active.push(o, gainNode);
-    return o;
-  }
-
-  function noiseBuffer(seconds=0.5){
+  function noiseBuffer(seconds=.5, color="white"){
     const size = Math.max(1, Math.floor(ctx.sampleRate * seconds));
     const buf = ctx.createBuffer(1, size, ctx.sampleRate);
     const data = buf.getChannelData(0);
-    for(let i=0;i<size;i++) data[i] = Math.random() * 2 - 1;
+    let last = 0;
+    for(let i=0;i<size;i++){
+      const white = Math.random()*2-1;
+      if(color === "brownish"){ last = (last + .02*white)/1.02; data[i] = last*3.5; }
+      else if(color === "pinkish"){ last = .92*last + .08*white; data[i] = last*2.2; }
+      else data[i] = white;
+    }
     return buf;
   }
 
-  function noise(start, dur, gainNode, filterType="bandpass", freq=700, q=2){
-    const src = ctx.createBufferSource();
-    const filter = ctx.createBiquadFilter();
-    filter.type = filterType;
-    filter.frequency.setValueAtTime(freq, start);
-    filter.Q.value = q;
-    src.buffer = noiseBuffer(dur + 0.1);
-    src.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(master);
-    src.start(start);
-    src.stop(start + dur);
-    active.push(src, filter, gainNode);
-    return src;
+  function impulseBuffer(seconds=.28){
+    const length = Math.floor(ctx.sampleRate * seconds);
+    const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+    for(let c=0;c<2;c++){
+      const data = impulse.getChannelData(c);
+      for(let i=0;i<length;i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/length, 2);
+    }
+    return impulse;
   }
 
-  function play(code, btn){
+  function playEventLayer(ev, baseTime){
+    const start = baseTime + ((ev.offsetMs || 0) / 1000);
+    const dur = Math.max(0.02, (ev.durationMs || 80) / 1000);
+    const peak = clamp((ev.gain && ev.gain.peak) || 0.2, 0.0001, 0.7);
+    const g = ev.envelope && ev.envelope.type === "legacyPop"
+      ? envGainLegacy(start, dur, peak, ev.envelope.endGain || 0.0001)
+      : envGain(start, dur, ev.envelope || {attackMs:3,decayMs:60,sustain:0,releaseMs:80}, peak);
+
+    let src;
+    if(ev.type === "noise"){
+      src = ctx.createBufferSource();
+      src.buffer = noiseBuffer(dur + 0.1, ev.color || "white");
+    }else{
+      src = ctx.createOscillator();
+      src.type = ev.waveform || "sine";
+      const freq = ev.frequency || {};
+      const startHz = Math.max(1, freq.startHz || 440);
+      const endHz = Math.max(1, freq.endHz || startHz);
+      src.frequency.setValueAtTime(startHz, start);
+      if(freq.curve === "exponential" && startHz !== endHz) src.frequency.exponentialRampToValueAtTime(endHz, start + dur);
+      else if(freq.curve !== "flat" && startHz !== endHz) src.frequency.linearRampToValueAtTime(endHz, start + dur);
+    }
+
+    let input = src;
+    if(ev.filter && ev.filter.enabled){
+      const filter = ctx.createBiquadFilter();
+      filter.type = ev.filter.type || "bandpass";
+      filter.frequency.setValueAtTime(ev.filter.frequencyHz || 700, start);
+      filter.Q.value = ev.filter.q || 2;
+      input.connect(filter); input = filter; active.push(filter);
+    }
+
+    if(ev.modulation && ev.modulation.target === "frequency" && src.frequency){
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.type = ev.modulation.waveform || "sine";
+      lfo.frequency.value = ev.modulation.rateHz || 5;
+      lfoGain.gain.value = ev.modulation.depth || 0;
+      lfo.connect(lfoGain); lfoGain.connect(src.frequency);
+      lfo.start(start); lfo.stop(start + dur); active.push(lfo,lfoGain);
+    }
+
+    input.connect(g); g.connect(master);
+    src.start(start); src.stop(start + dur + 0.03);
+    active.push(src, g);
+  }
+
+  function playRecipe(recipe, btn){
     ensureAudio();
+    const t = ctx.currentTime + .01;
+    const durMs = recipe.durationMs || Number(swatchLen.value);
 
-    const [cat, numText] = code.split("-");
-    const n = Number(numText);
-    const t = ctx.currentTime + 0.01;
-    const dur = Number(len.value) / 1000;
-    const fxAmt = Number(fx.value) / 100;
+    if(btn){ btn.classList.add("playing"); setTimeout(()=>btn.classList.remove("playing"), Math.max(90, durMs)); }
 
-    const packedCode = fullSoundCode(code);
-    readout.textContent = packedCode;
-    copybox.textContent = "LAST: " + packedCode;
-    lastCode = code;
-    lastFullCode = packedCode;
-
-    if(btn){
-      btn.classList.add("playing");
-      setTimeout(() => btn.classList.remove("playing"), Math.max(90, dur * 1000));
+    if(Array.isArray(recipe.events) && recipe.events.length){
+      recipe.events.forEach(ev => playEventLayer(ev, t));
+      return;
     }
 
-    const step = n - 1;
-    const pitchA = 180 + step * 45;
-    const pitchB = 80 + step * 18;
-    const high = 520 + step * 105;
-    const low = 75 + step * 22;
+    const n = recipe.nodes;
+    if(!n) return;
+    const dur = Math.max(.02, durMs/1000);
+    const globalGain = recipe.output && typeof recipe.output.globalGain === "number" ? recipe.output.globalGain : Number(vol.value)/100;
+    const peak = clamp(((n.gain && n.gain.peak) || .3) * globalGain, .001, .7);
 
-    switch(cat){
-      case "BEEP":{
-        const g = envGain(t, dur * 0.78, 0.75);
-        osc("sine", 420 + step * 70, t, dur * 0.78, g);
-        break;
-      }
-      case "BOOP":{
-        const g = envGain(t, dur * 1.05, 0.82);
-        osc("triangle", 180 + step * 24, t, dur * 1.05, g, -22 - step * 3);
-        break;
-      }
-      case "BLIP":{
-        const g = envGain(t, Math.max(0.045, dur * 0.42), 0.66);
-        osc("square", 500 + step * 90, t, Math.max(0.045, dur * 0.42), g);
-        break;
-      }
-      case "BUZZ":{
-        const g = envGain(t, dur * 1.05, 0.50);
-        osc("sawtooth", 95 + step * 28, t, dur * 1.05, g);
-        break;
-      }
-      case "FUZZ":{
-        const g = envGain(t, dur * 1.05, 0.75);
-        noise(t, dur * 1.05, g, "bandpass", 220 + step * 120, 1 + fxAmt * 9);
-        break;
-      }
-      case "WAVE":{
-        const base = 220 + step * 36;
-        const g = envGain(t, dur * 1.15, 0.50);
-        const lfo = ctx.createOscillator();
-        const lfoGain = ctx.createGain();
-        const o = ctx.createOscillator();
-        o.type = "sine";
-        o.frequency.setValueAtTime(base, t);
-        lfo.type = "sine";
-        lfo.frequency.value = 4 + step * 0.8;
-        lfoGain.gain.value = 10 + fxAmt * 45;
-        lfo.connect(lfoGain);
-        lfoGain.connect(o.frequency);
-        o.connect(g);
-        g.connect(master);
-        lfo.start(t); o.start(t);
-        lfo.stop(t + dur * 1.15); o.stop(t + dur * 1.15);
-        active.push(lfo,lfoGain,o,g);
-        break;
-      }
-      case "UPLO":{
-        const g = envGain(t, dur, 0.58);
-        osc("sine", low, t, dur, g, 260 + step * 24);
-        break;
-      }
-      case "UPHI":{
-        const g = envGain(t, dur, 0.52);
-        osc("triangle", high, t, dur, g, 420 + step * 60);
-        break;
-      }
-      case "DNLO":{
-        const g = envGain(t, dur, 0.60);
-        osc("sine", low + 330 + step * 20, t, dur, g, -(250 + step * 24));
-        break;
-      }
-      case "DNHI":{
-        const g = envGain(t, dur, 0.52);
-        osc("sawtooth", high + 520 + step * 80, t, dur, g, -(460 + step * 62));
-        break;
-      }
-      case "BEAT":{
-        beat(t, n, dur, fxAmt);
-        break;
-      }
-      case "PING":{
-        const g1 = envGain(t, dur * 1.4, 0.45);
-        const g2 = envGain(t, dur * 1.0, 0.25);
-        osc("sine", 720 + step * 95, t, dur * 1.4, g1);
-        osc("sine", 1440 + step * 190, t, dur * 0.75, g2);
-        break;
-      }
-      case "ZAPP":{
-        const g = envGain(t, dur * 0.9, 0.56);
-        osc("square", 1200 + step * 90, t, dur * 0.9, g, -(650 + step * 55));
-        setTimeout(() => playTinyNoise(t, dur * 0.45, 3600, 0.16), 0);
-        break;
-      }
-      case "TICK":{
-        const g = envGain(t, Math.max(0.025, dur * 0.18), 0.50);
-        noise(t, Math.max(0.025, dur * 0.18), g, "highpass", 700 + step * 180, 3);
-        break;
-      }
-      case "POPP":{
-        const g = envGain(t, dur * 0.35, 0.68);
-        osc("sine", 110 + step * 16, t, dur * 0.35, g, 160 + step * 12);
-        break;
-      }
-      case "CHIR":{
-        const g = envGain(t, dur * 0.55, 0.50);
-        osc("square", 820 + step * 100, t, dur * 0.24, g, 250 + step * 35);
-        const g2 = envGain(t + dur * 0.28, dur * 0.24, 0.42);
-        osc("square", 900 + step * 110, t + dur * 0.28, dur * 0.24, g2, 220 + step * 28);
-        break;
-      }
+    const sourceGain = envGain(t, dur, n.envelope || {attackMs:3,decayMs:60,sustain:0,releaseMs:80}, peak);
+    let src;
+    if(n.source.type === "noise"){
+      src = ctx.createBufferSource();
+      src.buffer = noiseBuffer(dur+.1, n.source.color || "white");
+    }else{
+      src = ctx.createOscillator();
+      src.type = n.source.waveform || "sine";
+      const startHz = Math.max(1, n.frequency.startHz || 440);
+      const endHz = Math.max(1, n.frequency.endHz || startHz);
+      src.frequency.setValueAtTime(startHz, t);
+      if(n.frequency.curve === "exponential" && startHz > 0 && endHz > 0 && startHz !== endHz) src.frequency.exponentialRampToValueAtTime(endHz, t+dur);
+      else if(n.frequency.curve !== "flat" && startHz !== endHz) src.frequency.linearRampToValueAtTime(endHz, t+dur);
     }
 
-    if(loopOn){
-      loopCode = code;
-      if(loopTimer) clearTimeout(loopTimer);
-      const loopDelay = Math.max(60, Number(len.value) + Number(gap.value));
-      loopTimer = setTimeout(() => {
-        if(loopOn && loopCode === code){
-          const nextBtn = document.querySelector(`.pad[data-code="${code}"]`);
-          play(code, nextBtn);
+    let input = src;
+    if(n.filter && n.filter.enabled){
+      const filterNode = ctx.createBiquadFilter();
+      filterNode.type = n.filter.type || "lowpass";
+      filterNode.frequency.setValueAtTime(n.filter.frequencyHz || 2400, t);
+      filterNode.Q.value = n.filter.q || .7;
+      input.connect(filterNode); input = filterNode; active.push(filterNode);
+    }
+
+    input.connect(sourceGain);
+    let output = sourceGain;
+
+    if(n.modulation && n.modulation.enabled){
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.type = n.modulation.waveform || "sine";
+      lfo.frequency.value = n.modulation.rateHz || 5;
+      lfoGain.gain.value = n.modulation.depth || 0;
+      lfo.connect(lfoGain);
+      if(n.modulation.target === "pitch" && src.frequency) lfoGain.connect(src.frequency);
+      else if(n.modulation.target === "gain") { lfoGain.gain.value = (n.modulation.depth || 0)/200; lfoGain.connect(sourceGain.gain); }
+      lfo.start(t); lfo.stop(t+dur+.05); active.push(lfo,lfoGain);
+    }
+
+    const panNode = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if(panNode){ panNode.pan.value = n.pan ? n.pan.value || 0 : 0; output.connect(panNode); output = panNode; active.push(panNode); }
+
+    if(n.compressor && n.compressor.enabled){
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -24; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = .003; comp.release.value = .18;
+      output.connect(comp); output = comp; active.push(comp);
+    }
+
+    if(n.delay && n.delay.enabled){
+      const delay = ctx.createDelay(.8), fb = ctx.createGain(), wet = ctx.createGain();
+      delay.delayTime.value = Math.min(.75, (n.delay.timeMs || 100)/1000);
+      fb.gain.value = clamp(n.delay.feedback || .2, 0, .65);
+      wet.gain.value = clamp(n.delay.mix || .18, 0, .7);
+      output.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
+      active.push(delay,fb,wet);
+    }
+
+    if(n.reverb && n.reverb.enabled){
+      const conv = ctx.createConvolver(), wet = ctx.createGain();
+      conv.buffer = impulseBuffer(n.reverb.size === "large" ? .55 : .28);
+      wet.gain.value = clamp(n.reverb.mix || .16, 0, .7);
+      output.connect(conv); conv.connect(wet); wet.connect(master);
+      active.push(conv,wet);
+    }
+
+    output.connect(master);
+    src.start(t);
+    src.stop(t + dur + .05);
+    active.push(src, sourceGain);
+  }
+
+  function setCurrentRecipe(recipe, mode, padCode){
+    currentRecipe = recipe;
+    currentCode = encodeRecipe(recipe);
+    currentMode = mode || "custom";
+    currentPadCode = padCode || "";
+    readout.textContent = "ENCODED " + (recipe.sourceUI && recipe.sourceUI.label ? recipe.sourceUI.label : "PATCH");
+    customCodePreview.textContent = currentCode;
+  }
+
+  function playCurrent(){
+    if(!currentRecipe){ setCurrentRecipe(customRecipe(), "custom"); }
+    playRecipe(currentRecipe);
+    if(loopOn) scheduleLoop();
+  }
+
+  function scheduleLoop(){
+    if(loopTimer) clearTimeout(loopTimer);
+    const delay = Math.max(60, (currentRecipe ? currentRecipe.durationMs : Number(swatchLen.value)) + (loopGap.checked ? LOOP_GAP_MS : 0));
+    loopTimer = setTimeout(()=>{ if(loopOn && currentRecipe){ playRecipe(currentRecipe); scheduleLoop(); } }, delay);
+  }
+
+  async function copyCurrent(){
+    if(!currentRecipe) setCurrentRecipe(customRecipe(), "custom");
+    try{ await navigator.clipboard.writeText(currentCode); readout.textContent = "COPIED"; setTimeout(()=>readout.textContent="PATCH READY",800); }
+    catch(e){ readout.textContent = "COPY FAILED"; }
+  }
+
+  function openSave(){
+    if(!currentRecipe) setCurrentRecipe(customRecipe(), "custom");
+    $("saveNameInput").value = currentPadCode ? currentPadCode.replace("-","") : "";
+    $("saveModal").classList.add("show");
+    setTimeout(()=>$("saveNameInput").focus(),30);
+  }
+  function closeSave(){ $("saveModal").classList.remove("show"); }
+  function confirmSave(){
+    const name = safeName($("saveNameInput").value || (currentPadCode ? currentPadCode.replace("-","") : "SOUND"));
+    bank.push({name, created:Date.now(), code:currentCode});
+    saveBank(); renderBank(); closeSave(); readout.textContent = "BANKED " + name;
+  }
+
+  function loadBank(){
+    try{ bank = JSON.parse(localStorage.getItem(BANK_KEY) || "[]"); if(!Array.isArray(bank)) bank=[]; }
+    catch(e){ bank=[]; }
+  }
+  function saveBank(){ localStorage.setItem(BANK_KEY, JSON.stringify(bank)); }
+  function renderBank(){
+    bankList.innerHTML = "";
+    if(!bank.length){ bankList.innerHTML = '<div class="emptyBank">BANK EMPTY — SAVE A SWATCH OR CUSTOM PATCH.</div>'; return; }
+    bank.forEach((item, idx)=>{
+      const row = document.createElement("div"); row.className = "bankRow";
+      row.innerHTML = `<div class="bankName" title="${item.name}">${item.name}</div><div class="bankCode">${item.code}</div>`;
+      const play = document.createElement("button"); play.className="ctlBtn"; play.textContent="PLAY"; play.onclick=()=>{ try{ setCurrentRecipe(decodeRecipeCode(item.code), "bank"); playCurrent(); }catch(e){ readout.textContent="BAD CODE"; } };
+      const copy = document.createElement("button"); copy.className="ctlBtn"; copy.textContent="COPY"; copy.onclick=async()=>{ try{ await navigator.clipboard.writeText(item.code); readout.textContent="COPIED " + item.name; }catch(e){ readout.textContent="COPY FAILED"; } };
+      const del = document.createElement("button"); del.className="ctlBtn danger"; del.textContent="DELETE"; del.onclick=()=>{ bank.splice(idx,1); saveBank(); renderBank(); };
+      row.append(play,copy,del); bankList.appendChild(row);
+    });
+  }
+
+  function exportBank(){
+    const data = {app:"Soundsplainer", bankVersion:1, exportedAt:nowIso(), sounds:bank};
+    const text = JSON.stringify(data,null,2);
+    const blob = new Blob([text], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "soundsplainer-bank.json"; document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url); readout.textContent="BANK EXPORTED";
+  }
+  function openImport(){ $("importText").value=""; $("importModal").classList.add("show"); }
+  function closeImport(){ $("importModal").classList.remove("show"); }
+  function confirmImport(){
+    try{
+      const parsed = JSON.parse($("importText").value);
+      const sounds = Array.isArray(parsed) ? parsed : parsed.sounds;
+      if(!Array.isArray(sounds)) throw new Error("No sounds array");
+      let count = 0;
+      sounds.forEach(s=>{
+        if(s && typeof s.code === "string" && s.code.startsWith("DECODE_BASE64_JSON:")){
+          try{ decodeRecipeCode(s.code); bank.push({name:safeName(s.name || "IMPORT"), created:s.created || Date.now(), code:s.code}); count++; }catch(e){}
         }
-      }, loopDelay);
-    }
-  }
-
-  function playTinyNoise(t, dur, freq, peak){
-    const g = envGain(t, dur, peak);
-    noise(t, dur, g, "highpass", freq, 1);
-  }
-
-  function beat(t, n, dur, fxAmt){
-    const step = n - 1;
-    const d = Math.max(0.055, dur * 0.55);
-
-    if(n <= 3){
-      const g = envGain(t, d * 1.45, 0.92);
-      osc("sine", 95 - step * 14, t, d * 1.45, g, -55);
-      playTinyNoise(t, d * 0.35, 1800, 0.13 + fxAmt * 0.18);
-    } else if(n <= 6){
-      const g = envGain(t, d * 0.85, 0.70);
-      noise(t, d * 0.85, g, "bandpass", 900 + step * 130, 3 + fxAmt * 8);
-      const clickG = envGain(t, d * 0.12, 0.42);
-      osc("square", 190 + step * 35, t, d * 0.12, clickG);
-    } else if(n <= 8){
-      const g = envGain(t, d * 1.2, 0.55);
-      noise(t, d * 1.2, g, "highpass", 3600 + step * 240, .5 + fxAmt * 2);
-    } else {
-      const g = envGain(t, d * 1.6, 0.72);
-      osc("triangle", 180 + step * 35, t, d * 1.6, g, -80);
-      const g2 = envGain(t + d * .2, d * 0.7, 0.35);
-      noise(t + d * .2, d * 0.7, g2, "bandpass", 1300 + step * 220, 5);
-    }
+      });
+      saveBank(); renderBank(); closeImport(); readout.textContent = "IMPORTED " + count;
+    }catch(e){ readout.textContent="IMPORT FAILED"; }
   }
 
   function makeBoard(){
-    categories.forEach(([name,hint]) => {
-      const cat = document.createElement("div");
-      cat.className = "cat";
-      cat.innerHTML = `
-        <div class="catHead">
-          <div class="catName">${name}</div>
-          <div class="catHint">${hint}</div>
-        </div>
-        <div class="pads"></div>
-      `;
+    categories.forEach(([name,hint])=>{
+      const cat = document.createElement("div"); cat.className="cat";
+      cat.innerHTML = `<div class="catHead"><div class="catName">${name}</div><div class="catHint">${hint}</div></div><div class="pads"></div>`;
       const pads = cat.querySelector(".pads");
       for(let i=1;i<=10;i++){
-        const btn = document.createElement("button");
-        btn.className = "pad";
-        const num = String(i).padStart(2,"0");
-        const code = `${name}-${num}`;
-        btn.textContent = num;
-        btn.title = code;
-        btn.dataset.code = code;
-        btn.addEventListener("click", () => play(code, btn));
+        const btn = document.createElement("button"); btn.className="pad";
+        const num = String(i).padStart(2,"0"); const code = `${name}-${num}`;
+        btn.textContent = num; btn.title = code; btn.dataset.code = code;
+        btn.addEventListener("click",()=>{ const recipe = swatchRecipe(code); setCurrentRecipe(recipe,"swatch",code); playRecipe(recipe, btn); if(loopOn) scheduleLoop(); });
         pads.appendChild(btn);
       }
       board.appendChild(cat);
     });
   }
 
-
-  function soundKeyText(){
-    const lines = [
-      "SOUNDSPLAINER_KEY_V1",
-      "PURPOSE=user_to_llm_communication_for_browser_native_procedural_sound_codes",
-      "FORMAT=CAT-NN Vvol:Llen:Ggap:Ffx",
-      "V=volume_0_to_100",
-      "L=length_in_milliseconds",
-      "G=loop_gap_in_milliseconds",
-      "F=effect_amount_0_to_100_category_specific",
-      "NN=numbered_variant_within_the_sound_family",
-      "NOTE=higher_numbers_shift_character_within_a_family_but_are_not_a_universal_scale",
-      "CATEGORIES:",
-      ...categories.map(([name, hint]) => `${name}=${hint.replace(/\s+/g, "_")}`),
-      "USAGE=paste_this_key_into_a_chat_first_then_paste_individual_soundsplainer_codes",
-      "EXAMPLE=POPP-08 V28:L180:G105:F35"
-    ];
-    return lines.join("\\n");
+  function syncGlobalLabels(){ volVal.textContent=vol.value; swatchLenVal.textContent=swatchLen.value; }
+  function bindGlobals(){
+    vol.addEventListener("input",()=>{ syncGlobalLabels(); if(currentMode==="custom") updateCustomRecipe(); else if(currentMode==="swatch" && currentPadCode) setCurrentRecipe(swatchRecipe(currentPadCode), "swatch", currentPadCode); });
+    swatchLen.addEventListener("input",()=>{ syncGlobalLabels(); if(currentMode==="swatch" && currentPadCode) setCurrentRecipe(swatchRecipe(currentPadCode), "swatch", currentPadCode); });
+    loopGap.addEventListener("change",()=>{ if(loopOn && currentRecipe) scheduleLoop(); });
   }
 
-  async function copyKey(){
-    const keyText = soundKeyText();
-    try{
-      await navigator.clipboard.writeText(keyText);
-      readout.textContent = "KEY COPIED";
-      setTimeout(() => readout.textContent = lastFullCode === "NONE" ? "READY" : lastFullCode, 900);
-    }catch(e){
-      readout.textContent = "KEY COPY FAILED";
-      setTimeout(() => readout.textContent = lastFullCode === "NONE" ? "READY" : lastFullCode, 900);
-    }
+  function syncCustomLabels(){
+    customIds.forEach(id=>{
+      const el = $(id), out = $(id+"Val"); if(!el || !out) return;
+      let v = el.value;
+      if(id==="cQ" || id==="cGain" || id==="cDelayMix" || id==="cVerb") v = Number(v)/100;
+      if(id==="cPan") v = Number(v)/100;
+      if(id==="cLfoRate") v = (Number(v)/10).toFixed(1);
+      out.textContent = v;
+    });
+    const routeText = {clean:"source → gain → out",filtered:"source → filter → gain → out",echo:"source → gain → delay → out",spacey:"source → gain → reverb → out",tight:"source → gain → compressor → out"};
+    $("routeHint").textContent = routeText[$("cRoute").value] || routeText.clean;
+  }
+  function updateCustomRecipe(){ syncCustomLabels(); setCurrentRecipe(customRecipe(), "custom"); }
+  function bindCustom(){
+    [...customIds,...customSelectIds].forEach(id=>$(id).addEventListener("input", updateCustomRecipe));
+    [...customSelectIds].forEach(id=>$(id).addEventListener("change", updateCustomRecipe));
   }
 
-  async function copyLast(){
-    try{
-      await navigator.clipboard.writeText(lastFullCode);
-      copybox.textContent = "COPIED: " + lastFullCode;
-      setTimeout(() => copybox.textContent = "LAST: " + lastFullCode, 700);
-    }catch(e){
-      copybox.textContent = "COPY FAILED";
-      setTimeout(() => copybox.textContent = "LAST: " + lastFullCode, 700);
-    }
+  function switchTab(name){
+    document.body.classList.toggle("tab-swatches-active", name === "swatches");
+    document.querySelectorAll(".tabBtn").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+    document.querySelectorAll(".tabPanel").forEach(p=>p.classList.remove("active"));
+    $("tab-"+name).classList.add("active");
+    if(name === "custom") updateCustomRecipe();
+    if(name === "bank") renderBank();
   }
 
-  function toggleLoop(){
-    loopOn = !loopOn;
-    loopBtn.classList.toggle("on", loopOn);
-    loopBtn.textContent = loopOn ? "LOOP:ON" : "LOOP:OFF";
-    readout.textContent = loopOn ? "LOOP ARMED" : "LOOP OFF";
-    if(!loopOn && loopTimer){
-      clearTimeout(loopTimer);
-      loopTimer = null;
-      loopCode = null;
-    }
+  function applySkin(n, persist=false){
+    n = Number(n) || SETSKIN;
+    document.body.classList.remove(...Object.values(skinClasses));
+    if(n !== 1) document.body.classList.add(skinClasses[n]);
+    if(persist) localStorage.setItem(SKIN_KEY, String(n));
+    document.querySelectorAll(".skinBtn").forEach(btn=>btn.classList.toggle("active", Number(btn.dataset.skin)===n));
+  }
+  function makeSkinOptions(){
+    const grid = $("skinGrid"); grid.innerHTML = "";
+    Object.entries(skinNames).forEach(([num,name])=>{
+      const btn = document.createElement("button"); btn.className="ctlBtn skinBtn"; btn.dataset.skin=num;
+      btn.innerHTML = `<strong>${num}. ${name}</strong><small>SETSKIN ${num}</small>`;
+      btn.onclick=()=>applySkin(num,true);
+      grid.appendChild(btn);
+    });
+  }
+  function openOptions(){ makeSkinOptions(); applySkin(localStorage.getItem(SKIN_KEY) || SETSKIN, false); $("optionsModal").classList.add("show"); }
+  function closeOptions(){ $("optionsModal").classList.remove("show"); }
+
+  function openOverviewIfNeeded(){
+    if(localStorage.getItem(OVERVIEW_KEY) === "1") return;
+    $("overviewModal").classList.add("show");
+  }
+  function closeOverview(){
+    if($("hideOverviewCheck").checked) localStorage.setItem(OVERVIEW_KEY, "1");
+    $("overviewModal").classList.remove("show");
   }
 
-  loopBtn = document.getElementById("loopBtn");
-  const readmeModal = document.getElementById("readmeModal");
-  const readmeBtn = document.getElementById("readmeBtn");
-  const closeReadmeBtn = document.getElementById("closeReadmeBtn");
+  function bindUI(){
+    $("loopBtn").onclick = ()=>{ loopOn=!loopOn; $("loopBtn").classList.toggle("on",loopOn); $("loopBtn").textContent = loopOn ? "LOOP:ON" : "LOOP:OFF"; if(!loopOn && loopTimer){clearTimeout(loopTimer);loopTimer=null;} else if(loopOn && currentRecipe) scheduleLoop(); };
+    $("stopBtn").onclick = stopAll; $("playBtn").onclick = playCurrent; $("copyBtn").onclick = copyCurrent; $("saveBtn").onclick = openSave;
+    $("customPlayBtn").onclick = ()=>{ updateCustomRecipe(); playCurrent(); };
+    $("customCopyBtn").onclick = ()=>{ updateCustomRecipe(); copyCurrent(); };
+    $("customSaveBtn").onclick = ()=>{ updateCustomRecipe(); openSave(); };
+    document.querySelectorAll(".tabBtn").forEach(btn=>btn.addEventListener("click",()=>switchTab(btn.dataset.tab)));
+    $("optionsBtn").onclick = openOptions; $("closeOptionsBtn").onclick = closeOptions; $("optionsModal").addEventListener("click",e=>{if(e.target===$("optionsModal")) closeOptions();});
+    $("startOverviewBtn").onclick=closeOverview;
+    $("closeSaveBtn").onclick=closeSave; $("cancelSaveBtn").onclick=closeSave; $("confirmSaveBtn").onclick=confirmSave; $("saveModal").addEventListener("click",e=>{if(e.target===$("saveModal")) closeSave();});
+    $("exportBankBtn").onclick=exportBank; $("importBankBtn").onclick=openImport; $("closeImportBtn").onclick=closeImport; $("cancelImportBtn").onclick=closeImport; $("confirmImportBtn").onclick=confirmImport; $("importModal").addEventListener("click",e=>{if(e.target===$("importModal")) closeImport();});
+    document.addEventListener("keydown",e=>{
+      if(e.key === "Escape"){ closeOverview(); closeSave(); closeOptions(); closeImport(); stopAll(); }
+      if(e.key.toLowerCase() === "l" && !e.target.matches("input,textarea,select")) $("loopBtn").click();
+      if(e.key === "Enter" && !e.target.matches("input,textarea,select")) copyCurrent();
+    });
+  }
 
-  function openReadme(){ readmeModal.classList.add("show"); }
-  function closeReadme(){ readmeModal.classList.remove("show"); }
-
-  loopBtn.addEventListener("click", toggleLoop);
-  document.getElementById("stopBtn").addEventListener("click", stopAll);
-  document.getElementById("copyBtn").addEventListener("click", copyLast);
-  document.getElementById("keyBtn").addEventListener("click", copyKey);
-  readmeBtn.addEventListener("click", openReadme);
-  closeReadmeBtn.addEventListener("click", closeReadme);
-  readmeModal.addEventListener("click", e => { if(e.target === readmeModal) closeReadme(); });
-
-  document.addEventListener("keydown", e => {
-    if(e.key === "Escape"){ closeReadme(); stopAll(); }
-    if(e.key.toLowerCase() === "l") toggleLoop();
-    if(e.key.toLowerCase() === "k") copyKey();
-    if(e.key === "Enter") copyLast();
-  });
-
-  copybox.addEventListener("click", copyLast);
-
-  makeBoard();
+  function init(){
+    applySkin(localStorage.getItem(SKIN_KEY) || SETSKIN, false);
+    syncGlobalLabels(); syncCustomLabels(); bindGlobals(); bindCustom(); bindUI(); makeBoard(); loadBank(); renderBank(); updateCustomRecipe(); switchTab("swatches"); openOverviewIfNeeded();
+  }
+  init();
 })();
 </script>
 </body>
