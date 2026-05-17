@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Spacesplainer</title>
+<style>
+  :root{
+    --bg:#070707;
+    --panel:#111;
+    --panel2:#181818;
+    --panel3:#0b0b0b;
+    --line:#505050;
+    --line2:#8a8a8a;
+    --text:#eeeeee;
+    --muted:#a2a2a2;
+    --hot:#ffffff;
+    --accent:#d8d8d8;
+    --accent2:#9f9f9f;
+    --empty:#000;
+    --gridline:rgba(255,255,255,.13);
+    --shadow:rgba(255,255,255,.08);
+    --font:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  }
+
+  body.skin-light{
+    --bg:#ded8c6; --panel:#f2ecd9; --panel2:#fff8e3; --panel3:#e9dfc4;
+    --line:#5a5141; --line2:#191610; --text:#16130e; --muted:#625a48;
+    --hot:#000; --accent:#614d2c; --accent2:#9e7c42; --empty:#fbf3d8;
+    --gridline:rgba(0,0,0,.15); --shadow:rgba(0,0,0,.12);
+  }
+  body.skin-retro{
+    --bg:#001208; --panel:#021c0d; --panel2:#062b16; --panel3:#000b05;
+    --line:#1f8f4c; --line2:#5cff9f; --text:#baffcf; --muted:#61b97d;
+    --hot:#e8fff0; --accent:#5cff9f; --accent2:#ffc857; --empty:#000a04;
+    --gridline:rgba(92,255,159,.18); --shadow:rgba(92,255,159,.12);
+  }
+  body.skin-vibes{
+    --bg:#060610; --panel:#10101f; --panel2:#17172b; --panel3:#090914;
+    --line:#4f4f77; --line2:#d9d7ff; --text:#f4f2ff; --muted:#aaa7d4;
+    --hot:#ffffff; --accent:#a8fff1; --accent2:#ff8ad8; --empty:#03030a;
+    --gridline:rgba(168,255,241,.12); --shadow:rgba(255,138,216,.12);
+  }
+  body.skin-baked{
+    --bg:#1d1209; --panel:#2c1a0e; --panel2:#3a2415; --panel3:#160d07;
+    --line:#8e6847; --line2:#ffd19a; --text:#fff2dc; --muted:#c49a73;
+    --hot:#fff8ec; --accent:#ffb45c; --accent2:#7dd38a; --empty:#100904;
+    --gridline:rgba(255,209,154,.15); --shadow:rgba(255,180,92,.14);
+  }
+  body.skin-moody{
+    --bg:#120817; --panel:#1b1021; --panel2:#271530; --panel3:#0d0612;
+    --line:#654077; --line2:#d2a8ff; --text:#f4eaff; --muted:#b99bd0;
+    --hot:#ffffff; --accent:#c77dff; --accent2:#8be0ff; --empty:#09040d;
+    --gridline:rgba(199,125,255,.15); --shadow:rgba(199,125,255,.18);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);}
+  body{
+    display:flex;align-items:center;justify-content:center;padding:5px;
+    background:
+      radial-gradient(circle at 25% 10%, var(--shadow), transparent 34%),
+      radial-gradient(circle at 75% 90%, rgba(255,255,255,.04), transparent 32%),
+      var(--bg);
+  }
+  button,input,textarea,select{font-family:var(--font);}
+  button,select,input,textarea{border-radius:0;}
+  button{cursor:pointer;}
+
+  .app{
+    width:min(1320px,100vw - 10px);
+    height:min(805px,100vh - 10px);
+    border:2px solid var(--line2);
+    background:linear-gradient(180deg,var(--panel),var(--panel3));
+    box-shadow:0 0 0 2px #000,0 0 36px var(--shadow);
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    gap:8px;
+    padding:8px;
+    min-height:0;
+  }
+
+  header{
+    display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;
+    border:1px solid var(--line);background:var(--panel3);padding:8px 10px;
+  }
+  h1{margin:0;font-size:22px;letter-spacing:2px;text-transform:uppercase;line-height:1;}
+  .subtitle{color:var(--muted);font-size:11px;margin-top:5px;letter-spacing:.5px;}
+  .topControls{display:flex;gap:7px;align-items:center;justify-content:flex-end;flex-wrap:wrap;}
+
+  .btn,.miniBtn,.tabBtn{
+    border:1px solid var(--line2);background:var(--panel2);color:var(--text);
+    text-transform:uppercase;letter-spacing:.5px;
+  }
+  .btn{padding:7px 10px;font-size:12px;}
+  .miniBtn{padding:5px 7px;font-size:10px;}
+  .btn:hover,.miniBtn:hover,.tabBtn:hover{background:var(--accent);color:var(--bg);}
+  .btn:active,.miniBtn:active,.tabBtn:active{transform:translateY(1px);}
+  .btn.danger:hover,.miniBtn.danger:hover{background:#ff8b8b;color:#000;}
+  .tabBtn.active,.btn.active,.miniBtn.active{background:var(--accent);color:var(--bg);border-color:var(--hot);}
+
+  .main{
+    min-height:0;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--panel2),var(--panel3));
+    overflow:hidden;
+    position:relative;
+  }
+  .tabPage{display:none;height:100%;min-height:0;padding:7px;}
+  .tabPage.active{display:grid;grid-template-rows:auto minmax(0,1fr);gap:7px;}
+
+  .footer{
+    border:1px solid var(--line);background:var(--panel3);display:grid;
+    grid-template-columns:1fr auto;gap:8px;align-items:center;padding:7px 8px;
+  }
+  .tabs{display:flex;gap:7px;align-items:center;min-width:0;}
+  .tabBtn{padding:7px 10px;font-size:12px;min-width:92px;}
+  .optionsBox{display:flex;gap:7px;align-items:center;}
+
+  .hintStrip{
+    border:1px solid var(--line);background:rgba(0,0,0,.16);padding:6px 8px;margin-bottom:0;
+    color:var(--muted);font-size:11px;line-height:1.45;
+  }
+  .hintStrip strong{color:var(--accent);}
+  .workspace{height:auto;min-height:0;}
+
+  .gridLayout{display:grid;grid-template-columns:300px 1fr 340px;gap:9px;height:100%;min-height:0;}
+  .depthLayout{display:grid;grid-template-columns:285px 1fr 360px;gap:9px;height:100%;min-height:0;}
+  .panel{border:1px solid var(--line);background:rgba(0,0,0,.13);padding:7px;min-height:0;overflow:hidden;}
+  .scrollPanel{overflow:auto;}
+  .moduleTitle{
+    font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);
+    padding-bottom:7px;margin-bottom:8px;color:var(--hot);display:flex;justify-content:space-between;gap:8px;align-items:center;
+  }
+  .micro{font-size:10px;color:var(--muted);line-height:1.4;}
+  .fieldGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-items:end;}
+  .fieldGrid.single{grid-template-columns:1fr;}
+  label.field{display:grid;gap:4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+  input[type="text"],textarea,select,input[type="number"]{
+    width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);padding:7px;font-size:11px;outline:none;
+  }
+  input[type="checkbox"]{accent-color:var(--accent);}
+  textarea{resize:none;min-height:0;}
+  .divider{height:1px;background:var(--line);opacity:.65;margin:9px 0;}
+
+  /* GRID MODE */
+  .gridButtons{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .paletteList{display:grid;gap:6px;}
+  .paletteRow{display:grid;grid-template-columns:64px 1fr;gap:6px;align-items:center;}
+  .colorBtn{height:28px;border:1px solid var(--line2);font-size:9px;font-weight:bold;color:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;}
+  .colorBtn.active{outline:2px solid var(--hot);outline-offset:2px;}
+  .gridBoardWrap{height:100%;display:flex;align-items:center;justify-content:center;min-height:0;}
+  .gridBoardBox{width:min(100%, 610px, 62vh);aspect-ratio:1/1;border:3px solid var(--line2);background:var(--empty);overflow:hidden;}
+  .gridBoard{width:100%;height:100%;display:grid;background:var(--empty);}
+  .cell{background:var(--empty);border-right:1px solid var(--gridline);border-bottom:1px solid var(--gridline);min-width:0;min-height:0;padding:0;cursor:crosshair;}
+  .cell:hover{outline:2px solid var(--hot);outline-offset:-2px;position:relative;z-index:2;}
+  .codePanel{display:grid;grid-template-rows:auto minmax(110px, 1fr) auto;gap:7px;height:100%;min-height:0;}
+  .gridCodePanel{grid-template-rows:auto 150px auto auto;}
+  .depthCodePanel{grid-template-rows:auto 150px auto minmax(0,1fr) auto;}
+  .codeBox{font-size:10px;line-height:1.35;white-space:pre-wrap;word-break:break-all;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:8px;width:100%;height:100%;min-height:0;resize:none;}
+  .actionRow{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .actionRow.three{grid-template-columns:1fr 1fr 1fr;}
+  .statusLine{font-size:10px;color:var(--muted);min-height:15px;}
+
+  /* DEPTH MODE */
+  .depthStageWrap{height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:7px;min-height:0;}
+  .depthControls{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+  .depthControls select{width:auto;min-width:92px;padding:5px;font-size:10px;}
+  .stage{
+    position:relative;overflow:hidden;border:3px solid var(--line2);background:var(--empty);min-height:0;
+    background-image:
+      linear-gradient(var(--gridline) 1px, transparent 1px),
+      linear-gradient(90deg, var(--gridline) 1px, transparent 1px);
+    background-size:calc(100% / 24) calc(100% / 18);
+  }
+  .stageNote{font-size:9px;line-height:1.25;min-height:12px;}
+  .depthObj{
+    position:absolute;display:flex;z-index:1;align-items:center;justify-content:center;text-align:center;
+    width:clamp(54px, 8vw, 84px);height:clamp(54px, 8vw, 84px);
+    transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.82);color:#050505;
+    font-weight:bold;font-size:10px;line-height:1.05;text-transform:uppercase;user-select:none;cursor:pointer;
+    box-shadow:0 5px 14px rgba(0,0,0,.28);
+    padding:5px;overflow:hidden;
+  }
+  .depthObj.selected{outline:3px solid var(--hot);outline-offset:3px;box-shadow:0 0 0 4px var(--accent2),0 8px 20px rgba(0,0,0,.34);}
+  .depthObj.dimmed{opacity:.18;filter:grayscale(.35);}
+  .shape-circle{border-radius:50%;}
+  .shape-square{border-radius:4px;}
+  .shape-diamond{transform:translate(-50%,-50%) rotate(45deg);}
+  .shape-diamond .objInner{transform:rotate(-45deg);}
+  .shape-triangle{width:0;height:0;border-left:42px solid transparent;border-right:42px solid transparent;border-bottom:78px solid var(--objColor,#ddd);background:transparent!important;border-top:none!important;box-shadow:none;padding:0;}
+  .shape-triangle.selected{outline:none;filter:drop-shadow(0 0 5px var(--hot));}
+  .shape-triangle .objInner{position:absolute;top:28px;left:-35px;width:70px;color:#050505;}
+  .shape-pill{border-radius:999px;}
+  .shape-hex{clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0% 50%);}
+  .objInner small{display:block;font-size:9px;margin-top:2px;opacity:.82;}
+  .movePad{display:grid;grid-template-columns:40px 40px 40px;gap:5px;justify-content:center;align-items:center;}
+  .movePad .blank{height:30px;}
+  .objectList{display:grid;gap:6px;overflow:auto;padding-right:2px;min-height:0;}
+  .objRow{border:1px solid var(--line);background:rgba(0,0,0,.14);padding:6px;display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;}
+  .objRow.selected{border-color:var(--accent);background:rgba(255,255,255,.07);}
+  .objName{font-size:11px;color:var(--hot);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .objMeta{font-size:9px;color:var(--muted);}
+  .rowBtns{display:flex;gap:4px;}
+  .layerKey{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:6px;}
+  .layerChip{font-size:9px;text-align:center;padding:5px 3px;border:1px solid var(--line);color:#050505;font-weight:bold;}
+
+  /* README */
+  .readme{height:100%;overflow:auto;padding:14px 18px 22px;max-width:980px;margin:0 auto;line-height:1.55;font-size:13px;}
+  .readme h2{margin:0 0 10px;font-size:20px;text-transform:uppercase;letter-spacing:1px;}
+  .readme h3{margin:18px 0 6px;font-size:14px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;}
+  .readme p,.readme li{color:var(--text);}
+  .readme code{background:var(--bg);border:1px solid var(--line);padding:1px 4px;}
+  .accentText{color:var(--accent);font-weight:bold;}
+
+  /* MODALS */
+  .modalBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.74);display:none;align-items:center;justify-content:center;padding:18px;z-index:9999;}
+  .modalBackdrop.show{display:flex;}
+  .modal{width:min(760px,96vw);max-height:88vh;overflow:auto;border:2px solid var(--line2);background:var(--panel3);color:var(--text);padding:16px;box-shadow:0 0 38px rgba(0,0,0,.45);}
+  .modal h2{margin:0 0 8px;font-size:19px;text-transform:uppercase;letter-spacing:2px;}
+  .modal p,.modal li{font-size:12px;line-height:1.55;}
+  .modalTop{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:10px;}
+  .modalBottom{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid var(--line);margin-top:12px;padding-top:12px;}
+  .hideCheck{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+  .skinGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:8px;}
+  .skinNote{font-size:10px;color:var(--muted);line-height:1.4;margin-top:8px;}
+
+  .tagPill{display:inline-block;border:1px solid var(--accent);color:var(--accent);padding:1px 6px;margin:0 2px;text-transform:uppercase;font-weight:bold;font-size:.9em;background:rgba(255,255,255,.04);}
+  .relatedTool{border-top:1px solid var(--line);margin-top:12px;padding-top:10px;font-size:12px;color:var(--muted);}
+  .relatedTool a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent);}
+  .relatedTool a:hover{color:var(--hot);border-color:var(--hot);}
+  body.modal-open .depthObj{visibility:hidden;}
+
+  .contextHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;}
+  .contextHead .hideCheck{margin-left:auto;white-space:nowrap;}
+  .sideStatus{font-size:10px;color:var(--muted);min-height:15px;margin-top:5px;}
+  .depthLayout{grid-template-columns:300px minmax(0,1fr) 360px;}
+  .depthAddOutput{display:grid;grid-template-rows:auto auto minmax(150px, .72fr);gap:9px;height:100%;min-height:0;}
+  .depthOutputBlock{display:grid;grid-template-rows:auto minmax(110px,1fr) auto auto;gap:7px;min-height:0;}
+  .depthObjectPanel{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:7px;height:100%;min-height:0;}
+  .depthObjectHeader{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding-bottom:7px;margin-bottom:0;}
+  .depthObjectHeader .moduleTitle{border:0;padding:0;margin:0;}
+  .stageCenter{display:flex;align-items:center;justify-content:center;height:100%;min-height:0;}
+  .stage{width:min(100%, 650px, 70vh);height:auto;aspect-ratio:4/3;max-height:100%;}
+  .depthObj{touch-action:none;}
+  .depthObj.size-oversized{width:clamp(66px, 9.8vw, 102px);height:clamp(66px, 9.8vw, 102px);font-size:10px;}
+  .depthObj.dragging{opacity:.9;cursor:grabbing;}
+  .objRow{min-height:44px;max-height:44px;overflow:hidden;}
+  .objectList{align-content:start;}
+
+
+
+  @media(max-width:1050px){
+    html,body{overflow:auto;height:auto;min-height:100%;}
+    body{align-items:flex-start;}
+    .app{height:auto;min-height:calc(100vh - 20px);}
+    .main{min-height:980px;}
+    .gridLayout,.depthLayout{grid-template-columns:1fr;grid-template-rows:auto 520px auto;height:auto;}
+    .workspace{height:auto;}
+    .tabPage{height:auto;min-height:980px;}
+    .footer{grid-template-columns:1fr;}
+    .tabs{flex-wrap:wrap;}
+    .tabBtn{min-width:0;flex:1;}
+    .optionsBox{justify-content:flex-end;}
+    .stage{height:520px;}
+  }
+  @media(max-width:650px){
+    .app{width:calc(100vw - 10px);padding:6px;gap:6px;}
+    header{grid-template-columns:1fr;padding:7px;}
+    h1{font-size:18px;}
+    .subtitle{font-size:10px;}
+    .main{min-height:1080px;}
+    .fieldGrid{grid-template-columns:1fr;}
+    .skinGrid{grid-template-columns:1fr;}
+    .actionRow,.actionRow.three{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div>
+      <h1>Spacesplainer</h1>
+      <div class="subtitle">Space-to-LLM translator studio · grid packets + depth scenes</div>
+    </div>
+    <div class="topControls">
+      <button class="btn" id="overviewBtn">OVERVIEW</button>
+    </div>
+  </header>
+
+  <section class="main">
+    <section class="tabPage active" id="gridTab">
+      <div class="hintStrip"><strong>GRID</strong> is for flat layouts: maps, tile plans, UI blocks, icons, website sections, and composition regions. Paint color regions, define what they mean, choose interpretation flags, then export a spatial packet.</div>
+      <div class="workspace gridLayout">
+        <aside class="panel scrollPanel">
+          <div class="moduleTitle">Grid Setup</div>
+          <div class="gridButtons">
+            <button class="miniBtn" data-grid-size="8">8x8</button>
+            <button class="miniBtn active" data-grid-size="16">16x16</button>
+            <button class="miniBtn" data-grid-size="24">24x24</button>
+            <button class="miniBtn" data-grid-size="32">32x32</button>
+          </div>
+          <div class="divider"></div>
+          <div class="contextHead">
+            <div class="moduleTitle" style="margin:0;border:0;padding:0;">Palette</div>
+            <label class="hideCheck"><input type="checkbox" id="gridContextOn"> include color context</label>
+          </div>
+          <div class="paletteList" id="paletteList"></div>
+          <div class="divider"></div>
+          <div class="actionRow">
+            <button class="miniBtn" id="gridResetContextBtn">RESET CONTEXT</button>
+            <button class="miniBtn danger" id="gridResetBtn">RESET GRID</button>
+          </div>
+          <p class="micro">Tip: colors are only a visual shorthand. The context labels tell the LLM what each region means.</p>
+          <div class="sideStatus" id="gridStatus">Ready.</div>
+        </aside>
+
+        <section class="panel gridBoardWrap">
+          <div class="gridBoardBox"><div class="gridBoard" id="gridBoard"></div></div>
+        </section>
+
+        <aside class="panel codePanel gridCodePanel">
+          <div>
+            <div class="moduleTitle">Grid Output</div>
+            <div class="micro">Generate when ready. The box can scroll; you only need the full code when copying.</div>
+          </div>
+          <textarea class="codeBox" id="gridCode" spellcheck="false" placeholder="Generated GRID packet appears here."></textarea>
+          <div>
+            <div class="actionRow three">
+              <button class="miniBtn" id="gridGenerateBtn">GENERATE</button>
+              <button class="miniBtn" id="gridCopyBtn">COPY</button>
+              <button class="miniBtn" id="gridClearBtn">CLEAR</button>
+            </div>
+          </div>
+          <div>
+            <div class="moduleTitle">Interpretation</div>
+            <div class="fieldGrid single">
+              <label class="field">View
+                <select id="gridView">
+                  <option value="layout">screen / layout composition</option>
+                  <option value="overhead">overhead / top-down</option>
+                  <option value="front">front view</option>
+                  <option value="side">side view</option>
+                  <option value="abstract">abstract spatial map</option>
+                </select>
+              </label>
+              <label class="field">Orientation
+                <select id="gridOrient">
+                  <option value="none">none / not directional</option>
+                  <option value="north-up">north is top</option>
+                  <option value="east-up">east is top</option>
+                  <option value="south-up">south is top</option>
+                  <option value="west-up">west is top</option>
+                </select>
+              </label>
+              <label class="field">Scale
+                <select id="gridScale">
+                  <option value="relative">relative / rough placement</option>
+                  <option value="tile">tile-accurate</option>
+                  <option value="abstract">abstract proportions</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="tabPage" id="depthTab">
+      <div class="hintStrip"><strong>DEPTH</strong> is for objects that overlap or sit in front of/behind each other. Add labeled tokens, place them on the fine grid, and assign a layer. Layer 1 is closest/front; higher layers move backward.</div>
+      <div class="workspace depthLayout">
+        <aside class="panel depthAddOutput">
+          <div>
+            <div class="moduleTitle">Add Object <span class="micro" id="objCountReadout">0</span></div>
+            <div class="fieldGrid">
+              <label class="field">Shape
+                <select id="objShape">
+                  <option value="circle">circle</option>
+                  <option value="square">square</option>
+                  <option value="diamond">diamond</option>
+                  <option value="hex">hex</option>
+                </select>
+              </label>
+              <label class="field">Layer
+                <select id="objLayer">
+                  <option value="1">1 front</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6 back</option>
+                </select>
+              </label>
+              <label class="field">Label
+                <input type="text" id="objLabel" maxlength="16" placeholder="player, table...">
+              </label>
+              <label class="field">Count
+                <select id="objCount">
+                  <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                  <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                  <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                </select>
+              </label>
+              <label class="field">Size
+                <div class="actionRow two" id="objSizeToggle">
+                  <button type="button" class="miniBtn active" data-obj-size="standard">STANDARD</button>
+                  <button type="button" class="miniBtn" data-obj-size="oversized">OVERSIZED</button>
+                </div>
+              </label>
+            </div>
+            <button class="miniBtn" id="addObjBtn" style="width:100%;margin-top:8px;">ADD</button>
+            <p class="micro">Drag tokens on the board. Positions are center points; shape and size describe visual footprint and overlap.</p>
+          </div>
+
+          <div class="depthOutputBlock">
+            <div>
+              <div class="moduleTitle">Depth Output</div>
+              <div class="micro">Generate when ready. Shape, size, layer, and center position are all encoded.</div>
+            </div>
+            <textarea class="codeBox" id="depthCode" spellcheck="false" placeholder="Generated DEPTH packet appears here."></textarea>
+            <div class="actionRow three">
+              <button class="miniBtn" id="depthGenerateBtn">GENERATE</button>
+              <button class="miniBtn" id="depthCopyBtn">COPY</button>
+              <button class="miniBtn" id="depthClearBtn">CLEAR</button>
+            </div>
+            <div class="statusLine" id="depthStatus">Ready.</div>
+          </div>
+        </aside>
+
+        <section class="panel depthStageWrap">
+          <div class="depthControls">
+            <label class="field" style="display:flex;align-items:center;gap:6px;">Projection
+              <select id="depthProjection">
+                <option value="flat">flat screen space</option>
+                <option value="stage-depth">stage depth: lower is closer</option>
+                <option value="overhead">overhead</option>
+                <option value="front">front view</option>
+                <option value="abstract">abstract</option>
+              </select>
+            </label>
+            <label class="field" style="display:flex;align-items:center;gap:6px;">Focus Layer
+              <select id="focusLayer">
+                <option value="all">all</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              </select>
+            </label>
+          </div>
+          <div class="stageCenter"><div class="stage" id="depthStage" aria-label="Depth scene stage"></div></div>
+          <div class="micro stageNote">Fine snap grid: positions are object centers. Drag objects to place them; size controls visual footprint.</div>
+        </section>
+
+        <aside class="panel depthObjectPanel">
+          <div class="depthObjectHeader">
+            <div class="moduleTitle">Depth Objects</div>
+            <button class="miniBtn danger" id="clearSceneBtn">RESET SCENE</button>
+          </div>
+          <div class="objectList" id="objectList"></div>
+          <div>
+            <div class="moduleTitle">Layer Colors</div>
+            <div class="layerKey" id="layerKey"></div>
+            <p class="micro">Many objects can share the same layer. Layer 1 is front; higher layers sit farther back.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="tabPage" id="readmeTab">
+      <article class="readme">
+        <h2>Spacesplainer README</h2>
+        <p><strong>Spacesplainer is a space-to-LLM translator studio.</strong> It is for people who can arrange what they mean visually but do not want to explain every spatial relationship in prose. Build a <span class="tagPill">GRID</span> or <span class="tagPill">DEPTH</span> scene, copy the encoded packet, paste it into an LLM, and ask it to decode and use the layout.</p>
+
+        <h3>What the output is</h3>
+        <p>Outputs use <code>DECODE_BASE64_JSON:</code>. The encoded JSON contains the tool name, mode, interpretation rules, and spatial data. It is not an image file, not a CAD model, and not true 3D. It is structured layout guidance for an LLM.</p>
+
+        <h3>GRID mode</h3>
+        <p><span class="tagPill">GRID</span> is the upgraded Pixel 2 Prompt idea. Use it for flat maps, tile layouts, icons, website sections, UI blocks, image composition regions, and negative space. Paint cells with colors, then use context labels to say what each color means.</p>
+        <ul>
+          <li><strong>View:</strong> tells the LLM how to interpret the grid. The default is screen/layout composition: like looking at a TV, website, poster, UI, or diagram, not looking down at a map.</li>
+          <li><strong>Orientation:</strong> says whether top means north/east/south/west or has no direction.</li>
+          <li><strong>Scale:</strong> says whether cells are exact tiles, rough placement, or abstract proportions.</li>
+          <li><strong>Context:</strong> turns colors into meanings, like green = hero image or blue = article body.</li>
+        </ul>
+
+        <h3>DEPTH mode</h3>
+        <p><span class="tagPill">DEPTH</span> is for labeled objects that overlap, stack, or sit in front of/behind each other. Add an object, place it on the fine grid, and assign it a layer.</p>
+        <ul>
+          <li><strong>Layer:</strong> a depth plane, not a single slot. Many objects can share one layer.</li>
+          <li><strong>Layer 1:</strong> closest/front. Higher layer numbers are farther back.</li>
+          <li><strong>Focus Layer:</strong> dims other layers so crowded scenes are easier to edit.</li>
+          <li><strong>Projection:</strong> tells the LLM how to read the scene. Stage depth means lower on the canvas is closer to the viewer, like theater seats or stage blocking.</li>
+          <li><strong>Shape + Size:</strong> visual footprint hints. They help the LLM estimate how much objects overlap or cover each other.</li>
+        </ul>
+
+        <h3>Projection glossary</h3>
+        <ul>
+          <li><strong>Flat:</strong> screen positions only, like looking at a flat screen or poster. No top-down map direction is implied.</li>
+          <li><strong>Stage Depth:</strong> lower y positions are closer, higher y positions are farther back, while layer still controls overlap priority.</li>
+          <li><strong>Overhead:</strong> top-down map or floor plan.</li>
+          <li><strong>Front:</strong> looking straight at the scene.</li>
+          <li><strong>Abstract:</strong> relationships matter, but no real physical view is implied.</li>
+        </ul>
+
+        <h3>How to use with an LLM</h3>
+        <p>Copy a packet and paste it into your coding or image-prompting chat. Say something like: <em>“Decode this base64 JSON Spacesplainer packet and use it as the spatial reference for the layout.”</em></p>
+
+        <h3>Privacy & local data</h3>
+        <p>Spacesplainer is intended to run in your browser. It does not require a server, account, analytics, microphone, camera, or file upload. Skin preference and the first-load overview setting are stored in browser <code>localStorage</code>. Copied packets only leave your device if you paste them somewhere else.</p>
+
+        <h3>Tips</h3>
+        <ul>
+          <li>Use GRID when regions, cells, adjacency, and negative space matter.</li>
+          <li>Use DEPTH when front/back overlap matters.</li>
+          <li>Keep labels plain: player, wall, door, logo, sidebar, moon.</li>
+          <li>Use Focus Layer when objects are hiding each other.</li>
+          <li>Do not overbuild the scene. The packet is a translation aid, not a full design file.</li>
+        </ul>
+        <h3>Related tool</h3>
+        <p class="relatedTool">Tired of describing sounds to an LLM? Try <a href="https://your-soundsplainer-link-here.com" target="_blank" rel="noopener">SoundSplainer</a>.</p>
+      </article>
+    </section>
+  </section>
+
+  <footer class="footer">
+    <nav class="tabs">
+      <button class="tabBtn active" data-tab="grid">GRID</button>
+      <button class="tabBtn" data-tab="depth">DEPTH</button>
+      <button class="tabBtn" data-tab="readme">README</button>
+    </nav>
+    <div class="optionsBox"><button class="btn" id="optionsBtn">OPTIONS</button></div>
+  </footer>
+</main>
+
+<div class="modalBackdrop" id="overviewModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalTop">
+      <h2>Spacesplainer</h2>
+      <p><strong>Spacesplainer is a space-to-LLM translator studio.</strong></p>
+      <p><span class="tagPill">GRID</span> handles flat maps, UI blocks, tile plans, icons, and composition regions.</p>
+      <p><span class="tagPill">DEPTH</span> handles labeled objects that overlap, stack, or sit in front of/behind each other.</p>
+    </div>
+    <p>This is built for novice hobby coders and vibe coders: arrange what you mean visually, then let the packet carry the spatial details.</p>
+    <p class="relatedTool">Tired of describing sounds to an LLM? Try <a href="https://your-soundsplainer-link-here.com" target="_blank" rel="noopener">SoundSplainer</a>.</p>
+    <div class="modalBottom">
+      <label class="hideCheck"><input type="checkbox" id="hideOverviewCheck"> hide this on future loads</label>
+      <button class="btn" id="startMappingBtn">START MAPPING</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalBackdrop" id="optionsModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalTop"><h2>Options</h2><p>Choose a skin. The selected skin is saved locally in this browser.</p></div>
+    <div class="moduleTitle">Skins</div>
+    <div class="skinGrid" id="skinGrid"></div>
+    <p class="skinNote"><code>SETSKIN = 1</code> controls the default skin before a local preference is saved. 1 Basic, 2 Light, 3 Retro, 4 Vibes, 5 Baked, 6 Moody.</p>
+    <div class="modalBottom">
+      <button class="btn danger" id="resetOptionsBtn">RESET LOCAL OPTIONS</button>
+      <button class="btn" id="closeOptionsBtn">CLOSE</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modalBackdrop" id="confirmModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalTop"><h2 id="confirmTitle">Reset Scene?</h2><p id="confirmText">This will remove all depth objects.</p></div>
+    <div class="modalBottom">
+      <button class="btn" id="cancelConfirmBtn">CANCEL</button>
+      <button class="btn danger" id="okConfirmBtn">RESET SCENE</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalBackdrop" id="noticeModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modalTop"><h2 id="noticeTitle">Notice</h2><p id="noticeText"></p></div>
+    <div class="modalBottom" style="justify-content:flex-end;">
+      <button class="btn" id="closeNoticeBtn">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const SETSKIN = 1; // 1 Basic, 2 Light, 3 Retro, 4 Vibes, 5 Baked, 6 Moody
+  const MAX_OBJECTS = 54;
+  const MAX_PER_LABEL = 9;
+  const DEPTH_W = 24;
+  const DEPTH_H = 18;
+  const storage = {
+    skin:"spacesplainer.skin.v1",
+    hideOverview:"spacesplainer.hideOverview.v1"
+  };
+
+  const skins = [
+    {id:1,name:"Basic",cls:""},
+    {id:2,name:"Light",cls:"skin-light"},
+    {id:3,name:"Retro",cls:"skin-retro"},
+    {id:4,name:"Vibes",cls:"skin-vibes"},
+    {id:5,name:"Baked",cls:"skin-baked"},
+    {id:6,name:"Moody",cls:"skin-moody"}
+  ];
+
+  const palette = [
+    {name:"red",code:"R",hex:"#ff1b1b",label:"RED"},
+    {name:"blue",code:"B",hex:"#1b56ff",label:"BLUE"},
+    {name:"yellow",code:"Y",hex:"#ffd21b",label:"YELLOW"},
+    {name:"green",code:"G",hex:"#22d142",label:"GREEN"},
+    {name:"orange",code:"O",hex:"#ff8a1b",label:"ORANGE"},
+    {name:"purple",code:"P",hex:"#982cff",label:"PURPLE"},
+    {name:"white",code:"W",hex:"#ffffff",label:"WHITE"},
+    {name:"gray",code:"A",hex:"#8a8a8a",label:"GRAY"},
+    {name:"brown",code:"N",hex:"#8b572a",label:"BROWN"}
+  ];
+  const colorByCode = Object.fromEntries(palette.map(c => [c.code,c]));
+  const layerColors = ["#fff176","#64d8ff","#76ff8a","#b388ff","#ff80c0","#ff9f43"];
+
+  let activeTab = "grid";
+  let gridSize = 16;
+  let activeCode = "R";
+  let gridCells = [];
+  let contextInputs = {};
+  let objects = [];
+  let selectedId = null;
+  let nextId = 1;
+
+  const $ = id => document.getElementById(id);
+
+  function cleanText(v){
+    return String(v || "").replace(/\r?\n/g," ").replace(/[|=,;{}\[\]<>]/g," ").replace(/\s+/g," ").trim();
+  }
+  function b64EncodeUnicode(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function b64DecodeUnicode(str){
+    return decodeURIComponent(escape(atob(str)));
+  }
+  function encodePayload(obj){
+    return "DECODE_BASE64_JSON:" + b64EncodeUnicode(JSON.stringify(obj));
+  }
+  function decodePacket(packet){
+    const prefix = "DECODE_BASE64_JSON:";
+    if(!packet.startsWith(prefix)) throw new Error("Missing DECODE_BASE64_JSON prefix.");
+    return JSON.parse(b64DecodeUnicode(packet.slice(prefix.length)));
+  }
+  async function copyText(text, statusEl){
+    try{
+      await navigator.clipboard.writeText(text);
+      if(statusEl) statusEl.textContent = "Copied.";
+    }catch(e){
+      const ta = document.createElement("textarea");
+      ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+      if(statusEl) statusEl.textContent = "Copied.";
+    }
+  }
+
+  function applySkin(id){
+    skins.forEach(s => { if(s.cls) document.body.classList.remove(s.cls); });
+    const skin = skins.find(s => s.id === Number(id)) || skins[0];
+    if(skin.cls) document.body.classList.add(skin.cls);
+    localStorage.setItem(storage.skin, String(skin.id));
+    renderSkinButtons();
+  }
+  function initSkin(){
+    const saved = Number(localStorage.getItem(storage.skin) || SETSKIN);
+    applySkin(saved);
+  }
+  function renderSkinButtons(){
+    const box = $("skinGrid");
+    if(!box) return;
+    const current = Number(localStorage.getItem(storage.skin) || SETSKIN);
+    box.innerHTML = "";
+    skins.forEach(s => {
+      const b = document.createElement("button");
+      b.className = "btn" + (s.id === current ? " active" : "");
+      b.textContent = `${s.id}. ${s.name}`;
+      b.addEventListener("click", () => applySkin(s.id));
+      box.appendChild(b);
+    });
+  }
+
+  function switchTab(tab){
+    activeTab = tab;
+    document.querySelectorAll(".tabBtn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+    $("gridTab").classList.toggle("active", tab === "grid");
+    $("depthTab").classList.toggle("active", tab === "depth");
+    $("readmeTab").classList.toggle("active", tab === "readme");
+  }
+
+  /* GRID */
+  function emptyGrid(size){ return Array.from({length:size}, () => Array.from({length:size}, () => ".")); }
+  function initPalette(){
+    const list = $("paletteList");
+    list.innerHTML = "";
+    contextInputs = {};
+    palette.forEach(c => {
+      const row = document.createElement("div");
+      row.className = "paletteRow";
+      const btn = document.createElement("div");
+      btn.className = "colorBtn" + (c.code === activeCode ? " active" : "");
+      btn.textContent = c.label;
+      btn.style.background = c.hex;
+      btn.style.color = "#000";
+      btn.addEventListener("click", () => setActiveColor(c.code));
+      const input = document.createElement("input");
+      input.type = "text";
+      input.maxLength = 28;
+      input.placeholder = `${c.name} means...`;
+      input.dataset.code = c.code;
+      contextInputs[c.code] = input;
+      row.appendChild(btn); row.appendChild(input); list.appendChild(row);
+    });
+  }
+  function setActiveColor(code){
+    activeCode = code;
+    document.querySelectorAll(".colorBtn").forEach(btn => btn.classList.toggle("active", btn.textContent === colorByCode[code].label));
+  }
+  function buildGrid(size){
+    gridSize = size;
+    gridCells = emptyGrid(size);
+    const board = $("gridBoard");
+    board.innerHTML = "";
+    board.style.gridTemplateColumns = `repeat(${size},1fr)`;
+    board.style.gridTemplateRows = `repeat(${size},1fr)`;
+    const frag = document.createDocumentFragment();
+    for(let y=0;y<size;y++){
+      for(let x=0;x<size;x++){
+        const cell = document.createElement("button");
+        cell.className = "cell";
+        cell.type = "button";
+        cell.dataset.x = x; cell.dataset.y = y;
+        cell.addEventListener("click", () => {
+          gridCells[y][x] = gridCells[y][x] === activeCode ? "." : activeCode;
+          paintGridCell(cell, gridCells[y][x]);
+        });
+        frag.appendChild(cell);
+      }
+    }
+    board.appendChild(frag);
+    document.querySelectorAll("[data-grid-size]").forEach(b => b.classList.toggle("active", Number(b.dataset.gridSize) === size));
+    $("gridStatus").textContent = `Grid set to ${size}x${size}.`;
+    $("gridCode").value = "";
+  }
+  function paintGridCell(cell, code){ cell.style.background = code === "." ? "var(--empty)" : colorByCode[code].hex; }
+  function resetGrid(){
+    gridCells = emptyGrid(gridSize);
+    Array.from($("gridBoard").children).forEach(cell => paintGridCell(cell,"."));
+    $("gridStatus").textContent = "Grid reset.";
+    $("gridCode").value = "";
+  }
+  function resetGridContext(){
+    Object.values(contextInputs).forEach(input => input.value = "");
+    $("gridCode").value = "";
+    $("gridStatus").textContent = "Context reset.";
+  }
+  function gridRows(){ return gridCells.map(row => row.join("")); }
+  function gridContext(){
+    if(!$("gridContextOn").checked) return {enabled:false, meanings:{}};
+    const meanings = {};
+    palette.forEach(c => {
+      const val = cleanText(contextInputs[c.code]?.value || "");
+      if(val) meanings[c.code] = val;
+    });
+    return {enabled:true, meanings};
+  }
+  function makeGridPayload(){
+    return {
+      messageToLLM:"This is a Spacesplainer GRID spatial packet. Decode this JSON and use it as a front-facing screen/layout spatial reference unless another view is selected. Preserve position, adjacency, scale, clusters, regions, and negative space.",
+      tool:"Spacesplainer",
+      recipeVersion:1,
+      mode:"grid",
+      createdAt:new Date().toISOString(),
+      interpretation:{
+        view:$("gridView").value,
+        orientation:$("gridOrient").value,
+        scale:$("gridScale").value,
+        readOrder:"top-to-bottom rows, left-to-right columns",
+        emptySymbol:".",
+        preserve:["position","adjacency","scale","clusters","negative space","regions"]
+      },
+      grid:{size:gridSize,width:gridSize,height:gridSize,rows:gridRows()},
+      symbolKey:Object.fromEntries(palette.map(c => [c.code,c.name])),
+      colorContext:gridContext()
+    };
+  }
+  function generateGridPacket(){
+    const code = encodePayload(makeGridPayload());
+    $("gridCode").value = code;
+    $("gridStatus").textContent = "Grid packet generated.";
+    return code;
+  }
+
+  /* DEPTH */
+  function layerColor(layer){ return layerColors[Math.max(0, Math.min(5, Number(layer)-1))]; }
+  function renderLayerKey(){
+    const key = $("layerKey"); key.innerHTML = "";
+    for(let i=1;i<=6;i++){
+      const c = document.createElement("div");
+      c.className = "layerChip";
+      c.style.background = layerColor(i);
+      c.textContent = `L${i}`;
+      key.appendChild(c);
+    }
+  }
+  function findSpawnSpot(startX, startY){
+    const occupied = new Set(objects.map(o => `${o.x},${o.y}`));
+    const clampX = x => Math.max(0, Math.min(DEPTH_W-1, x));
+    const clampY = y => Math.max(0, Math.min(DEPTH_H-1, y));
+    const centerX = clampX(startX), centerY = clampY(startY);
+    if(!occupied.has(`${centerX},${centerY}`)) return {x:centerX,y:centerY};
+    for(let r=1; r<Math.max(DEPTH_W, DEPTH_H); r++){
+      for(let dy=-r; dy<=r; dy++){
+        for(let dx=-r; dx<=r; dx++){
+          if(Math.abs(dx)!==r && Math.abs(dy)!==r) continue;
+          const x = clampX(centerX+dx), y = clampY(centerY+dy), key = `${x},${y}`;
+          if(!occupied.has(key)) return {x,y};
+        }
+      }
+    }
+    return {x:centerX,y:centerY};
+  }
+  function labelBase(raw){ return cleanText(raw).slice(0,16); }
+  function labelRoot(label){ return String(label).replace(/\s+\d+$/,'').trim().toLowerCase(); }
+  function countForLabel(root){ return objects.filter(o => labelRoot(o.label) === root.toLowerCase()).length; }
+  function showNotice(title, text){
+    $("noticeTitle").textContent = title;
+    $("noticeText").textContent = text;
+    openModal("noticeModal");
+  }
+  function addObject(fromObj=null){
+    const shape = fromObj ? fromObj.shape : $("objShape").value;
+    const layer = Number(fromObj ? fromObj.layer : $("objLayer").value);
+    const size = fromObj ? (fromObj.size || "standard") : (document.querySelector("#objSizeToggle [data-obj-size].active")?.dataset.objSize || "standard");
+    const rawLabel = fromObj ? fromObj.label.replace(/\s+\d+$/,'') : $("objLabel").value;
+    const base = labelBase(rawLabel) || `object`;
+    const count = fromObj ? 1 : Number($("objCount").value || 1);
+    const root = base.toLowerCase();
+    const existing = countForLabel(root);
+    const available = Math.max(0, MAX_PER_LABEL - existing);
+    const totalAvailable = Math.max(0, MAX_OBJECTS - objects.length);
+    if(totalAvailable <= 0){
+      showNotice("Scene Limit Reached", `Maximum scene object limit reached. Remove existing objects or simplify your scene.`);
+      return;
+    }
+    if(available <= 0){
+      showNotice("Label Limit Reached", `Maximum of ${MAX_PER_LABEL} objects reached for this label. Adjust the label, remove existing objects, or simplify your scene.`);
+      return;
+    }
+    const toAdd = Math.min(count, available, totalAvailable);
+    const preferredBaseX = fromObj ? fromObj.x + 1 : Math.floor(DEPTH_W/2);
+    const preferredBaseY = fromObj ? fromObj.y : Math.floor(DEPTH_H/2);
+    let lastObj = null;
+    for(let i=0;i<toAdd;i++){
+      const label = (count > 1 || existing > 0) ? `${base.slice(0,13)} ${existing + i + 1}`.slice(0,16) : base;
+      const spot = findSpawnSpot(preferredBaseX + i, preferredBaseY);
+      const obj = {id:nextId++, label, shape, layer, size, x:spot.x, y:spot.y};
+      objects.push(obj);
+      lastObj = obj;
+    }
+    if(lastObj) selectedId = lastObj.id;
+    renderDepth();
+    $("depthCode").value = "";
+    $("depthStatus").textContent = fromObj ? "Object cloned." : (toAdd === 1 ? "Object added." : `${toAdd} objects added.`);
+    if(!fromObj){
+      $("objLabel").value = "";
+      $("objCount").value = "1";
+    }
+    if(toAdd < count){
+      showNotice("Partial Add", `Only ${toAdd} object${toAdd===1?"":"s"} added because this label is capped at ${MAX_PER_LABEL}. Adjust the label or remove existing objects to add more.`);
+    }
+  }
+  function selectedObj(){ return objects.find(o => o.id === selectedId) || null; }
+  function selectObj(id){ selectedId = id; renderDepth(); }
+  function removeObject(id){
+    objects = objects.filter(o => o.id !== id);
+    selectedId = objects[0]?.id || null;
+    renderDepth(); $("depthCode").value = "";
+    $("depthStatus").textContent = "Object removed.";
+  }
+  function clearDepth(){
+    objects = []; selectedId = null; nextId = 1; renderDepth(); $("depthCode").value = ""; $("depthStatus").textContent = "Depth scene cleared.";
+  }
+  function beginDrag(e, obj){
+    if(e.button !== undefined && e.button !== 0) return;
+    e.preventDefault();
+    selectedId = obj.id;
+    const stage = $("depthStage");
+    const target = e.currentTarget;
+    target.classList.add("dragging");
+    target.setPointerCapture && target.setPointerCapture(e.pointerId);
+    function move(ev){
+      const rect = stage.getBoundingClientRect();
+      const px = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+      const py = Math.max(0, Math.min(1, (ev.clientY - rect.top) / rect.height));
+      obj.x = Math.max(0, Math.min(DEPTH_W-1, Math.round(px * (DEPTH_W-1))));
+      obj.y = Math.max(0, Math.min(DEPTH_H-1, Math.round(py * (DEPTH_H-1))));
+      target.style.left = `${(obj.x / (DEPTH_W-1))*100}%`;
+      target.style.top = `${(obj.y / (DEPTH_H-1))*100}%`;
+      $("depthCode").value = "";
+      renderObjectList();
+    }
+    function up(ev){
+      target.classList.remove("dragging");
+      target.releasePointerCapture && target.releasePointerCapture(e.pointerId);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      renderDepth();
+    }
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    renderObjectList();
+  }
+  function renderDepth(){
+    const stage = $("depthStage");
+    stage.innerHTML = "";
+    const focus = $("focusLayer").value;
+    objects.slice().sort((a,b) => b.layer - a.layer || a.id - b.id).forEach(o => {
+      const el = document.createElement("div");
+      el.className = `depthObj shape-${o.shape} size-${o.size || "standard"}` + (o.id === selectedId ? " selected" : "") + (focus !== "all" && Number(focus) !== o.layer ? " dimmed" : "");
+      el.style.left = `${(o.x / (DEPTH_W-1))*100}%`;
+      el.style.top = `${(o.y / (DEPTH_H-1))*100}%`;
+      el.style.zIndex = String(100 - o.layer);
+      el.style.background = layerColor(o.layer);
+      el.style.setProperty("--objColor", layerColor(o.layer));
+      const inner = document.createElement("div");
+      inner.className = "objInner";
+      inner.innerHTML = `${escapeHtml(o.label).slice(0,16)}<small>L${o.layer} · ${o.size === "oversized" ? "OVR" : "STD"}</small>`;
+      el.appendChild(inner);
+      el.addEventListener("pointerdown", ev => beginDrag(ev, o));
+      el.addEventListener("click", () => selectObj(o.id));
+      stage.appendChild(el);
+    });
+    renderObjectList();
+    $("objCountReadout").textContent = `${objects.length}/${MAX_OBJECTS}`;
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])); }
+  function renderObjectList(){
+    const list = $("objectList"); list.innerHTML = "";
+    if(!objects.length){
+      const p = document.createElement("p"); p.className = "micro"; p.textContent = "No objects yet. Add one on the left."; list.appendChild(p); return;
+    }
+    objects.slice().sort((a,b)=>a.layer-b.layer || a.id-b.id).forEach(o => {
+      const row = document.createElement("div");
+      row.className = "objRow" + (o.id === selectedId ? " selected" : "");
+      row.style.background = `color-mix(in srgb, ${layerColor(o.layer)} 34%, transparent)`;
+      row.addEventListener("click", () => selectObj(o.id));
+      const info = document.createElement("div");
+      info.innerHTML = `<div class="objName">${escapeHtml(o.label)}</div><div class="objMeta">${o.shape} · ${o.size || "standard"} · L${o.layer} · x${o.x}, y${o.y}</div>`;
+      const btns = document.createElement("div"); btns.className = "rowBtns";
+      const clone = document.createElement("button"); clone.className = "miniBtn"; clone.textContent = "+"; clone.title = "Clone"; clone.addEventListener("click", e => { e.stopPropagation(); addObject(o); });
+      const rem = document.createElement("button"); rem.className = "miniBtn danger"; rem.textContent = "×"; rem.title = "Remove"; rem.addEventListener("click", e => { e.stopPropagation(); removeObject(o.id); });
+      btns.appendChild(clone); btns.appendChild(rem);
+      row.appendChild(info); row.appendChild(btns); list.appendChild(row);
+    });
+  }
+  function makeDepthPayload(){
+    return {
+      messageToLLM:"This is a Spacesplainer DEPTH spatial packet. Decode this JSON and use it as an object/layer spatial reference. Preserve object labels, center positions, shape silhouettes, size/footprint, overlap, layer order, and projection rules.",
+      tool:"Spacesplainer",
+      recipeVersion:1,
+      mode:"depth",
+      createdAt:new Date().toISOString(),
+      interpretation:{
+        grid:"fine snap grid",
+        coordinateSystem:"x left-to-right, y top-to-bottom; each object position is its center point",
+        projection:$("depthProjection").value,
+        projectionRule:projectionRule($("depthProjection").value),
+        layers:"Layer 1 is closest/front. Higher layer numbers are farther back. Many objects can share one layer.",
+        shapeAndSize:"Each object has a shape silhouette and size. Standard and oversized tokens use size as the relative visual footprint around the center point to infer how much nearby or overlapping objects visually cover each other.",
+        visualNote:"Layer colors are human-facing handles. Label/context is the main semantic meaning. Shape and size are spatial coverage hints."
+      },
+      grid:{width:DEPTH_W,height:DEPTH_H,positionMeans:"object center"},
+      layers:{count:6,frontLayer:1,backLayer:6},
+      objects:objects.map(o => ({id:o.id,label:o.label,shape:o.shape,size:o.size || "standard",x:o.x,y:o.y,layer:o.layer}))
+    };
+  }
+  function projectionRule(mode){
+    if(mode === "stage-depth") return "Lower y positions are closer to the viewer; higher y positions are farther back, while explicit layer still controls overlap priority.";
+    if(mode === "overhead") return "Read as a top-down map or floor plan.";
+    if(mode === "front") return "Read as looking straight at the scene.";
+    if(mode === "abstract") return "Read as abstract spatial relationships, not a physical camera.";
+    return "Read as flat screen space with no additional perspective rule.";
+  }
+  function generateDepthPacket(){
+    const code = encodePayload(makeDepthPayload());
+    $("depthCode").value = code;
+    return code;
+  }
+
+  function updateModalState(){
+    const anyOpen = Array.from(document.querySelectorAll(".modalBackdrop")).some(m => m.classList.contains("show"));
+    document.body.classList.toggle("modal-open", anyOpen);
+  }
+  function openModal(id){ $(id).classList.add("show"); updateModalState(); }
+  function closeModal(id){ $(id).classList.remove("show"); updateModalState(); }
+  function closeAllModals(){ document.querySelectorAll(".modalBackdrop.show").forEach(m => m.classList.remove("show")); updateModalState(); }
+
+  function bindEvents(){
+    document.querySelectorAll(".tabBtn").forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+    $("optionsBtn").addEventListener("click", () => openModal("optionsModal"));
+    $("closeOptionsBtn").addEventListener("click", () => closeModal("optionsModal"));
+    $("resetOptionsBtn").addEventListener("click", () => { localStorage.removeItem(storage.skin); localStorage.removeItem(storage.hideOverview); applySkin(SETSKIN); });
+    $("overviewBtn").addEventListener("click", () => openModal("overviewModal"));
+    $("startMappingBtn").addEventListener("click", () => {
+      if($("hideOverviewCheck").checked) localStorage.setItem(storage.hideOverview,"1");
+      closeModal("overviewModal");
+    });
+    document.querySelectorAll("[data-grid-size]").forEach(b => b.addEventListener("click", () => buildGrid(Number(b.dataset.gridSize))));
+    document.querySelectorAll("#objSizeToggle [data-obj-size]").forEach(b => b.addEventListener("click", () => {
+      document.querySelectorAll("#objSizeToggle [data-obj-size]").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+    }));
+    $("gridResetBtn").addEventListener("click", resetGrid);
+    $("gridResetContextBtn").addEventListener("click", resetGridContext);
+    $("gridGenerateBtn").addEventListener("click", generateGridPacket);
+    $("gridCopyBtn").addEventListener("click", () => copyText($("gridCode").value || generateGridPacket(), $("gridStatus")));
+    $("gridClearBtn").addEventListener("click", () => { $("gridCode").value = ""; $("gridStatus").textContent = "Output cleared."; });
+    ["gridView","gridOrient","gridScale","gridContextOn"].forEach(id => $(id).addEventListener("change", () => { $("gridCode").value = ""; $("gridStatus").textContent = "Changed. Generate when ready."; }));
+    $("addObjBtn").addEventListener("click", () => addObject());
+    $("depthClearBtn").addEventListener("click", () => { $("depthCode").value = ""; $("depthStatus").textContent = "Output cleared."; });
+    $("clearSceneBtn").addEventListener("click", () => openModal("confirmModal"));
+    $("depthGenerateBtn").addEventListener("click", () => { generateDepthPacket(); $("depthStatus").textContent = "Depth packet generated."; });
+    $("depthCopyBtn").addEventListener("click", () => copyText($("depthCode").value || generateDepthPacket(), $("depthStatus")));
+    $("okConfirmBtn").addEventListener("click", () => { clearDepth(); closeModal("confirmModal"); });
+    $("cancelConfirmBtn").addEventListener("click", () => closeModal("confirmModal"));
+    $("closeNoticeBtn").addEventListener("click", () => closeModal("noticeModal"));
+    $("focusLayer").addEventListener("change", renderDepth);
+    $("depthProjection").addEventListener("change", () => { $("depthCode").value = ""; $("depthStatus").textContent = "Projection changed. Generate when ready."; });
+    document.addEventListener("keydown", e => {
+      if($("overviewModal").classList.contains("show") || $("optionsModal").classList.contains("show") || $("confirmModal").classList.contains("show") || $("noticeModal").classList.contains("show")){
+        if(e.key === "Escape") closeAllModals();
+        return;
+      }
+      if(e.key === "Escape") closeAllModals();
+    });
+    ["optionsModal","overviewModal","confirmModal","noticeModal"].forEach(id => $(id).addEventListener("click", e => { if(e.target === $(id)) closeModal(id); }));
+  }
+
+  function init(){
+    initSkin(); renderSkinButtons(); bindEvents(); initPalette(); renderLayerKey(); buildGrid(16); renderDepth();
+    $("gridCode").value = "";
+    $("depthCode").value = "";
+    if(localStorage.getItem(storage.hideOverview) !== "1") openModal("overviewModal");
+  }
+  init();
+})();
+</script>
+</body>
+</html>
