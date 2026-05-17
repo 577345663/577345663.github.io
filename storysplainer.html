@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StorySplainer</title>
+<style>
+:root{
+  --bg:#070707;--panel:#111;--panel2:#181818;--line:#444;--line2:#777;
+  --text:#eee;--muted:#999;--hot:#fff;--accent:#eee;--font:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+}
+body.skin-light{--bg:#e8e1d1;--panel:#f5eddd;--panel2:#fff7e8;--line:#62584b;--line2:#211c17;--text:#17120f;--muted:#665d51;--hot:#000;--accent:#3e3126;}
+body.skin-retro{--bg:#001208;--panel:#061c11;--panel2:#082817;--line:#216f46;--line2:#45dc8a;--text:#aaffca;--muted:#6aaa84;--hot:#e8ffef;--accent:#67ff9f;}
+body.skin-vibes{--bg:#080713;--panel:#141226;--panel2:#1d1834;--line:#4d3f78;--line2:#9b8cff;--text:#f1edff;--muted:#aaa0d2;--hot:#fff;--accent:#a99cff;}
+body.skin-baked{--bg:#160d08;--panel:#24160e;--panel2:#351f12;--line:#704328;--line2:#f1a760;--text:#fff0dc;--muted:#c89d77;--hot:#fff7ec;--accent:#ffb45f;}
+body.skin-moody{--bg:#100914;--panel:#1b1022;--panel2:#25152e;--line:#4c315d;--line2:#bd8dd8;--text:#f2e9f7;--muted:#bca8c8;--hot:#fff;--accent:#d4a2f4;}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font)}
+body{display:flex;align-items:center;justify-content:center;padding:10px;background:radial-gradient(circle at 50% 12%,rgba(255,255,255,.08),transparent 38%),var(--bg)}
+button,input,select,textarea{font-family:var(--font)}
+button{cursor:pointer}
+.app{width:min(1240px,calc(100vw - 20px));height:min(760px,calc(100vh - 20px));border:2px solid var(--line2);background:linear-gradient(180deg,var(--panel),var(--bg));box-shadow:0 0 0 2px #000,0 0 30px rgba(255,255,255,.08);padding:10px;display:grid;grid-template-rows:auto 1fr auto;gap:8px;min-height:0}
+header{border:1px solid var(--line);background:var(--panel);padding:8px 10px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}.topControls{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+h1{margin:0;font-size:21px;letter-spacing:2px;text-transform:uppercase;line-height:1}
+.subtitle{margin-top:4px;color:var(--muted);font-size:11px;letter-spacing:.4px}
+.btn,.miniBtn,.tabBtn,.modeBtn{border:1px solid var(--line2);background:var(--panel2);color:var(--text);text-transform:uppercase;letter-spacing:.5px}
+.btn{padding:7px 10px;font-size:12px}.miniBtn{padding:6px 8px;font-size:10px}.tabBtn{min-width:92px;padding:7px 10px;font-size:12px}.modeBtn{padding:7px;font-size:10px}
+.btn:hover,.miniBtn:hover,.tabBtn:hover,.modeBtn:hover,.btn.active,.miniBtn.active,.tabBtn.active,.modeBtn.active,.skinBtn.active{background:var(--accent)!important;color:var(--bg)!important;border-color:var(--hot)!important}
+.danger{border-color:#bdbdbd}
+.main{min-height:0;overflow:hidden}.tabPage{display:none;height:100%;min-height:0}.tabPage.active{display:grid;grid-template-rows:auto 1fr;gap:8px}
+.hintStrip{border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:8px 10px;font-size:11px;line-height:1.45}.hintStrip strong,.accent{color:var(--accent)}
+.workspace{min-height:0;display:grid;gap:8px}.sceneLayout{grid-template-columns:310px 1fr 360px}.nodesLayout{grid-template-columns:repeat(3,1fr)}.bankLayout{grid-template-columns:1fr 360px}
+.panel{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));padding:9px;min-height:0;overflow:hidden}.scrollPanel{overflow:auto}
+.moduleTitle{font-size:12px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--text);font-weight:bold}
+.micro{font-size:10px;color:var(--muted);line-height:1.4}.divider{border-top:1px solid var(--line);margin:8px 0}
+label.field{display:grid;gap:4px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--text);padding:7px;font-size:11px;outline:none}
+textarea{resize:none;min-height:0;line-height:1.35}.fieldGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actionRow{display:grid;grid-template-columns:1fr 1fr;gap:6px}.actionRow.three{grid-template-columns:1fr 1fr 1fr}
+.worldBox{display:grid;grid-template-rows:auto auto 1fr auto;gap:8px;height:100%}.worldDescField{display:grid;grid-template-rows:auto 1fr;gap:4px;min-height:0}.worldDesc{height:100%;min-height:0}.lockRow{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:10px;text-transform:uppercase}.lockRow input{width:auto}
+.scenarioBox{display:grid;grid-template-rows:auto auto auto minmax(105px,1fr) auto auto;gap:8px;height:100%;min-height:0}.includeAdder{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.includeList{min-height:70px;max-height:130px;overflow:auto;border:1px solid var(--line);background:var(--bg);padding:7px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px}
+.chip{border:1px solid var(--line2);background:var(--panel2);display:inline-flex;align-items:center;gap:6px;padding:4px 6px;font-size:10px;max-width:100%}.chip .x{border:0;background:transparent;color:var(--muted);padding:0 2px}.type-person{border-color:#9bd0ff}.type-place{border-color:#c9ff9b}.type-thing{border-color:#ffd08d}
+.modeRow{display:grid;grid-template-columns:1fr 1fr;gap:6px}.storyboardBox{border:1px solid var(--line);background:var(--bg);padding:7px;display:grid;grid-template-columns:80px 1fr auto;gap:7px;align-items:end}.storyboardBox .hideCheck{align-self:center;padding-bottom:7px}.instructions{height:100%;min-height:105px}.outputPanel{display:grid;grid-template-rows:auto 1fr auto auto;gap:8px;height:100%;min-height:0}
+.codeBox{font-size:10px;line-height:1.35;white-space:pre-wrap;word-break:break-all;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:8px;width:100%;height:100%;min-height:0;resize:none}.statusLine{font-size:10px;color:var(--muted);min-height:14px}
+.nodeColumn{display:grid;grid-template-rows:auto auto 1fr;gap:8px}.addNodeBox{display:grid;gap:7px}.nodeFour{display:grid;grid-template-columns:1fr 1fr;gap:7px}.nodeList{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:6px}
+.nodeCard{border:1px solid var(--line);background:var(--bg);padding:7px}.nodeTop{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:6px}.nodeName{font-size:12px;font-weight:bold;color:var(--hot);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nodeSent{font-size:10px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nodeMeta{font-size:9px;color:var(--muted);text-transform:uppercase}.nodeLock{display:flex;align-items:center;gap:3px;font-size:9px;color:var(--muted)}.nodeLock input{width:auto}.nodeDetails{display:none;margin-top:8px;border-top:1px solid var(--line);padding-top:8px}.nodeCard.open .nodeDetails{display:grid;gap:8px}
+.relAdder{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:end}.relList{display:flex;flex-direction:column;gap:4px;max-height:130px;overflow:auto}.relRow{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;border:1px solid var(--line);background:var(--panel);padding:5px;font-size:10px;color:var(--muted)}.relRow strong{color:var(--accent)}
+.emptyNote{font-size:10px;color:var(--muted);border:1px dashed var(--line);padding:8px;text-align:center}.bankList{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:7px}.bankRow{border:1px solid var(--line);background:var(--bg);padding:8px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;cursor:pointer}.bankRow.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.bankName{font-size:12px;color:var(--hot);font-weight:bold;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bankInfo{font-size:10px;color:var(--muted);margin-top:3px}.scenarioPreview{border:1px solid var(--line);background:var(--bg);padding:8px;margin:8px 0;font-size:10px;line-height:1.45;color:var(--muted);min-height:190px;max-height:260px;overflow:auto}.scenarioPreview strong{color:var(--accent)}.bankActions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.readme{height:100%;overflow:auto;max-width:980px;margin:0 auto;padding:14px 18px 24px;font-size:13px;line-height:1.55}.readme h2{margin:0 0 10px;font-size:20px;text-transform:uppercase;letter-spacing:1px}.readme h3{margin:18px 0 6px;font-size:14px;color:var(--accent);text-transform:uppercase;letter-spacing:1px}.tagPill{display:inline-block;border:1px solid var(--accent);color:var(--accent);padding:1px 6px;margin:0 2px;text-transform:uppercase;font-weight:bold;font-size:.9em;background:rgba(255,255,255,.04)}.relatedTool{border-top:1px solid var(--line);margin-top:14px;padding-top:10px;font-size:12px;color:var(--muted)}
+footer{border:1px solid var(--line);background:var(--panel);padding:7px 8px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.tabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.optionsSide{display:flex;gap:6px;align-items:center}.toast{min-width:88px;text-align:right;font-size:10px;color:var(--accent);opacity:0;transition:opacity .25s ease}.toast.show{opacity:1}
+.modalBackdrop{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);padding:18px}.modalBackdrop.show{display:flex}.modal{width:min(720px,96vw);max-height:88vh;overflow:auto;border:2px solid var(--line2);background:var(--panel);color:var(--text);box-shadow:0 0 28px rgba(255,255,255,.08);padding:16px}.modal h2{margin:0 0 8px;font-size:19px;text-transform:uppercase;letter-spacing:2px}.modal p,.modal li{font-size:12px;line-height:1.55}.modalTop{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}.modalActions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}.hideCheck{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:6px}.hideCheck input{width:auto}.skinGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+@media(max-width:1050px){html,body{overflow:auto;height:auto}body{align-items:flex-start}.app{height:auto;min-height:calc(100vh - 20px)}.sceneLayout,.nodesLayout,.bankLayout{grid-template-columns:1fr}.workspace{min-height:600px}.tabPage.active{min-height:900px}.worldDesc,.instructions{min-height:120px}footer{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="skin-basic">
+<main class="app">
+<header><div><h1>StorySplainer</h1><div class="subtitle">Narrative context engine · world signals + reusable scenarios</div></div><div class="topControls"><button class="btn" id="demoBtn">DEMO</button><button class="btn" id="overviewBtn">OVERVIEW</button></div></header>
+<section class="main">
+<section class="tabPage active" id="sceneTab">
+<div class="hintStrip"><strong>SCENE</strong> is the working screen. Write what happens, include the nodes that matter, then generate a structured packet your LLM can decode and use.</div>
+<div class="workspace sceneLayout">
+<aside class="panel worldBox">
+<div class="moduleTitle">World Header <label class="lockRow" style="margin:0"><input type="checkbox" id="worldLock"> lock</label></div>
+<label class="field">World Title<input id="worldTitle" maxlength="80" placeholder="World title"></label>
+<label class="field worldDescField">World Description<textarea id="worldDesc" class="worldDesc" maxlength="4000" placeholder="Describe setting, tone, rules, constraints, and background context."></textarea></label>
+<div>
+  <div class="moduleTitle" style="margin-bottom:6px;">World Controls</div>
+  <div class="actionRow three"><button class="miniBtn" id="worldImportBtn">IMPORT</button><button class="miniBtn" id="worldExportBtn">EXPORT</button><button class="miniBtn danger" id="worldCreateBtn">CREATE</button></div>
+</div>
+<div class="micro">World data is global context. Export before creating a new world if you want to keep your current work.</div>
+</aside>
+<section class="panel scenarioBox">
+<div class="moduleTitle">Scenario Builder <span class="micro" id="includeCount">0 included</span></div>
+<div class="includeAdder">
+<label class="field">Persons<select id="addPersonSelect"></select><button class="miniBtn" id="addPersonBtn">ADD PERSON</button></label>
+<label class="field">Places<select id="addPlaceSelect"></select><button class="miniBtn" id="addPlaceBtn">ADD PLACE</button></label>
+<label class="field">Things<select id="addThingSelect"></select><button class="miniBtn" id="addThingBtn">ADD THING</button></label>
+</div>
+<div><div class="moduleTitle" style="margin-bottom:5px">Scene Includes</div><div class="includeList" id="includeList"></div></div>
+<div><div class="moduleTitle" style="margin-bottom:5px">Context Mode</div><div class="modeRow"><button class="modeBtn active" id="modeIncludes">INCLUDES ONLY</button><button class="modeBtn" id="modeFull">FULL WORLD</button></div><div class="micro" id="modeHint" style="margin-top:5px">Includes Only sends selected nodes and relationships between them.</div></div>
+<label class="field" style="min-height:0">Special Instructions<textarea id="instructions" class="instructions" placeholder="Describe what should happen in this scene."></textarea></label>
+<div>
+  <div class="moduleTitle" style="margin-bottom:5px;">Storyboard</div>
+  <div class="storyboardBox">
+    <label class="field">Frames
+      <select id="storyboardCount"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option></select>
+    </label>
+    <label class="field">Style
+      <select id="storyboardStyle"><option value="photo-real">Photo Real</option><option value="illustration">Illustration</option><option value="pencil-sketch">Pencil Sketch</option></select>
+    </label>
+    <label class="hideCheck"><input type="checkbox" id="storyboardOnly"> storyboard only</label>
+  </div>
+</div>
+<div class="actionRow"><button class="miniBtn" id="saveScenarioBtn">SAVE SCENARIO</button><button class="miniBtn" id="sceneResetBtn">RESET SCENARIO</button></div>
+</section>
+<aside class="panel outputPanel">
+<div><div class="moduleTitle">LLM Context Code</div><div class="micro">Generate the encoded context handoff here. It is not the story; it is the packet the LLM decodes and uses.</div></div>
+<textarea id="outputBox" class="codeBox" spellcheck="false" placeholder="Generated StorySplainer packet appears here."></textarea>
+<div class="actionRow three"><button class="miniBtn" id="generateBtn">GENERATE</button><button class="miniBtn" id="copyBtn">COPY</button><button class="miniBtn" id="clearOutputBtn">CLEAR</button></div>
+<div class="statusLine" id="sceneStatus"></div>
+</aside>
+</div>
+</section>
+<section class="tabPage" id="nodesTab">
+<div class="hintStrip"><strong>NODES</strong> are reusable story pieces. Persons, Places, and Things each get a name, a short sentiment/state, and stackable relationship signals.</div>
+<div class="workspace nodesLayout">
+<section class="panel nodeColumn" data-type="person"><div class="moduleTitle">Persons <span class="micro" id="personCount">0</span></div><div class="addNodeBox"><div class="nodeFour"><label class="field">Name<input class="nodeNameInput" data-type="person" maxlength="40" placeholder="Person name"></label><label class="field">Archetype<input class="nodeArchInput" data-type="person" maxlength="40" placeholder="Role or type"></label><label class="field">Sentiment<input class="nodeSentInput" data-type="person" maxlength="40" placeholder="Mood or value"></label><label class="field">Special<input class="nodeSpecialInput" data-type="person" maxlength="60" placeholder="Hook or secret"></label></div><button class="miniBtn addNodeBtn" data-type="person">ADD PERSON</button></div><div class="nodeList" id="personList"></div></section>
+<section class="panel nodeColumn" data-type="place"><div class="moduleTitle">Places <span class="micro" id="placeCount">0</span></div><div class="addNodeBox"><div class="nodeFour"><label class="field">Name<input class="nodeNameInput" data-type="place" maxlength="40" placeholder="Place name"></label><label class="field">Archetype<input class="nodeArchInput" data-type="place" maxlength="40" placeholder="Role or type"></label><label class="field">Sentiment<input class="nodeSentInput" data-type="place" maxlength="40" placeholder="Mood or tone"></label><label class="field">Special<input class="nodeSpecialInput" data-type="place" maxlength="60" placeholder="Unique detail"></label></div><button class="miniBtn addNodeBtn" data-type="place">ADD PLACE</button></div><div class="nodeList" id="placeList"></div></section>
+<section class="panel nodeColumn" data-type="thing"><div class="moduleTitle">Things <span class="micro" id="thingCount">0</span></div><div class="addNodeBox"><div class="nodeFour"><label class="field">Name<input class="nodeNameInput" data-type="thing" maxlength="40" placeholder="Thing name"></label><label class="field">Archetype<input class="nodeArchInput" data-type="thing" maxlength="40" placeholder="Role or type"></label><label class="field">Sentiment<input class="nodeSentInput" data-type="thing" maxlength="40" placeholder="Mood or meaning"></label><label class="field">Special<input class="nodeSpecialInput" data-type="thing" maxlength="60" placeholder="Unique detail"></label></div><button class="miniBtn addNodeBtn" data-type="thing">ADD THING</button></div><div class="nodeList" id="thingList"></div></section>
+</div>
+</section>
+<section class="tabPage" id="bankTab">
+<div class="hintStrip"><strong>BANK</strong> stores reusable scenario setups. A scenario saves includes, context mode, and special instructions. It does not save the world header or output.</div>
+<div class="workspace bankLayout"><section class="panel"><div class="moduleTitle">Saved Scenarios <span class="micro" id="scenarioCount">0</span></div><div class="bankList" id="bankList"></div></section><aside class="panel scrollPanel"><div class="moduleTitle">Bank Notes</div><p class="micro">Scenarios and nodes use localStorage. Export JSON if you want a portable backup.</p><div class="moduleTitle" style="margin-top:8px;margin-bottom:6px;">Scenario Preview</div><div class="scenarioPreview" id="scenarioPreview">Select a saved scenario to preview includes, mode, and instructions.</div><div class="actionRow"><button class="miniBtn" id="exportBankBtn">EXPORT JSON</button><button class="miniBtn" id="importBankBtn">IMPORT JSON</button></div><textarea id="bankTransfer" class="codeBox" style="height:260px;margin-top:8px" placeholder="Exported bank JSON or import text appears here."></textarea><div class="statusLine" id="bankStatus">Ready.</div></aside></div>
+</section>
+<section class="tabPage" id="readmeTab">
+<article class="readme">
+<h2>StorySplainer README</h2>
+<p><strong>StorySplainer is a narrative context engine for LLMs.</strong> It does not write the story by itself. It builds a clean, encoded context handoff so an LLM can write or revise a scene with the world, nodes, relationships, and instructions already understood.</p>
+
+<h3>Core Idea</h3>
+<p>You can write a simple instruction like “the hero reaches the hill and hesitates.” StorySplainer adds the structured context: who the hero is, what the hill means, what object matters, which relationships are active, and what world tone should guide the scene.</p>
+
+<h3>World</h3>
+<p>The <span class="tagPill">WORLD</span> area is global context. It is pulled into every generation. Use the title and description for setting, tone, rules, constraints, genre, history, and background. The description can be longer than a tagline; give the LLM useful context when it matters.</p>
+
+<h3>World Controls</h3>
+<ul>
+<li><strong>Import</strong> replaces the current world with pasted StorySplainer world JSON.</li>
+<li><strong>Export</strong> writes the current world, nodes, relationships, and saved scenarios as JSON.</li>
+<li><strong>Create</strong> starts a new blank world after confirmation. Export first if you want to keep the current one.</li>
+</ul>
+<p>StorySplainer uses one active world at a time. Worlds are portable through import and export instead of a built-in multi-world switcher.</p>
+
+<h3>Nodes</h3>
+<p><span class="tagPill">PERSONS</span>, <span class="tagPill">PLACES</span>, and <span class="tagPill">THINGS</span> are reusable story pieces. Each node has four compact signals: Name, Archetype, Sentiment, and Special. For example: John / Knight / Valor / Mysterious Origin.</p>
+
+<h3>Relationships</h3>
+<p>Relationships are short stacked signals between nodes. They are not hard logic rules. They are narrative voltage: “secret son,” “bitter rival,” “birthday present,” “skinned his knee here.” In Includes Only mode, relationships matter when both related nodes are included.</p>
+
+<h3>Scenario</h3>
+<p>A scenario is the working layer: scene includes, context mode, and special instructions. It is separate from the world. Reset Scenario clears includes, clears special instructions, and returns context mode to Includes Only. It does not clear the generated context code.</p>
+
+<h3>Context Mode</h3>
+<ul>
+<li><strong>Includes Only</strong> sends selected nodes and relationships between those selected nodes.</li>
+<li><strong>Full World</strong> sends all nodes and all relationships for broader context.</li>
+</ul>
+
+<h3>LLM Context Code</h3>
+<p>The generated code is a <span class="tagPill">DECODE_BASE64_JSON</span> packet. Paste it into an LLM and ask it to decode and use it as the context reference. It is not a finished story. It is the structured handoff that helps the LLM write the story.</p>
+
+<h3>Storyboard</h3><p>The <span class="tagPill">STORYBOARD</span> controls add optional visual output instructions to the scene packet. Choose 0–9 frames, select Photo Real, Illustration, or Pencil Sketch, and optionally use Storyboard Only when you want image prompts instead of narrative prose.</p><h3>Bank</h3><p>The <span class="tagPill">BANK</span> stores reusable scenario setups. Selecting a row previews the scenario; it does not load it. Use the explicit Load button when you want to apply it.</p><h3>Privacy & Local Storage</h3>
+<p>StorySplainer stores data in browser localStorage. It does not upload your world, nodes, scenarios, or imports anywhere by itself. Imports are local JSON data processed in your browser. Do not put private secrets into content you plan to paste into an LLM.</p>
+
+<div class="relatedTool">Related tools: SoundSplainer and Spacesplainer links use placeholders until final URLs are wired.</div>
+</article>
+</section>
+</section>
+<footer><div class="tabs"><button class="tabBtn active" data-tab="sceneTab">SCENE</button><button class="tabBtn" data-tab="nodesTab">NODES</button><button class="tabBtn" data-tab="bankTab">BANK</button><button class="tabBtn" data-tab="readmeTab">README</button></div><div class="optionsSide"><div class="toast" id="toast"></div><button class="tabBtn" id="optionsBtn">OPTIONS</button></div></footer>
+</main>
+<div class="modalBackdrop" id="overviewModal"><div class="modal"><div class="modalTop"><h2>StorySplainer</h2><p><strong>StorySplainer is a story-context-to-LLM translator.</strong> Build a world, define reusable nodes, assemble a scenario, and generate an encoded context packet.</p></div><p><span class="tagPill">SCENE</span> builds the current setup. <span class="tagPill">NODES</span> stores people, places, things, and relationships. <span class="tagPill">BANK</span> saves reusable scenarios. <span class="tagPill">README</span> explains the system.</p><p>The point is simple: write what happens once, then let structured context carry the weight.</p><div class="modalActions"><label class="hideCheck"><input type="checkbox" id="hideOverviewCheck"> hide this on future loads</label><button class="btn" id="startBtn">START BUILDING</button></div></div></div>
+<div class="modalBackdrop" id="optionsModal"><div class="modal"><div class="modalTop"><h2>Options</h2><p>SETSKIN controls the default before a saved preference exists.</p></div><div class="skinGrid"><button class="btn skinBtn" data-skin="1">1 BASIC</button><button class="btn skinBtn" data-skin="2">2 LIGHT</button><button class="btn skinBtn" data-skin="3">3 RETRO</button><button class="btn skinBtn" data-skin="4">4 VIBES</button><button class="btn skinBtn" data-skin="5">5 BAKED</button><button class="btn skinBtn" data-skin="6">6 MOODY</button></div><div class="modalActions"><button class="btn" id="resetOptionsBtn">RESET OPTIONS</button><button class="btn" id="closeOptionsBtn">CLOSE</button></div></div></div>
+<div class="modalBackdrop" id="saveModal"><div class="modal"><div class="modalTop"><h2>Save Scenario</h2><p>Save includes, context mode, and special instructions.</p></div><label class="field">Scenario Name<input id="scenarioNameInput" maxlength="24" placeholder="Scenario name"></label><div class="modalActions"><button class="btn" id="cancelSaveBtn">CANCEL</button><button class="btn" id="confirmSaveBtn">SAVE</button></div></div></div>
+<div class="modalBackdrop" id="confirmModal"><div class="modal"><div class="modalTop"><h2 id="confirmTitle">Are you sure?</h2><p id="confirmText">This action cannot be undone.</p></div><div class="modalActions"><button class="btn" id="cancelConfirmBtn">CANCEL</button><button class="btn danger" id="okConfirmBtn">YES</button></div></div></div>
+<script>
+(()=> {
+const SETSKIN=1;
+const $=id=>document.getElementById(id);
+const storage={skin:"splainer.global.skin.v1",hideOverview:"storysplainer.hideOverview.v1",data:"storysplainer.data.v1"};
+let state={world:{title:"",description:"",locked:false},nodes:[],includes:[],contextMode:"includes",instructions:"",storyboard:{count:0,style:"photo-real",only:false},scenarios:[]};
+let confirmAction=null;let selectedScenarioId=null;
+const uid=()=> "n"+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);
+const nowIso=()=>new Date().toISOString();
+const safe=v=>String(v||"").replace(/\s+/g," ").trim();
+const esc=v=>String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+const b64=str=>btoa(unescape(encodeURIComponent(str)));
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1200)}
+function save(){capture();localStorage.setItem(storage.data,JSON.stringify(state))}
+function load(){try{const raw=localStorage.getItem(storage.data);if(raw){state={...state,...JSON.parse(raw)};state.storyboard={count:0,style:"photo-real",only:false,...(state.storyboard||{})}}}catch(e){}}
+function skin(n){n=Number(n)||SETSKIN;document.body.classList.remove("skin-basic","skin-light","skin-retro","skin-vibes","skin-baked","skin-moody");document.body.classList.add({1:"skin-basic",2:"skin-light",3:"skin-retro",4:"skin-vibes",5:"skin-baked",6:"skin-moody"}[n]||"skin-basic");document.querySelectorAll(".skinBtn").forEach(b=>b.classList.toggle("active",Number(b.dataset.skin)===n))}
+function openM(id){$(id).classList.add("show")} function closeM(id){$(id).classList.remove("show")}
+function tab(id){document.querySelectorAll(".tabPage").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".tabBtn[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));$(id).classList.add("active")}
+function capture(){state.world.title=$("worldTitle").value.trim();state.world.description=$("worldDesc").value.trim();state.world.locked=$("worldLock").checked;state.instructions=$("instructions").value.trim();state.storyboard={count:Number($("storyboardCount")?.value||0),style:$("storyboardStyle")?.value||"photo-real",only:!!$("storyboardOnly")?.checked}}
+function hydrate(){$("worldTitle").value=state.world.title||"";$("worldDesc").value=state.world.description||"";$("worldLock").checked=!!state.world.locked;$("instructions").value=state.instructions||"";if($("storyboardCount"))$("storyboardCount").value=String((state.storyboard&&state.storyboard.count)||0);if($("storyboardStyle"))$("storyboardStyle").value=(state.storyboard&&state.storyboard.style)||"photo-real";if($("storyboardOnly"))$("storyboardOnly").checked=!!(state.storyboard&&state.storyboard.only);setWorldLock(!!state.world.locked,false);setMode(state.contextMode||"includes",false)}
+function setWorldLock(v,p=true){$("worldTitle").disabled=v;$("worldDesc").disabled=v;if(p){state.world.locked=v;save()}}
+function byId(id){return state.nodes.find(n=>n.id===id)} function byType(t){return state.nodes.filter(n=>n.type===t)} function typeLabel(t){return t==="person"?"Person":t==="place"?"Place":"Thing"}
+function addNode(type){const ni=document.querySelector(`.nodeNameInput[data-type="${type}"]`),ai=document.querySelector(`.nodeArchInput[data-type="${type}"]`),si=document.querySelector(`.nodeSentInput[data-type="${type}"]`),pi=document.querySelector(`.nodeSpecialInput[data-type="${type}"]`);const name=safe(ni.value),archetype=safe(ai.value),sentiment=safe(si.value),special=safe(pi.value);if(!name){toast("Name needed");return}state.nodes.push({id:uid(),type,name,archetype,sentiment,special,locked:false,open:false,relationships:[],createdAt:nowIso()});ni.value="";ai.value="";si.value="";pi.value="";save();renderAll();toast("Node added")}
+function delNode(id){const n=byId(id);if(!n)return;confirmAction=()=>{state.nodes=state.nodes.filter(x=>x.id!==id);state.nodes.forEach(x=>x.relationships=(x.relationships||[]).filter(r=>r.targetId!==id));state.includes=state.includes.filter(x=>x!==id);state.scenarios.forEach(s=>s.includes=(s.includes||[]).filter(x=>x!==id));save();renderAll();toast("Node deleted")};$("confirmTitle").textContent=n.locked?"Locked Node":"Delete Node?";$("confirmText").textContent=n.locked?`This node is locked. Delete "${n.name}" anyway?`:`Delete "${n.name}" and remove its relationships?`;$("okConfirmBtn").textContent="DELETE";openM("confirmModal")}
+function openNode(id){const n=byId(id);if(n){n.open=!n.open;save();renderNodes()}}
+function lockNode(id){const n=byId(id);if(n){n.locked=!n.locked;save();renderNodes()}}
+function addRel(id){const n=byId(id);if(!n)return;const target=$(`relTarget_${id}`).value,ctx=safe($(`relContext_${id}`).value).slice(0,30);if(!target||!ctx){toast("Relation needs target + text");return}n.relationships=n.relationships||[];n.relationships.push({targetId:target,context:ctx});save();renderNodes();toast("Relation added")}
+function remRel(id,idx){const n=byId(id);if(!n)return;n.relationships.splice(idx,1);save();renderNodes()}
+function renderSelects(){[["addPersonSelect","person"],["addPlaceSelect","place"],["addThingSelect","thing"]].forEach(([sid,t])=>{const list=byType(t).filter(n=>!state.includes.includes(n.id));$(sid).innerHTML=list.length?list.map(n=>`<option value="${n.id}">${esc(n.name)}</option>`).join(""):`<option value="">No ${t}s available</option>`})}
+function renderIncludes(){const box=$("includeList");const inc=state.includes.map(byId).filter(Boolean);$("includeCount").textContent=`${inc.length} included`;if(!inc.length){box.innerHTML=`<div class="emptyNote">No scene includes yet.</div>`;return}box.innerHTML=inc.map(n=>`<span class="chip type-${n.type}">${esc(n.name)} <small>${typeLabel(n.type)}</small><button class="x" data-rm="${n.id}">×</button></span>`).join("");box.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{state.includes=state.includes.filter(x=>x!==b.dataset.rm);save();renderAll()})}
+function addInclude(t){const sel=$(t==="person"?"addPersonSelect":t==="place"?"addPlaceSelect":"addThingSelect");if(sel.value&&!state.includes.includes(sel.value)){state.includes.push(sel.value);save();renderAll()}}
+function setMode(m,p=true){state.contextMode=m;$("modeIncludes").classList.toggle("active",m==="includes");$("modeFull").classList.toggle("active",m==="full");$("modeHint").textContent=m==="includes"?"Includes Only sends selected nodes and relationships between them.":"Full World sends the full node database and all relationships.";if(p)save()}
+function renderNodes(){["person","place","thing"].forEach(type=>{const list=$(type+"List"),nodes=byType(type);$(type+"Count").textContent=nodes.length;if(!nodes.length){list.innerHTML=`<div class="emptyNote">No ${type}s yet.</div>`;return}list.innerHTML=nodes.map(n=>{const targets=state.nodes.filter(x=>x.id!==n.id);const opts=targets.length?targets.map(t=>`<option value="${t.id}">${esc(t.name)} · ${typeLabel(t.type)}</option>`).join(""):`<option value="">No other nodes</option>`;const rels=(n.relationships||[]);const rows=rels.length?rels.map((r,i)=>{const t=byId(r.targetId);return `<div class="relRow"><span>→ <strong>${esc(t?t.name:"missing")}</strong> — ${esc(r.context)}</span><button class="miniBtn" data-relrm="${n.id}|${i}">×</button></div>`}).join(""):`<div class="emptyNote">No relationships yet.</div>`;const meta=[n.archetype,n.sentiment,n.special].filter(Boolean).join(" · ")||"no archetype / sentiment / special";return `<div class="nodeCard ${n.open?"open":""} type-${n.type}"><div class="nodeTop"><div data-open="${n.id}"><div class="nodeName">${esc(n.name)}</div><div class="nodeSent">${esc(meta)}</div><div class="nodeMeta">${rels.length} relationship${rels.length===1?"":"s"}</div></div><label class="nodeLock"><input type="checkbox" data-lock="${n.id}" ${n.locked?"checked":""}> lock</label><button class="miniBtn danger" data-del="${n.id}">×</button></div><div class="nodeDetails"><div class="relAdder"><label class="field">Target<select id="relTarget_${n.id}">${opts}</select></label><label class="field">Signal ≤30<input id="relContext_${n.id}" maxlength="30" placeholder="relationship signal"></label><button class="miniBtn" data-reladd="${n.id}">ADD</button></div><div class="relList">${rows}</div></div></div>`}).join("");list.querySelectorAll("[data-open]").forEach(e=>e.onclick=()=>openNode(e.dataset.open));list.querySelectorAll("[data-lock]").forEach(e=>e.onchange=()=>lockNode(e.dataset.lock));list.querySelectorAll("[data-del]").forEach(e=>e.onclick=()=>delNode(e.dataset.del));list.querySelectorAll("[data-reladd]").forEach(e=>e.onclick=()=>addRel(e.dataset.reladd));list.querySelectorAll("[data-relrm]").forEach(e=>e.onclick=()=>{const [id,i]=e.dataset.relrm.split("|");remRel(id,Number(i))})})}
+function relPayload(nodes){const allowed=new Set(nodes.map(n=>n.id)),rels=[];nodes.forEach(n=>(n.relationships||[]).forEach(r=>{if(allowed.has(r.targetId)){const t=byId(r.targetId);rels.push({fromId:n.id,from:n.name,toId:r.targetId,to:t?t.name:"missing",signal:r.context})}}));return rels}
+function packet(){capture();const selected=state.includes.map(byId).filter(Boolean);const nodes=state.contextMode==="full"?state.nodes.slice():selected;const payload={messageToLLM:"This is a StorySplainer narrative context packet. Decode this JSON and use it as structured story context. The user wants the LLM to generate or revise a scene using the world, selected nodes, relationship signals, and special instructions. Treat node archetype, sentiment, and special fields as compact narrative signals. Treat relationships as compact narrative signals, not rigid rules.",tool:"StorySplainer",recipeVersion:1,type:"narrative context packet",createdAt:nowIso(),world:{title:state.world.title||"",description:state.world.description||""},scenario:{contextMode:state.contextMode,instructions:state.instructions||"",includedNodeIds:state.includes.slice(),storyboard:{count:Number((state.storyboard&&state.storyboard.count)||0),style:(state.storyboard&&state.storyboard.style)||"photo-real",storyboardOnly:!!(state.storyboard&&state.storyboard.only),instruction:Number((state.storyboard&&state.storyboard.count)||0)>0?`Generate ${Number((state.storyboard&&state.storyboard.count)||0)} storyboard/image prompt frame(s) in ${(state.storyboard&&state.storyboard.style)||"photo-real"} style.${(state.storyboard&&state.storyboard.only)?" Do not generate narrative prose; output storyboard/image prompts only.":""}`:"No storyboard/image prompt request."},note:state.contextMode==="includes"?"Includes Only sends selected nodes and relationships between selected nodes.":"Full World sends all nodes and all relationships."},nodes:nodes.map(n=>({id:n.id,type:n.type,name:n.name,archetype:n.archetype||"",sentiment:n.sentiment||"",special:n.special||""})),relationships:relPayload(nodes),generationGuidance:{purpose:"Enrich a simple scene instruction with reusable world and node context.",doNot:"Do not treat this as a finished story. Use it as context for writing.",preserve:["world tone","node archetype","node sentiment","node special hook","active relationships","special instructions","selected context mode","storyboard request if present"]}};return "DECODE_BASE64_JSON:"+b64(JSON.stringify(payload))}
+function gen(){const code=packet();$("outputBox").value=code;$("sceneStatus").textContent="Packet generated.";save();toast("Generated");return code}
+async function copy(text){if(!text)text=gen();try{await navigator.clipboard.writeText(text)}catch(e){const t=document.createElement("textarea");t.value=text;document.body.appendChild(t);t.select();document.execCommand("copy");t.remove()}$("sceneStatus").textContent="Copied.";toast("Copied")}
+function saveScenario(){capture();$("scenarioNameInput").value=state.instructions?state.instructions.split(/\s+/).slice(0,3).join(" ").slice(0,24):"Scenario";openM("saveModal")}
+function confirmSave(){const name=safe($("scenarioNameInput").value)||"Scenario "+(state.scenarios.length+1);state.scenarios.push({id:uid(),name:name.slice(0,24),includes:state.includes.slice(),contextMode:state.contextMode,instructions:state.instructions||"",storyboard:{...(state.storyboard||{count:0,style:"photo-real",only:false})},createdAt:nowIso()});save();renderBank();closeM("saveModal");toast("Scenario saved")}
+function loadScen(id){const s=state.scenarios.find(x=>x.id===id);if(!s)return;state.includes=(s.includes||[]).filter(id=>byId(id));state.contextMode=s.contextMode||"includes";state.instructions=s.instructions||"";state.storyboard={count:0,style:"photo-real",only:false,...(s.storyboard||{})};hydrate();renderAll();tab("sceneTab");toast("Scenario loaded")}
+function delScen(id){const s=state.scenarios.find(x=>x.id===id);if(!s)return;confirmAction=()=>{state.scenarios=state.scenarios.filter(x=>x.id!==id);if(selectedScenarioId===id)selectedScenarioId=null;save();renderBank();toast("Scenario deleted")};$("confirmTitle").textContent="Delete Scenario?";$("confirmText").textContent=`Delete "${s.name}" from the bank?`;$("okConfirmBtn").textContent="DELETE";openM("confirmModal")}
+function previewScenario(id){selectedScenarioId=id;const s=state.scenarios.find(x=>x.id===id);const box=$("scenarioPreview");if(!box)return;if(!s){box.textContent="Select a saved scenario to preview includes, mode, and instructions.";return}const names=(s.includes||[]).map(id=>byId(id)).filter(Boolean).map(n=>`${n.name} (${typeLabel(n.type)})`);const sb=s.storyboard||{count:0,style:"photo-real",only:false};box.innerHTML=`<strong>${esc(s.name)}</strong><br>Mode: ${esc(s.contextMode||"includes")}<br>Includes: ${names.length?esc(names.join(", ")):"none"}<br>Storyboard: ${Number(sb.count||0)} frame(s) · ${esc(sb.style||"photo-real")}${sb.only?" · storyboard only":""}<br><br><strong>Instructions</strong><br>${esc(s.instructions||"No instructions saved.")}`;renderBank()}
+function renderBank(){$("scenarioCount").textContent=state.scenarios.length;const list=$("bankList");if(!state.scenarios.length){list.innerHTML=`<div class="emptyNote">No saved scenarios yet.</div>`;const box=$("scenarioPreview");if(box)box.textContent="Select a saved scenario to preview includes, mode, and instructions.";return}list.innerHTML=state.scenarios.map(s=>`<div class="bankRow ${selectedScenarioId===s.id?"selected":""}" data-preview="${s.id}"><div><div class="bankName">${esc(s.name)}</div><div class="bankInfo">${(s.includes||[]).length} includes · ${esc(s.contextMode)} · ${new Date(s.createdAt).toLocaleString()}</div></div><div class="bankActions"><button class="miniBtn" data-load="${s.id}">LOAD</button><button class="miniBtn danger" data-sdel="${s.id}">DELETE</button></div></div>`).join("");list.querySelectorAll("[data-preview]").forEach(row=>row.onclick=e=>{if(e.target.closest("button"))return;previewScenario(row.dataset.preview)});list.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>loadScen(b.dataset.load));list.querySelectorAll("[data-sdel]").forEach(b=>b.onclick=()=>delScen(b.dataset.sdel));const selected=state.scenarios.find(x=>x.id===selectedScenarioId);if(!selected && $("scenarioPreview"))$("scenarioPreview").textContent="Select a saved scenario to preview includes, mode, and instructions."}
+function exportBank(){$("bankTransfer").value=JSON.stringify({app:"StorySplainer",bankVersion:1,exportedAt:nowIso(),world:state.world,nodes:state.nodes,scenarios:state.scenarios},null,2);$("bankStatus").textContent="Bank exported.";toast("Exported")}
+function importBank(){try{const d=JSON.parse($("bankTransfer").value);if(d.app!=="StorySplainer")throw 0;state.world=d.world||state.world;state.nodes=Array.isArray(d.nodes)?d.nodes:state.nodes;state.scenarios=Array.isArray(d.scenarios)?d.scenarios:state.scenarios;state.includes=[];state.instructions="";save();hydrate();renderAll();$("bankStatus").textContent="Bank imported.";toast("Imported")}catch(e){$("bankStatus").textContent="Import failed.";toast("Import failed")}}
+function resetScenario(){confirmAction=()=>{state.includes=[];state.instructions="";state.contextMode="includes";state.storyboard={count:0,style:"photo-real",only:false};hydrate();save();renderAll();toast("Scenario reset")};$("confirmTitle").textContent="Reset Scenario?";$("confirmText").textContent="This clears scene includes, special instructions, and returns context mode to Includes Only. World, nodes, bank, and current output code are kept.";$("okConfirmBtn").textContent="RESET";openM("confirmModal")}
+
+function fullWorldData(){
+  capture();
+  return {
+    app:"StorySplainer",
+    worldVersion:1,
+    exportedAt:nowIso(),
+    world:state.world,
+    nodes:state.nodes,
+    scenarios:state.scenarios
+  };
+}
+function exportWorld(){
+  const data = fullWorldData();
+  $("outputBox").value = JSON.stringify(data,null,2);
+  $("sceneStatus").textContent = "World JSON exported to output.";
+  toast("World exported");
+}
+function importWorld(){
+  const raw = $("outputBox").value.trim();
+  if(!raw){toast("Paste world JSON in output");$("sceneStatus").textContent="Paste StorySplainer world JSON into the output box first.";return}
+  let data;
+  try{data=JSON.parse(raw)}catch(e){toast("Import failed");$("sceneStatus").textContent="Import failed: invalid JSON.";return}
+  if(!data || data.app!=="StorySplainer" || !data.world || !Array.isArray(data.nodes)){
+    toast("Import failed");
+    $("sceneStatus").textContent="Import failed: not a StorySplainer world export.";
+    return;
+  }
+  confirmAction=()=>{
+    state.world=data.world||{title:"",description:"",locked:false};
+    state.nodes=Array.isArray(data.nodes)?data.nodes:[];
+    state.scenarios=Array.isArray(data.scenarios)?data.scenarios:[];
+    state.includes=[];
+    state.contextMode="includes";
+    state.instructions="";
+    hydrate();
+    save();
+    renderAll();
+    toast("World imported");
+    $("sceneStatus").textContent="World imported.";
+  };
+  $("confirmTitle").textContent="Import World?";
+  $("confirmText").textContent="This replaces the current world, nodes, and saved scenarios with the pasted world JSON.";
+  $("okConfirmBtn").textContent="IMPORT";
+  openM("confirmModal");
+}
+function blankState(){
+  return {
+    world:{title:"",description:"",locked:false},
+    nodes:[],
+    includes:[],
+    contextMode:"includes",
+    instructions:"",
+    storyboard:{count:0,style:"photo-real",only:false},
+    scenarios:[]
+  };
+}
+function createWorld(){
+  confirmAction=()=>{
+    closeM("confirmModal");
+    confirmAction=()=>{
+      state=blankState();
+      localStorage.setItem(storage.data, JSON.stringify(state));
+      $("outputBox").value="";
+      $("bankTransfer").value="";
+      $("sceneStatus").textContent="New blank world created.";
+      $("bankStatus").textContent="";
+      hydrate();
+      renderAll();
+      toast("New world");
+    };
+    $("confirmTitle").textContent="Create New World?";
+    $("confirmText").textContent="Are you sure? This clears the current in-app world, nodes, includes, instructions, and saved scenarios. Export first if you want to keep them.";
+    $("okConfirmBtn").textContent="CREATE";
+    openM("confirmModal");
+  };
+  $("confirmTitle").textContent="Export First?";
+  $("confirmText").textContent="Create starts a blank world. Export your current world first if you want to keep it. Continue?";
+  $("okConfirmBtn").textContent="CONTINUE";
+  openM("confirmModal");
+}
+
+function renderAll(){renderSelects();renderIncludes();renderNodes();renderBank()}
+function wire(){document.querySelectorAll(".tabBtn[data-tab]").forEach(b=>b.onclick=()=>tab(b.dataset.tab));$("overviewBtn").onclick=()=>openM("overviewModal");$("demoBtn").onclick=()=>{location.href="storysplainer-demo.html"};$("startBtn").onclick=()=>{if($("hideOverviewCheck").checked)localStorage.setItem(storage.hideOverview,"1");closeM("overviewModal")};$("optionsBtn").onclick=()=>openM("optionsModal");$("closeOptionsBtn").onclick=()=>closeM("optionsModal");$("resetOptionsBtn").onclick=()=>{localStorage.removeItem(storage.skin);localStorage.removeItem(storage.hideOverview);skin(SETSKIN);toast("Options reset")};document.querySelectorAll(".skinBtn").forEach(b=>b.onclick=()=>{localStorage.setItem(storage.skin,b.dataset.skin);skin(b.dataset.skin)});$("worldLock").onchange=e=>setWorldLock(e.target.checked);["worldTitle","worldDesc","instructions"].forEach(id=>$(id).oninput=()=>{save();$("outputBox").value=""});["storyboardCount","storyboardStyle","storyboardOnly"].forEach(id=>{if($(id))$(id).onchange=()=>{save();$("outputBox").value=""}});$("addPersonBtn").onclick=()=>addInclude("person");$("addPlaceBtn").onclick=()=>addInclude("place");$("addThingBtn").onclick=()=>addInclude("thing");$("modeIncludes").onclick=()=>setMode("includes");$("modeFull").onclick=()=>setMode("full");$("generateBtn").onclick=gen;$("copyBtn").onclick=()=>copy($("outputBox").value||gen());$("clearOutputBtn").onclick=()=>{$("outputBox").value="";$("sceneStatus").textContent="Output cleared.";toast("Cleared")};$("saveScenarioBtn").onclick=saveScenario;$("sceneResetBtn").onclick=resetScenario;$("worldExportBtn").onclick=exportWorld;$("worldImportBtn").onclick=importWorld;$("worldCreateBtn").onclick=createWorld;document.querySelectorAll(".addNodeBtn").forEach(b=>b.onclick=()=>addNode(b.dataset.type));$("cancelSaveBtn").onclick=()=>closeM("saveModal");$("confirmSaveBtn").onclick=confirmSave;$("cancelConfirmBtn").onclick=()=>closeM("confirmModal");$("okConfirmBtn").onclick=()=>{const action=confirmAction;confirmAction=null;if(action)action();closeM("confirmModal")};$("exportBankBtn").onclick=exportBank;$("importBankBtn").onclick=importBank;document.querySelectorAll(".modalBackdrop").forEach(m=>m.onclick=e=>{if(e.target===m&&m.id!=="confirmModal")m.classList.remove("show")});document.onkeydown=e=>{if(e.key==="Escape")document.querySelectorAll(".modalBackdrop.show").forEach(m=>m.classList.remove("show"))}}
+load();skin(Number(localStorage.getItem(storage.skin)||SETSKIN));hydrate();wire();renderAll();if(localStorage.getItem(storage.hideOverview)!=="1")openM("overviewModal");
+})();
+</script>
+</body>
+</html>
